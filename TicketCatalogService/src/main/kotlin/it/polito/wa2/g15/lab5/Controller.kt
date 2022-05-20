@@ -1,6 +1,5 @@
 package it.polito.wa2.g15.lab5
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
 import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
 import it.polito.wa2.g15.lab5.dtos.UserDetailsDTO
@@ -43,12 +42,6 @@ class Controller {
         return principal.map { p -> p.sub }
     }
 
-    @GetMapping("test/")
-    suspend fun testing() : Flow<TicketItemDTO> {
-        return ticketCatalogService.getAllTicketTypes()
-            .map { item -> item.toDTO() }
-    }
-
     /**
      * Returns a JSON representation of all available tickets. Those tickets
      * are represented as a JSON object consisting of price, ticketId, type ( ordinal or type
@@ -61,8 +54,8 @@ class Controller {
      * with the key used by the LoginService]
      */
     @GetMapping("tickets/")
-    fun availableTickets() {
-        TODO("Implement this")
+    suspend fun availableTickets() : Flow<TicketItemDTO> {
+        return ticketCatalogService.getAllTicketItems().map { item -> item.toDTO() }
     }
 
     /**

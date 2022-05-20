@@ -12,7 +12,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     @Autowired
     lateinit var ticketItemRepository: TicketItemRepository
 
-    override suspend fun getAllTicketTypes() : Flow<TicketItem> {
+    override suspend fun getAllTicketItems() : Flow<TicketItem> {
         return ticketItemRepository.findAll()
     }
 
