@@ -1,0 +1,58 @@
+### Compro biglietti xxxx
+POST http://localhost:8081/my/tickets/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+{"cmd": "buy_tickets", "quantity": 2, "zones": "ABC"}
+
+### Guardo un profilo xxxx
+GET http://localhost:8081/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+### Aggiungo un profilo xxxx
+PUT http://localhost:8081/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+{
+  "name": "xxxx yyyy",
+  "address": "068798",
+  "dateOfBirth": "1997-05-28",
+  "telephoneNumber": "3899283094"
+}
+
+### Aggiungo un profilo xxxx
+PUT http://localhost:8081/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJSMkQyIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkNVU1RPTUVSIl19.Z_qium_7XDN3yIKzQMGj83YElSWfvR6h3TI0NiSj9sI
+
+{
+  "name": "R2D2 prof",
+  "address": "068798",
+  "dateOfBirth": "1997-05-28",
+  "telephoneNumber": "31112899283094"
+}
+
+### Guardo un profilo R2D2
+GET http://localhost:8081/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJSMkQyIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkNVU1RPTUVSIl19.Z_qium_7XDN3yIKzQMGj83YElSWfvR6h3TI0NiSj9sI
+
+### Admin guarda  profili
+GET http://localhost:8081/admin/travelers/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+

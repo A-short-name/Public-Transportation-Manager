@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "ratelimiter.capacity",
+      "type": "java.lang.Long",
+      "description": "Value for the capacity of the bucket used by the ratelimiter interceptor. A token-bucket based algorithm is used to limit rate of request to a specific endpoint"
+    },
+    {
+      "name": "ratelimiter.refilltime",
+      "type": "java.lang.Long",
+      "description": "Value for the time interval waited before refill the bucket used by the ratelimiter interceptor. A token-bucket based algorithm is used to limit rate of request to a specific endpoint"
+    }
+  ] }

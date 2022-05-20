@@ -1,0 +1,33 @@
+POST http://localhost:8080/user/register
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
+
+{
+  "nickname": "somename",
+  "password": "Secret!Password1",
+  "email": "me@email.com"
+}
+
+###
+POST http://localhost:8080/user/validate
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
+
+{
+  "provisional_id": "f7d00a62-3792-4389-bef4-990579e7cedb",
+  "activation_code": "068798"
+}
+
+###
+
+POST http://localhost:8080/user/login
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
+
+{
+  "nickname": "CustomerAdminx99Xx",
+  "password": "CustomerAdminPasswordVeryHard!1!1"
+}
