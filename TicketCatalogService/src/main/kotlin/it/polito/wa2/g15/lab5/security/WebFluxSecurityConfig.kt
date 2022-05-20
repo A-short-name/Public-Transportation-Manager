@@ -59,9 +59,9 @@ class WebFluxSecurityConfig {
             }.accessDeniedHandler { swe: ServerWebExchange, _: AccessDeniedException? ->
                 Mono.fromRunnable { swe.response.statusCode = HttpStatus.FORBIDDEN }
             }.and()
-            //.csrf().disable()
-            .csrf().csrfTokenRepository(csrfTokenRepository())
-            .and()
+            .csrf().disable()
+            //.csrf().csrfTokenRepository(csrfTokenRepository())
+            //.and()
             .formLogin().disable()
             .httpBasic().disable()
             .authenticationManager(authenticationManager)

@@ -4,9 +4,9 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("ticket_types")
-data class TicketType (
+data class TicketItem (
     @Id
-    val id: Long,
+    val id: Long? = null,
     val type: String,
     val price: Double,
     )

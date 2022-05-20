@@ -1,24 +1,37 @@
 package it.polito.wa2.g15.lab5
 
+import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
+import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
 import it.polito.wa2.g15.lab5.dtos.UserDetailsDTO
-import it.polito.wa2.g15.lab5.entities.TicketType
+import it.polito.wa2.g15.lab5.dtos.toDTO
+import it.polito.wa2.g15.lab5.entities.TicketItem
+import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.validation.BindingResult
+import org.springframework.validation.FieldError
+import org.springframework.validation.ObjectError
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.onErrorReturn
+import javax.validation.Valid
 
 @RestController
 class Controller {
     @Autowired
     private lateinit var ticketCatalogService: TicketCatalogService
+
+    @Autowired
+    private lateinit var ticketRepo: TicketItemRepository
 
     private val logger = KotlinLogging.logger {}
 
@@ -33,8 +46,9 @@ class Controller {
     }
 
     @GetMapping("test/")
-    suspend fun testing() : Flow<TicketType> {
+    suspend fun testing() : Flow<TicketItemDTO> {
         return ticketCatalogService.getAllTicketTypes()
+            .map { item -> item.toDTO() }
     }
 
     /**
@@ -97,8 +111,24 @@ class Controller {
      */
     @PostMapping("admin/tickets/")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun addNewAvailableTicketToCatalog() {
-        TODO("Implement this")
+    suspend fun addNewAvailableTicketToCatalog(
+        @RequestBody newTicketItemDTO: Mono<NewTicketItemDTO>,
+        response: ServerHttpResponse) {
+
+
+        ticketCatalogService.addNewTicketType(newTicketItemDTO.awaitSingle())
+//            newTicketItemDTO.map { newTicket ->
+//                ticketCatalogService.addNewTicketType(newTicket)
+//            }.subscribe()
+//            try {
+//                newTicketItemDTO.block()!!)
+//            } catch (ex: Exception) {
+//                logger.error { "\tTicket type not valid: ${ex.message}" }
+//                response.statusCode = HttpStatus.BAD_REQUEST
+//                return
+
+        response.statusCode = HttpStatus.OK
+        return
     }
 
     /**
@@ -117,5 +147,15 @@ class Controller {
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String) {
         TODO("Implement this")
+    }
+
+    fun logBindingResultErrors(bindingResult: BindingResult) {
+        val errors: MutableMap<String, String?> = HashMap()
+        bindingResult.allErrors.forEach { error: ObjectError ->
+            val fieldName = (error as FieldError).field
+            val errorMessage = error.getDefaultMessage()
+            errors[fieldName] = errorMessage
+        }
+        logger.debug { errors }
     }
 }

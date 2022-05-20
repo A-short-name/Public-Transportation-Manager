@@ -1,8 +1,11 @@
 package it.polito.wa2.g15.lab5.services
 
-import it.polito.wa2.g15.lab5.entities.TicketType
+import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
+import it.polito.wa2.g15.lab5.entities.TicketItem
 import kotlinx.coroutines.flow.Flow
 
 interface TicketCatalogService {
-    suspend fun getAllTicketTypes() : Flow<TicketType>
+    suspend fun getAllTicketTypes() : Flow<TicketItem>
+
+    suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO)
 }
