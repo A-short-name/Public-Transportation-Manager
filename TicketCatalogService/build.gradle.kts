@@ -28,6 +28,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
+    runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
