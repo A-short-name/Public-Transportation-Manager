@@ -27,9 +27,6 @@ class Controller {
     @Autowired
     private lateinit var ticketCatalogService: TicketCatalogService
 
-    @Autowired
-    private lateinit var ticketRepo: TicketItemRepository
-
     private val logger = KotlinLogging.logger {}
 
     private val principal = ReactiveSecurityContextHolder.getContext()
@@ -45,13 +42,7 @@ class Controller {
     /**
      * Returns a JSON representation of all available tickets. Those tickets
      * are represented as a JSON object consisting of price, ticketId, type ( ordinal or type
-     * of pass). A ticketAcquired is represented as a JSON object consisting of the fields
-     * “sub” (the unique ticketID), “iat” (issuedAt, a timestamp), “validfrom” (useful for
-     * subscriptions), “exp” (expiry timestamp), “zid” (zoneID, the set of transport zones it
-     * gives access to), type (ordinal, weekend pass, etc), “jws” (the encoding of the
-     * previous information as a signed JWT) [Note that this JWT will be used for providing
-     * physical access to the train area and will be signed by a key that has nothing to do
-     * with the key used by the LoginService]
+     * of pass).
      */
     @GetMapping("tickets/")
     suspend fun availableTickets() : Flow<TicketItemDTO> {
@@ -115,20 +106,16 @@ class Controller {
         @RequestBody newTicketItemDTO: Mono<NewTicketItemDTO>,
         response: ServerHttpResponse) {
 
+        val ticket = newTicketItemDTO
+            .doOnError { response.statusCode = HttpStatus.BAD_REQUEST }
+            .awaitSingle()
 
-        ticketCatalogService.addNewTicketType(newTicketItemDTO.awaitSingle())
-//            newTicketItemDTO.map { newTicket ->
-//                ticketCatalogService.addNewTicketType(newTicket)
-//            }.subscribe()
-//            try {
-//                newTicketItemDTO.block()!!)
-//            } catch (ex: Exception) {
-//                logger.error { "\tTicket type not valid: ${ex.message}" }
-//                response.statusCode = HttpStatus.BAD_REQUEST
-//                return
-
-        response.statusCode = HttpStatus.OK
-        return
+        try {
+            ticketCatalogService.addNewTicketType(ticket)
+            response.statusCode = HttpStatus.OK
+        }catch(e: Exception) {
+            response.statusCode = HttpStatus.BAD_REQUEST
+        }
     }
 
     /**

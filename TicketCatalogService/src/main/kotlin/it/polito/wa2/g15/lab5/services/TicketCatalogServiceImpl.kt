@@ -22,7 +22,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         try {
             ticketItemRepository.save(ticketItem)
         } catch (e: Exception) {
-            throw Exception("Testing: ${e.message}")
+            throw Exception("Failed saving ticketItem: ${e.message}")
         }
     }
 }
