@@ -18,6 +18,7 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
@@ -25,6 +26,8 @@ dependencies {
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("io.r2dbc:r2dbc-postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
