@@ -1,7 +1,11 @@
 package it.polito.wa2.g15.lab5
 
 import it.polito.wa2.g15.lab5.dtos.UserDetailsDTO
+import it.polito.wa2.g15.lab5.entities.TicketType
+import it.polito.wa2.g15.lab5.services.TicketCatalogService
+import kotlinx.coroutines.flow.Flow
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
@@ -13,6 +17,9 @@ import reactor.core.publisher.Mono
 
 @RestController
 class Controller {
+    @Autowired
+    private lateinit var ticketCatalogService: TicketCatalogService
+
     private val logger = KotlinLogging.logger {}
 
     private val principal = ReactiveSecurityContextHolder.getContext()
@@ -23,6 +30,11 @@ class Controller {
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getName(): Mono<String>? {
         return principal.map { p -> p.sub }
+    }
+
+    @GetMapping("test/")
+    suspend fun testing() : Flow<TicketType> {
+        return ticketCatalogService.getAllTicketTypes()
     }
 
     /**
