@@ -1,10 +1,10 @@
 package it.polito.wa2.g15.lab5
 
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
 import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
 import it.polito.wa2.g15.lab5.dtos.UserDetailsDTO
 import it.polito.wa2.g15.lab5.dtos.toDTO
-import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import kotlinx.coroutines.flow.Flow
@@ -22,8 +22,6 @@ import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.onErrorReturn
-import javax.validation.Valid
 
 @RestController
 class Controller {
@@ -85,6 +83,15 @@ class Controller {
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
     fun buyTickets(@PathVariable("ticket-id") ticketId: String) {
         TODO("Implement this")
+
+        // Use this to contact the travelerService:
+        // Client is a webClient (val client = WebClient.create() ??) It should be in the consturctor of the controller
+//        client
+//            .get()
+//            .uri("/suspend")
+//            .accept(MediaType.APPLICATION_JSON)
+//            .awaitExchange()
+//            .awaitBody<Banner>()
     }
 
     /**
