@@ -6,5 +6,7 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("transactions")
 data class Transaction (
     @Id
-    val id: Long? = null
+    val id: Long? = null,
+
+    val username: String
 )
