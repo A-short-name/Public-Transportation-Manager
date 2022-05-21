@@ -17,7 +17,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     }
 
     override suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) {
-        val ticketItem = TicketItem(type = newTicketItemDTO.type,price = newTicketItemDTO.price)
+        val ticketItem = TicketItem(ticketType = newTicketItemDTO.type,price = newTicketItemDTO.price)
 
         try {
             ticketItemRepository.save(ticketItem)

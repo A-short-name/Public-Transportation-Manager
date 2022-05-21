@@ -20,7 +20,7 @@ data class TicketItemDTO(
 )
 
 fun TicketItem.toDTO() : TicketItemDTO {
-    return TicketItemDTO(id!!, price, type)
+    return TicketItemDTO(id!!, price, ticketType)
 }
 
 data class NewTicketItemDTO(
