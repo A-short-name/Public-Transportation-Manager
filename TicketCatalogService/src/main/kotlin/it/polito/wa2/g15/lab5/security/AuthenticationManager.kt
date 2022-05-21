@@ -26,7 +26,7 @@ class AuthenticationManager : ReactiveAuthenticationManager {
             .map{ // I'm here only if true and will map it to an authentication object with userDetails
                 val userDetails = jwtUtils.getDetailsJwt(authToken)
                 println("User is: ${userDetails.sub}")
-                UsernamePasswordAuthenticationToken(userDetails, null, userDetails.roles)
+                UsernamePasswordAuthenticationToken(userDetails, authToken, userDetails.roles)
             }
     }
 }

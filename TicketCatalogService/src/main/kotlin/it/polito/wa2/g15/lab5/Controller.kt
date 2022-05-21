@@ -29,6 +29,10 @@ class Controller {
         .map { obj: SecurityContext -> obj.authentication.principal}
         .cast(UserDetailsDTO::class.java)
 
+    private val authJwt = ReactiveSecurityContextHolder.getContext()
+        .map { obj: SecurityContext -> obj.authentication.credentials}
+        .cast(String::class.java)
+
     @GetMapping(path = ["/whoami"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getName(): Mono<String>? {
@@ -64,7 +68,18 @@ class Controller {
     suspend fun buyTickets(@PathVariable("ticket-id") ticketId: String,
                            @RequestBody buyTicketBody: Mono<BuyTicketDTO>
     ) : Mono<Long> {
+
+
+        // Use this to contact the travelerService:
+        // Client is a webClient (val client = WebClient.create() ??) It should be in the consturctor of the controller
+//        client
+//            .get()
+//            .uri("/suspend")
+//            .accept(MediaType.APPLICATION_JSON)
+//            .awaitExchange()
+//            .awaitBody<Banner>()
         val userName = principal.map { p -> p.sub }
+        logger.info("auth jwt: $authJwt")
         return ticketCatalogService.buyTicket(buyTicketBody.awaitSingle(),ticketId.toLong(),userName)
 
 

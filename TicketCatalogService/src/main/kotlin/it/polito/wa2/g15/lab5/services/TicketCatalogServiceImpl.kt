@@ -4,6 +4,7 @@ import it.polito.wa2.g15.lab5.dtos.BuyTicketDTO
 import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
+import it.polito.wa2.g15.lab5.security.JwtUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
