@@ -79,7 +79,7 @@ class Controller {
 //            .awaitExchange()
 //            .awaitBody<Banner>()
         val userName = principal.map { p -> p.sub }
-        logger.info("auth jwt: $authJwt")
+        logger.info("auth jwt: ${authJwt.awaitSingle()}")
         return ticketCatalogService.buyTicket(buyTicketBody.awaitSingle(),ticketId.toLong(),userName)
 
 

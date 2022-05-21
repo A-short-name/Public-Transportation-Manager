@@ -202,6 +202,25 @@ class Controller {
         }
     }
     /* END OF ADMIN ONLY endpoints */
+
+    /**
+     * Returns a JSON representation of the current user’s profile
+     * (name, address, date_of_birth, telephone_number) as stored in the service DB.
+     * @return UserProfileDTO as JSON or HttpStatus.BAD_REQUEST if user did not perform any PUT request
+     */
+    @GetMapping("/catalog/user/{username}/profile/")
+    fun selectedUserProfile(@PathVariable("username") username: String): ResponseEntity<UserProfileDTO> {
+        return try {
+            val result: UserProfileDTO = travelerService.getUserDetails(username)
+
+            ResponseEntity<UserProfileDTO>(result, HttpStatus.OK)
+        } catch (ex: Exception) {
+            logger.error { "\tProfile not valid: ${ex.message}" }
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+
     
     fun logBindingResultErrors(bindingResult: BindingResult) {
         val errors: MutableMap<String, String?> = HashMap()
