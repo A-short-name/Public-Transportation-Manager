@@ -45,13 +45,19 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     override suspend fun buyTicket(mBuyTicketDTO: Mono<BuyTicketDTO>, ticketId: Long, mUserName: Mono<String>) : Long {
 
+        /*
+        val userFuture= async {
+            getTravelerInfo(mUserName)
+        }
+        */
+
 
         val ticket = ticketItemRepository.findById(ticketId) ?: throw InvalidTicketOrderException("Ticket Not Found")
 
         val buyTicketDTO = mBuyTicketDTO.awaitSingle()
         val ticketPrice = ticket.price
         val totalPrice = buyTicketDTO.numOfTickets * ticketPrice
-        if(ticketHasNoRestriction(ticket)){
+        if(ticketHasRestriction(ticket)){
 
             getTravelerInfo(mUserName)
 
@@ -100,16 +106,16 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     /**
      * if the ticket has some restriction about the age or stuff like that return true, false otherwise
      */
-    private fun ticketHasNoRestriction(ticket : TicketItem): Boolean {
+    private fun ticketHasRestriction(ticket : TicketItem): Boolean {
 
         if(ticket.minAge == null && ticket.maxAge == null)
-            return true
+            return false
         else
             if(ticket.minAge != null && ticket.maxAge != null)
                 if(ticket.minAge > ticket.maxAge)
                     throw InvalidTicketRestrictionException("ticket restriction is not valid, min age = ${ticket.minAge} > max age = ${ticket.maxAge}")
 
-        return false
+        return true
     }
 
 }
