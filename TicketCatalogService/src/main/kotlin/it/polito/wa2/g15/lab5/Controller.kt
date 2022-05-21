@@ -8,13 +8,11 @@ import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
-import org.springframework.validation.BindingResult
-import org.springframework.validation.FieldError
-import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -44,7 +42,7 @@ class Controller {
      * are represented as a JSON object consisting of price, ticketId, type ( ordinal or type
      * of pass).
      */
-    @GetMapping("tickets/")
+    @GetMapping("tickets/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     suspend fun availableTickets() : Flow<TicketItemDTO> {
         return ticketCatalogService.getAllTicketItems().map { item -> item.toDTO() }
     }
@@ -88,8 +86,8 @@ class Controller {
     /**
      * Get list of all user orders
      */
-    @GetMapping("orders/")
-    @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
+    @GetMapping("orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
+    @PreAuthorize("hasAnyAuthority('CUSTOMER','ADMIN')")
     fun orders() {
         TODO("Implement this")
     }
@@ -98,8 +96,8 @@ class Controller {
      * Get a specific order. This endpoint can be used by the client
      * to check the order status after a purchase.
      */
-    @GetMapping("orders/{order-id}/")
-    @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
+    @GetMapping("orders/{order-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
+    @PreAuthorize("hasAnyAuthority('CUSTOMER','ADMIN')")
     fun getSpecificOrder(@PathVariable("order-id") orderId: String) {
         TODO("Implement this")
     }
@@ -128,7 +126,7 @@ class Controller {
     /**
      * This endpoint retrieves a list of all orders made by all users
      */
-    @GetMapping("admin/orders/")
+    @GetMapping("admin/orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getAllOrder() {
         TODO("Implement this")
@@ -137,19 +135,9 @@ class Controller {
     /**
      * Get orders of a specific user
      */
-    @GetMapping("admin/orders/{user-id}/")
+    @GetMapping("admin/orders/{user-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String) {
         TODO("Implement this")
-    }
-
-    fun logBindingResultErrors(bindingResult: BindingResult) {
-        val errors: MutableMap<String, String?> = HashMap()
-        bindingResult.allErrors.forEach { error: ObjectError ->
-            val fieldName = (error as FieldError).field
-            val errorMessage = error.getDefaultMessage()
-            errors[fieldName] = errorMessage
-        }
-        logger.debug { errors }
     }
 }
