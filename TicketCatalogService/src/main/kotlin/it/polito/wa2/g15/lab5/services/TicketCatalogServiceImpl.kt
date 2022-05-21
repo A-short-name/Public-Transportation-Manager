@@ -6,10 +6,12 @@ import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import it.polito.wa2.g15.lab5.security.JwtUtils
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
@@ -19,7 +21,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     private val logger = KotlinLogging.logger {}
 
-    override suspend fun getAllTicketItems() : Flow<TicketItem> {
+    override fun getAllTicketItems() : Flux<TicketItem> {
         return ticketItemRepository.findAll()
     }
 

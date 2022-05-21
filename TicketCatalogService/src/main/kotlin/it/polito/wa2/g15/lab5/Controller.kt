@@ -16,6 +16,7 @@ import org.springframework.validation.BindingResult
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController
@@ -29,9 +30,6 @@ class Controller {
         .map { obj: SecurityContext -> obj.authentication.principal}
         .cast(UserDetailsDTO::class.java)
 
-    private val authJwt = ReactiveSecurityContextHolder.getContext()
-        .map { obj: SecurityContext -> obj.authentication.credentials}
-        .cast(String::class.java)
 
     @GetMapping(path = ["/whoami"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -45,7 +43,7 @@ class Controller {
      * of pass).
      */
     @GetMapping("tickets/")
-    suspend fun availableTickets() : Flow<TicketItemDTO> {
+    fun availableTickets() : Flux<TicketItemDTO> {
         return ticketCatalogService.getAllTicketItems().map { item -> item.toDTO() }
     }
 
@@ -78,11 +76,11 @@ class Controller {
 //            .accept(MediaType.APPLICATION_JSON)
 //            .awaitExchange()
 //            .awaitBody<Banner>()
+
+
+        //Body da passare: listOf.(TicketForTravelerDTO(validFrom= it.validFrom, ticketItemId= ticket-id, zid=it.zid, ticketType=it.type) * numberOfTickets)
         val userName = principal.map { p -> p.sub }
-        logger.info("auth jwt: ${authJwt.awaitSingle()}")
         return ticketCatalogService.buyTicket(buyTicketBody.awaitSingle(),ticketId.toLong(),userName)
-
-
     }
 
     /**

@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @Component
-class JWTAuthenticationFilterServices: OncePerRequestFilter() {
+class JWTAuthenticationFilter: OncePerRequestFilter() {
     @Autowired
     private lateinit var jwtUtils: JwtUtils
 
@@ -28,7 +28,7 @@ class JWTAuthenticationFilterServices: OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         try {
             val jwt = parseHeader(request)
-            if (jwt != null && jwtUtils.validateJwt(jwt, true)) {
+            if (jwt != null && jwtUtils.validateJwt(jwt, false)) {
                 val userDetails = jwtUtils.getDetailsJwt(jwt)
                 val authentication = UsernamePasswordAuthenticationToken(userDetails, null, userDetails.roles)
                 authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
@@ -36,7 +36,7 @@ class JWTAuthenticationFilterServices: OncePerRequestFilter() {
             }else{
                 if(jwt == null)
                     throw Exception("Invalid token: no authorization header")
-                if(!jwtUtils.validateJwt(jwt, true))
+                if(!jwtUtils.validateJwt(jwt, false))
                     throw Exception("Invalid token: problem parsing jwt")
             }
         } catch (e: Exception) {

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import reactor.core.publisher.Mono
 
 interface TicketCatalogService {
-    suspend fun getAllTicketItems() : Flow<TicketItem>
+    fun getAllTicketItems() : Flux<TicketItem>
 
     suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO)
 

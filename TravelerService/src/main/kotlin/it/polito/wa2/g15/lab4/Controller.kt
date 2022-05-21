@@ -203,12 +203,14 @@ class Controller {
     }
     /* END OF ADMIN ONLY endpoints */
 
+    /* SERVICES ONLY endpoints */
     /**
      * Returns a JSON representation of the current user’s profile
      * (name, address, date_of_birth, telephone_number) as stored in the service DB.
      * @return UserProfileDTO as JSON or HttpStatus.BAD_REQUEST if user did not perform any PUT request
      */
-    @GetMapping("/catalog/user/{username}/profile/")
+    @GetMapping("/services/user/{username}/profile/")
+    @PreAuthorize("hasAuthority('SERVICE')")
     fun selectedUserProfile(@PathVariable("username") username: String): ResponseEntity<UserProfileDTO> {
         return try {
             val result: UserProfileDTO = travelerService.getUserDetails(username)
@@ -219,7 +221,45 @@ class Controller {
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
+    // TODO Remove the old generate ticket
+    /**
+     * Accepts a JSON payload like the following {cmd: “buy_tickets”,
+     * quantity: 2, zones: “ABC”} and generates a corresponding number of tickets, issued
+     * now and valid for the next hour, for the indicated transport zones. The generated
+     * tickets are stored in the service DB and will be returned as a payload of the
+     * response. At the moment, a user may require an unlimited number of tickets.
+     * @param CommandOnTicketsDTO a JSON formatted as the object
+     * @param BindingResult result of validation
+     */
+    @PostMapping("/services/user/{username}/tickets/add")
+    @PreAuthorize("hasAuthority('SERVICE')")
+    fun generateTicketsForSelectedUser(@PathVariable("username") username: String,
+            @Valid @RequestBody ticketsDTO: List<TicketFromCatalogDTO>,
+            bindingResult: BindingResult) : ResponseEntity<Set<TicketDTO>> {
 
+        // bindingResult is automatically populated by Spring and Hibernate-validate, trying to parse a userRequestDTO which
+        // respects the validation annotations in UserRequestDTO. These errors can be detected before trying to insert into
+        // the db
+        if (bindingResult.hasErrors()) {
+            // If the json contained in the post body does not satisfy our validation annotations, return 400
+            //Can be used for debugging, to extract the exact errors
+            logBindingResultErrors(bindingResult)
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
+
+        val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
+        val username = principal.sub
+
+        return try {
+            //val result = travelerService.buyTickets(ticketsDTO, username)
+            //ResponseEntity(result,HttpStatus.OK)
+            ResponseEntity(HttpStatus.OK)
+        } catch (ex: Exception) {
+            logger.error { "\tProfile not valid: ${ex.message}" }
+            ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
+    }
+    /* END OF SERVICES ONLY endpoints */
 
     
     fun logBindingResultErrors(bindingResult: BindingResult) {
