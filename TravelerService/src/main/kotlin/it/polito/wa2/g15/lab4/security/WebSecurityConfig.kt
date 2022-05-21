@@ -2,10 +2,8 @@ package it.polito.wa2.g15.lab4.security
 
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -69,61 +67,61 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
 
 //https://stackoverflow.com/questions/60280684/how-to-have-different-filters-for-different-request-paths-on-spring-security
 
-/*
-@Configuration
-class FilterConfiguration {
-    @Bean
-    fun forUser(): FilterRegistrationBean<JWTAuthenticationFilterUser> {
-        val registrationBean: FilterRegistrationBean<JWTAuthenticationFilterUser> = FilterRegistrationBean()
-        registrationBean.setFilter(JWTAuthenticationFilterUser())
-        registrationBean.urlPatterns("/*")
-        //registrationBean.order = ORDERED.HIGHEST_PRECEDENCE
-        return registrationBean
-    }
 
-    @Bean
-    fun forServices(): FilterRegistrationBean<JWTAuthenticationFilterServices> {
-        val registrationBean: FilterRegistrationBean<JWTAuthenticationFilterServices> = FilterRegistrationBean()
-        registrationBean.setFilter(JWTAuthenticationFilterServices())
-        registrationBean.addUrlPattern("/catalog/*")
-        //registrationBean.order = ORDERED.HIGHEST_PRECEDENCE
-        return registrationBean
-    }
-}
-*/
-
-
-@Configuration
-@Order(1)
-class ServiceSecurity : WebSecurityConfigurerAdapter() {
-    @Throws(Exception::class)
-    override fun configure(httpSecurity: HttpSecurity) {
-
-        http.csrf().csrfTokenRepository(csrfTokenRepository())
-                .and()
-                .antMatcher("/catalog/**")
-                .addFilterBefore(jwtFilterForServices, UsernamePasswordAuthenticationFilter::class.java)
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .anyRequest().authenticated()
-    }
-}
-
-@Configuration
-@Order(2)
-class GeneralSecurity : WebSecurityConfigurerAdapter() {
-    @Throws(Exception::class)
-    override fun configure(httpSecurity: HttpSecurity) {
-        http.csrf().csrfTokenRepository(csrfTokenRepository())
-                .and()
-                .antMatcher("/**")
-                .addFilterBefore(jwtFilterForUser, UsernamePasswordAuthenticationFilter::class.java)
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .anyRequest().authenticated()
-    }
-}
+//@Configuration
+//class FilterConfiguration {
+//    @Bean
+//    fun forUser(): FilterRegistrationBean<JWTAuthenticationFilterUser> {
+//        val registrationBean: FilterRegistrationBean<JWTAuthenticationFilterUser> = FilterRegistrationBean()
+//        registrationBean.setFilter(JWTAuthenticationFilterUser())
+//        registrationBean.urlPatterns("/*")
+//        //registrationBean.order = ORDERED.HIGHEST_PRECEDENCE
+//        return registrationBean
+//    }
+//
+//    @Bean
+//    fun forServices(): FilterRegistrationBean<JWTAuthenticationFilterServices> {
+//        val registrationBean: FilterRegistrationBean<JWTAuthenticationFilterServices> = FilterRegistrationBean()
+//        registrationBean.setFilter(JWTAuthenticationFilterServices())
+//        registrationBean.addUrlPattern("/catalog/*")
+//        //registrationBean.order = ORDERED.HIGHEST_PRECEDENCE
+//        return registrationBean
+//    }
+//}
+//
+//
+//
+//@Configuration
+//@Order(1)
+//class ServiceSecurity : WebSecurityConfigurerAdapter() {
+//    @Throws(Exception::class)
+//    override fun configure(httpSecurity: HttpSecurity) {
+//
+//        http.csrf().csrfTokenRepository(csrfTokenRepository())
+//                .and()
+//                .antMatcher("/catalog/**")
+//                .addFilterBefore(jwtFilterForServices, UsernamePasswordAuthenticationFilter::class.java)
+//                .sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .and()
+//                .authorizeRequests()
+//                .anyRequest().authenticated()
+//    }
+//}
+//
+//@Configuration
+//@Order(2)
+//class GeneralSecurity : WebSecurityConfigurerAdapter() {
+//    @Throws(Exception::class)
+//    override fun configure(httpSecurity: HttpSecurity) {
+//        http.csrf().csrfTokenRepository(csrfTokenRepository())
+//                .and()
+//                .antMatcher("/**")
+//                .addFilterBefore(jwtFilterForUser, UsernamePasswordAuthenticationFilter::class.java)
+//                .sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .and()
+//                .authorizeRequests()
+//                .anyRequest().authenticated()
+//    }
+//}
