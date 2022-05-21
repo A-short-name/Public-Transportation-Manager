@@ -1,4 +1,4 @@
-create schema if not exists public
+create schema if not exists public;
 
 CREATE TABLE IF NOT EXISTS ticket_items (
     id serial PRIMARY KEY,
