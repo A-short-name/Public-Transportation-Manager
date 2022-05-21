@@ -5,6 +5,4 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface TicketItemRepository : CoroutineCrudRepository<TicketItem, Long> {
-
-}
+interface TicketItemRepository : CoroutineCrudRepository<TicketItem, Long>

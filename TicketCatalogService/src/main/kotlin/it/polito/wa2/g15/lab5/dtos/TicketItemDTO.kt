@@ -30,8 +30,8 @@ data class NewTicketItemDTO(
 
     @field:NotBlank(message = "Type can't be empty or null")
     val type: String,
-    
+    @field:Positive
     val minAge: Int?,
-
+    @field:Positive
     val maxAge: Int?
 )

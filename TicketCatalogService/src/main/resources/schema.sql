@@ -5,3 +5,11 @@ CREATE TABLE IF NOT EXISTS ticket_items (
     ticket_type VARCHAR ( 255 ) NOT NULL,
     price DOUBLE PRECISION
 );
+CREATE TABLE IF NOT EXISTS ticket_orders (
+    order_id serial PRIMARY KEY,
+    order_state VARCHAR ( 255 ) NOT NULL,
+    total_price DOUBLE PRECISION,
+    quantity DOUBLE PRECISION,
+    ticket_id DOUBLE PRECISION,
+    username VARCHAR ( 255 ) NOT NULL
+);

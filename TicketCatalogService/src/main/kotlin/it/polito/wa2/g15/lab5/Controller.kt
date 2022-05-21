@@ -1,7 +1,9 @@
 package it.polito.wa2.g15.lab5
 
 import it.polito.wa2.g15.lab5.dtos.*
+import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
+import it.polito.wa2.g15.lab5.services.TicketOrderService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.awaitSingle
@@ -23,15 +25,15 @@ class Controller {
     @Autowired
     private lateinit var ticketCatalogService: TicketCatalogService
 
+    @Autowired
+    private lateinit var ticketOrderService: TicketOrderService
+
     private val logger = KotlinLogging.logger {}
 
     private val principal = ReactiveSecurityContextHolder.getContext()
         .map { obj: SecurityContext -> obj.authentication.principal}
         .cast(UserDetailsDTO::class.java)
 
-    private val authJwt = ReactiveSecurityContextHolder.getContext()
-        .map { obj: SecurityContext -> obj.authentication.credentials}
-        .cast(String::class.java)
 
     @GetMapping(path = ["/whoami"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -67,31 +69,19 @@ class Controller {
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
     suspend fun buyTickets(@PathVariable("ticket-id") ticketId: String,
                            @RequestBody buyTicketBody: Mono<BuyTicketDTO>
-    ) : Mono<Long> {
-
-
-        // Use this to contact the travelerService:
-        // Client is a webClient (val client = WebClient.create() ??) It should be in the consturctor of the controller
-//        client
-//            .get()
-//            .uri("/suspend")
-//            .accept(MediaType.APPLICATION_JSON)
-//            .awaitExchange()
-//            .awaitBody<Banner>()
+    ) : Long {
         val userName = principal.map { p -> p.sub }
-        logger.info("auth jwt: ${authJwt.awaitSingle()}")
-        return ticketCatalogService.buyTicket(buyTicketBody.awaitSingle(),ticketId.toLong(),userName)
-
-
+        return ticketCatalogService.buyTicket(buyTicketBody,ticketId.toLong(),userName)
     }
 
     /**
-     * Get list of all user orders
+     * Get the orders of the user
      */
     @GetMapping("orders/")
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    fun orders() {
-        TODO("Implement this")
+    suspend fun orders() : Flow<TicketOrder>{
+        val userName = principal.map { p -> p.sub }
+        return ticketOrderService.getUserTicketOrders(userName)
     }
 
     /**
@@ -100,8 +90,8 @@ class Controller {
      */
     @GetMapping("orders/{order-id}/")
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    fun getSpecificOrder(@PathVariable("order-id") orderId: String) {
-        TODO("Implement this")
+    suspend fun getSpecificOrder(@PathVariable("order-id") orderId: String) : TicketOrder {
+        return ticketOrderService.getTicketOrderById(orderId.toLong())
     }
 
     /**
@@ -130,8 +120,8 @@ class Controller {
      */
     @GetMapping("admin/orders/")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getAllOrder() {
-        TODO("Implement this")
+    suspend fun getAllOrder() :Flow<TicketOrder>{
+        return ticketOrderService.getAllTicketOrders()
     }
 
     /**
@@ -139,8 +129,8 @@ class Controller {
      */
     @GetMapping("admin/orders/{user-id}/")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String) {
-        TODO("Implement this")
+    suspend fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: Mono<String>) : Flow<TicketOrder> {
+        return ticketOrderService.getUserTicketOrders(userId)
     }
 
     fun logBindingResultErrors(bindingResult: BindingResult) {
