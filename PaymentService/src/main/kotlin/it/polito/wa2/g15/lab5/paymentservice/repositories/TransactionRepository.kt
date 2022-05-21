@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface TransactionRepository : CoroutineCrudRepository<Transaction,Long> {
-    suspend fun getTransactionsByUsername(username: String) : Flow<Transaction>
+    fun getTransactionsByUsername(username: String) : Flow<Transaction>
 }

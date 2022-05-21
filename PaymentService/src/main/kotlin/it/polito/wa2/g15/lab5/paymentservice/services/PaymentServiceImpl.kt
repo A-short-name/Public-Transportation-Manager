@@ -11,11 +11,11 @@ class PaymentServiceImpl : PaymentService {
     @Autowired
     lateinit var transactionRepository: TransactionRepository
 
-    override suspend fun getTransactionsByUser(username: String) : Flow<Transaction> {
+    override fun getTransactionsByUser(username: String) : Flow<Transaction> {
         return transactionRepository.getTransactionsByUsername(username)
     }
 
-    override suspend fun getAllTransactions() : Flow<Transaction> {
+    override fun getAllTransactions() : Flow<Transaction> {
         return transactionRepository.findAll()
     }
 
