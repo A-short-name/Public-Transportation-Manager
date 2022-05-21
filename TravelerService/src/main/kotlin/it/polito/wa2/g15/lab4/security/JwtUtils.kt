@@ -23,6 +23,8 @@ class JwtUtils {
     @Value("\${security.privateKey.traveler}")
     lateinit var generateJwtStringKey : String
 
+    @Value("\${security.privateKey.services.common}")
+    lateinit var validateJwtForServicesStringKey : String
 
     val generateJwtKey: SecretKey by lazy {
         val decodedKey = Decoders.BASE64.decode(generateJwtStringKey)
@@ -37,6 +39,11 @@ class JwtUtils {
 
         // To read private key:
         val decodedKey = Decoders.BASE64.decode(validateJwtStringKey)
+        Keys.hmacShaKeyFor(decodedKey)
+    }
+
+    val validateJwtForServicesKey: SecretKey by lazy {
+        val decodedKey = Decoders.BASE64.decode(validateJwtForServicesStringKey)
         Keys.hmacShaKeyFor(decodedKey)
     }
     
@@ -60,9 +67,10 @@ class JwtUtils {
         return UserDetailsDTO(sub = claims.body.subject, roles = rolesSet)
     }
 
-    fun validateJwt(authToken: String?): Boolean {
+    fun validateJwt(authToken: String?, isForServices: Boolean): Boolean {
         lateinit var jws: Jws<Claims>
         try {
+            val key = if(isForServices) validateJwtKey else validateJwtForServicesKey
             jws = Jwts.parserBuilder().setSigningKey(validateJwtKey).build().parseClaimsJws(authToken)
 
             val fromJSONtoSet = jws.body["roles"] as? ArrayList<*> ?: throw ValidationException("No roles collection found")

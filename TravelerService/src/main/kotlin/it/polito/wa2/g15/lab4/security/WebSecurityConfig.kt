@@ -21,7 +21,9 @@ import org.springframework.security.web.csrf.CsrfTokenRepository
 class WebSecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Autowired
-    private lateinit var jwtFilter: JWTAuthenticationFilter
+    private lateinit var jwtFilterForUser: JWTAuthenticationFilterUser
+    @Autowired
+    private lateinit var jwtFilterForServices: JWTAuthenticationFilterServices
 
     @Bean
     fun csrfTokenRepository(): CsrfTokenRepository {
@@ -47,11 +49,79 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
 
         http.csrf().csrfTokenRepository(csrfTokenRepository())
                 .and()
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
+                .addFilterBefore(jwtFilterForUser, UsernamePasswordAuthenticationFilter::class.java)
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
+                //.antMatcher("/catalog/**")
+                // .authorizeRequests() //
+                //.anyRequest().authenticated() //
+                //.and()
+                //.addFilterBefore(jwtFilterForServices, UsernamePasswordAuthenticationFilter::class.java)
                 .authorizeRequests().anyRequest().authenticated()
+
+
     }
 
 }
+
+//https://stackoverflow.com/questions/60280684/how-to-have-different-filters-for-different-request-paths-on-spring-security
+
+
+//@Configuration
+//class FilterConfiguration {
+//    @Bean
+//    fun forUser(): FilterRegistrationBean<JWTAuthenticationFilterUser> {
+//        val registrationBean: FilterRegistrationBean<JWTAuthenticationFilterUser> = FilterRegistrationBean()
+//        registrationBean.setFilter(JWTAuthenticationFilterUser())
+//        registrationBean.urlPatterns("/*")
+//        //registrationBean.order = ORDERED.HIGHEST_PRECEDENCE
+//        return registrationBean
+//    }
+//
+//    @Bean
+//    fun forServices(): FilterRegistrationBean<JWTAuthenticationFilterServices> {
+//        val registrationBean: FilterRegistrationBean<JWTAuthenticationFilterServices> = FilterRegistrationBean()
+//        registrationBean.setFilter(JWTAuthenticationFilterServices())
+//        registrationBean.addUrlPattern("/catalog/*")
+//        //registrationBean.order = ORDERED.HIGHEST_PRECEDENCE
+//        return registrationBean
+//    }
+//}
+//
+//
+//
+//@Configuration
+//@Order(1)
+//class ServiceSecurity : WebSecurityConfigurerAdapter() {
+//    @Throws(Exception::class)
+//    override fun configure(httpSecurity: HttpSecurity) {
+//
+//        http.csrf().csrfTokenRepository(csrfTokenRepository())
+//                .and()
+//                .antMatcher("/catalog/**")
+//                .addFilterBefore(jwtFilterForServices, UsernamePasswordAuthenticationFilter::class.java)
+//                .sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .and()
+//                .authorizeRequests()
+//                .anyRequest().authenticated()
+//    }
+//}
+//
+//@Configuration
+//@Order(2)
+//class GeneralSecurity : WebSecurityConfigurerAdapter() {
+//    @Throws(Exception::class)
+//    override fun configure(httpSecurity: HttpSecurity) {
+//        http.csrf().csrfTokenRepository(csrfTokenRepository())
+//                .and()
+//                .antMatcher("/**")
+//                .addFilterBefore(jwtFilterForUser, UsernamePasswordAuthenticationFilter::class.java)
+//                .sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .and()
+//                .authorizeRequests()
+//                .anyRequest().authenticated()
+//    }
+//}

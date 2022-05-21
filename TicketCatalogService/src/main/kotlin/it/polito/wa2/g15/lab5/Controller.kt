@@ -1,10 +1,6 @@
 package it.polito.wa2.g15.lab5
 
-import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.UserDetailsDTO
-import it.polito.wa2.g15.lab5.dtos.toDTO
-import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
+import it.polito.wa2.g15.lab5.dtos.*
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -32,6 +28,10 @@ class Controller {
     private val principal = ReactiveSecurityContextHolder.getContext()
         .map { obj: SecurityContext -> obj.authentication.principal}
         .cast(UserDetailsDTO::class.java)
+
+    private val authJwt = ReactiveSecurityContextHolder.getContext()
+        .map { obj: SecurityContext -> obj.authentication.credentials}
+        .cast(String::class.java)
 
     @GetMapping(path = ["/whoami"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -65,8 +65,10 @@ class Controller {
      */
     @PostMapping("/shop/{ticket-id}/")
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    fun buyTickets(@PathVariable("ticket-id") ticketId: String) {
-        TODO("Implement this")
+    suspend fun buyTickets(@PathVariable("ticket-id") ticketId: String,
+                           @RequestBody buyTicketBody: Mono<BuyTicketDTO>
+    ) : Mono<Long> {
+
 
         // Use this to contact the travelerService:
         // Client is a webClient (val client = WebClient.create() ??) It should be in the consturctor of the controller
@@ -76,6 +78,11 @@ class Controller {
 //            .accept(MediaType.APPLICATION_JSON)
 //            .awaitExchange()
 //            .awaitBody<Banner>()
+        val userName = principal.map { p -> p.sub }
+        logger.info("auth jwt: ${authJwt.awaitSingle()}")
+        return ticketCatalogService.buyTicket(buyTicketBody.awaitSingle(),ticketId.toLong(),userName)
+
+
     }
 
     /**
