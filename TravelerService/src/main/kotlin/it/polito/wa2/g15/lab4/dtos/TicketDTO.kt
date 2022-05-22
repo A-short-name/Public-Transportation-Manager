@@ -1,6 +1,7 @@
 package it.polito.wa2.g15.lab4.dtos
 
 import it.polito.wa2.g15.lab4.entities.TicketPurchased
+import java.time.LocalDate
 import java.util.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
@@ -61,4 +62,20 @@ data class ExecuteCommandOnTicketsDTO(
 
     @field:NotBlank(message = "Zones can't be empty or null")
     val zones: String
+)
+
+data class TicketFromCatalogDTO (
+
+        @field:NotNull
+        @field:Positive
+        val ticketItemId: Long,
+
+        @field:NotBlank(message = "Type can't be empty or null")
+        val type: String? = null,
+
+        //Present only for subscriptions
+        val validFrom: LocalDate? = null,
+
+        //Present only for standard ticket
+        val zid: String? = null
 )

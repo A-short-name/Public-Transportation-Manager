@@ -19,6 +19,7 @@ import org.springframework.validation.BindingResult
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController
@@ -71,7 +72,9 @@ class Controller {
     suspend fun buyTickets(@PathVariable("ticket-id") ticketId: String,
                            @RequestBody buyTicketBody: Mono<BuyTicketDTO>
     ) : Long {
-        val userName = principal.map { p -> p.sub }
+
+    //Body da passare: listOf.(TicketForTravelerDTO(validFrom= it.validFrom, ticketItemId= ticket-id, zid=it.zid, ticketType=it.type) * numberOfTickets)
+    val userName = principal.map { p -> p.sub }
         return ticketCatalogService.buyTicket(buyTicketBody,ticketId.toLong(),userName)
     }
 
