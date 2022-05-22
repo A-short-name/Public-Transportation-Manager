@@ -26,6 +26,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
 
+    implementation("org.springframework.kafka:spring-kafka")
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
@@ -38,6 +40,8 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test:5.6.3")
     testImplementation("org.apache.httpcomponents:httpclient:4.5.13")
     testImplementation("io.projectreactor:reactor-test")
+
+    testImplementation("org.springframework.kafka:spring-kafka-test")
 }
 
 tasks.withType<KotlinCompile> {
