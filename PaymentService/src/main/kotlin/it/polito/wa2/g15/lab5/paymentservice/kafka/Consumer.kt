@@ -11,8 +11,8 @@ class Consumer {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(topics = ["\${kafka.topics.product}"], groupId = "ppr")
-    fun listenGroupFoo(consumerRecord: ConsumerRecord<Any, Any>, ack: Acknowledgment) {
+    fun listenGroupFoo(consumerRecord: ConsumerRecord<Any, Any>/*, ack: Acknowledgment*/) {
         logger.info("Message received {}", consumerRecord)
-        ack.acknowledge()
+        //ack.acknowledge()
     }
 }
