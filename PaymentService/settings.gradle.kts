@@ -1,1 +1,1 @@
-rootProject.name = "lab5-PaymentService"
+rootProject.name = "lab5"

@@ -36,7 +36,7 @@ class Controller {
      */
     @GetMapping("admin/transactions/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
-    suspend fun getAllTransactions() : Flow<Transaction> {
+    fun getAllTransactions() : Flow<Transaction> {
         return paymentService.getAllTransactions()
     }
 }
