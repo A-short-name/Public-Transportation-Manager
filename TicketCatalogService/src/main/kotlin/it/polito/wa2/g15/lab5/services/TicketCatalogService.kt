@@ -6,6 +6,10 @@ import it.polito.wa2.g15.lab5.entities.TicketItem
 import kotlinx.coroutines.flow.Flow
 import reactor.core.publisher.Mono
 
+
+/**
+ * This class is implemented using coroutine and suspendable functions, in this way this service will be asynchronous
+ */
 interface TicketCatalogService {
     suspend fun getAllTicketItems() : Flow<TicketItem>
 
@@ -29,5 +33,5 @@ interface TicketCatalogService {
      * The client to check the order result, must do polling to check the outcome.
      *
      */
-    suspend fun buyTicket(buyTicketDTO: BuyTicketDTO, ticketId: Long, userName: Mono<String>) : Mono<Long>
+    suspend fun buyTicket(mBuyTicketDTO: Mono<BuyTicketDTO>, ticketId: Long, mUserName: Mono<String>) : Long
 }

@@ -11,4 +11,6 @@ data class TicketItem (
     @Column("ticket_type")
     val ticketType: String,
     val price: Double,
+    val minAge: Int? = null,
+    val maxAge: Int? = null
     )
