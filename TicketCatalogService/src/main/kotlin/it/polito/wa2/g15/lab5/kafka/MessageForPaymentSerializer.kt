@@ -6,11 +6,11 @@ import org.apache.kafka.common.serialization.Serializer
 import org.slf4j.LoggerFactory
 
 
-class MessageForPaymentSerializer : Serializer<OrderInformationForPayment> {
+class MessageForPaymentSerializer : Serializer<OrderInformationMessage> {
     private val objectMapper = ObjectMapper()
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun serialize(topic: String?, data: OrderInformationForPayment?): ByteArray? {
+    override fun serialize(topic: String?, data: OrderInformationMessage?): ByteArray? {
         objectMapper.findAndRegisterModules()
         log.info("Serializing...")
         return objectMapper.writeValueAsBytes(

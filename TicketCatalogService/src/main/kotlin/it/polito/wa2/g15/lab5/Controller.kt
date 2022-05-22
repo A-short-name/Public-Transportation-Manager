@@ -2,7 +2,7 @@ package it.polito.wa2.g15.lab5
 
 import it.polito.wa2.g15.lab5.dtos.*
 import it.polito.wa2.g15.lab5.entities.TicketOrder
-import it.polito.wa2.g15.lab5.kafka.OrderInformationForPayment
+import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import it.polito.wa2.g15.lab5.services.TicketOrderService
 import kotlinx.coroutines.flow.Flow
@@ -22,12 +22,8 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
-import org.springframework.validation.BindingResult
-import org.springframework.validation.FieldError
-import org.springframework.validation.ObjectError
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController
@@ -156,11 +152,11 @@ class Controller {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping("test/kafka/produce/")
-    fun testKafkaProduceMessage(@Validated @RequestBody product: OrderInformationForPayment,response: ServerHttpResponse) {
+    fun testKafkaProduceMessage(@Validated @RequestBody product: OrderInformationMessage, response: ServerHttpResponse) {
         return try {
             log.info("Receiving product request")
             log.info("Sending message to Kafka {}", product)
-            val message: Message<OrderInformationForPayment> = MessageBuilder
+            val message: Message<OrderInformationMessage> = MessageBuilder
                     .withPayload(product)
                     .setHeader(KafkaHeaders.TOPIC, topic)
                     .setHeader("X-Custom-Header", "Custom header here")
