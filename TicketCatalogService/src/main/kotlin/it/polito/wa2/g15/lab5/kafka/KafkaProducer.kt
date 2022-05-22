@@ -12,7 +12,7 @@ import org.springframework.kafka.core.ProducerFactory
 
 @Configuration
 class KafkaProducerConfig(
-        @Value("\${kafka.bootstrapAddress}")
+        @Value("\${spring.kafka.bootstrap-servers}")
         private val servers: String
 ) {
     @Bean

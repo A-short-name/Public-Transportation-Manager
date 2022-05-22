@@ -9,7 +9,7 @@ import org.springframework.kafka.core.KafkaAdmin
 
 @Configuration
 class KafkaConfig(
-        @Value("\${kafka.bootstrapAddress}")
+        @Value("\${spring.kafka.bootstrap-servers}")
         private val servers: String,
         @Value("\${kafka.topics.product}")
         private val topic: String

@@ -29,6 +29,10 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    //Add to perform date handling building the message for kafka
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    //But then objectMapper.findAndRegisterModules() on serializer and deserializer
+
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")

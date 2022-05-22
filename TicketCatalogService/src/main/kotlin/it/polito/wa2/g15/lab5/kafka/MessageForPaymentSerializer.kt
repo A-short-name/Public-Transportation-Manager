@@ -11,6 +11,7 @@ class MessageForPaymentSerializer : Serializer<OrderInformationForPayment> {
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun serialize(topic: String?, data: OrderInformationForPayment?): ByteArray? {
+        objectMapper.findAndRegisterModules()
         log.info("Serializing...")
         return objectMapper.writeValueAsBytes(
                 data ?: throw SerializationException("Error when serializing OrderInformationForPayment to ByteArray[]")
