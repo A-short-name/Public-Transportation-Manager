@@ -26,7 +26,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     private val logger = KotlinLogging.logger {}
 
-    override fun getAllTicketItems() : Flux<TicketItem> {
+    override fun getAllTicketItems() : Flow<TicketItem> {
         return ticketItemRepository.findAll()
     }
 

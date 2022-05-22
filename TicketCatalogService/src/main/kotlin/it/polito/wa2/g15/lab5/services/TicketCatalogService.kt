@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono
  * This class is implemented using coroutine and suspendable functions, in this way this service will be asynchronous
  */
 interface TicketCatalogService {
-    fun getAllTicketItems() : Flux<TicketItem>
+    fun getAllTicketItems() : Flow<TicketItem>
 
     suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO)
 

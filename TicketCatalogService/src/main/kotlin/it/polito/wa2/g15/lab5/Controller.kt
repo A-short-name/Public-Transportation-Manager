@@ -49,7 +49,7 @@ class Controller {
      * of pass).
      */
     @GetMapping("tickets/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
-    suspend fun availableTickets() : Flow<TicketItemDTO> {
+    fun availableTickets() : Flow<TicketItemDTO> {
         return ticketCatalogService.getAllTicketItems().map { item -> item.toDTO() }
     }
 
@@ -83,9 +83,10 @@ class Controller {
      */
     @GetMapping("orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun orders() : Flow<TicketOrder>{
+    suspend fun orders() : Flow<TicketOrder> {
         val userName = principal.map { p -> p.sub }
         return ticketOrderService.getUserTicketOrders(userName)
+    }
 
     /**
      * Get a specific order. This endpoint can be used by the client
