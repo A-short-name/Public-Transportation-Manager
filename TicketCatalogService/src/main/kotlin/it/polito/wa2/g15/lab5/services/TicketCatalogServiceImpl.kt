@@ -6,12 +6,16 @@ import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
+import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.messaging.Message
+import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -118,6 +122,12 @@ class TicketCatalogServiceImpl : TicketCatalogService {
                     throw InvalidTicketRestrictionException("ticket restriction is not valid, min age = ${ticket.minAge} > max age = ${ticket.maxAge}")
 
         return true
+    }
+
+    @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "ppr")
+    fun consumeMessage(message: OrderInformationMessage) {
+        logger.info("Message received {}", message)
+        //ack.acknowledge()
     }
 
 }

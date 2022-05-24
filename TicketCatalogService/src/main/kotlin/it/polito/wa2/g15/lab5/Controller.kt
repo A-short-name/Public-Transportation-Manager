@@ -147,7 +147,7 @@ class Controller {
     @Value("\${kafka.topics.produce}")
     lateinit var topic: String
     @Autowired
-    private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
+    private lateinit var kafkaTemplate: KafkaTemplate<String, OrderInformationMessage>
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -162,7 +162,7 @@ class Controller {
                     .setHeader("X-Custom-Header", "Custom header here")
                     .build()
             kafkaTemplate.send(message)
-            log.info("Message sent with success")
+            log.info("Message sent with success on topic: $topic")
             response.statusCode = HttpStatus.OK
         } catch (e: Exception) {
             log.error("Exception: {}",e)

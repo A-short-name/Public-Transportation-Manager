@@ -8,11 +8,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.core.KafkaAdmin
 
 @Configuration
-class KafkaConfig(
+class KafkaTopicConfig(
         @Value("\${spring.kafka.bootstrap-servers}")
         private val servers: String,
-        @Value("\${kafka.topics.product}")
-        private val topic: String,
         @Value("\${kafka.topics.listOfTopics}")
         private val listOfTopics :List<String>
 ) {

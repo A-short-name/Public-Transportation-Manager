@@ -9,8 +9,6 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
-import org.springframework.kafka.listener.ContainerProperties
-
 
 @EnableKafka
 @Configuration
@@ -20,7 +18,7 @@ class KafkaConsumerConfig(
 ) {
 
     @Bean
-    fun consumerFactory(): ConsumerFactory<String?, Any?> {
+    fun consumerFactory(): ConsumerFactory<String?, OrderInformationMessage?> {
         val props: MutableMap<String, Any> = HashMap()
         props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = servers
         props[ConsumerConfig.GROUP_ID_CONFIG] = "ppr"
@@ -31,8 +29,8 @@ class KafkaConsumerConfig(
     }
 
     @Bean
-    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any>? {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
+    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, OrderInformationMessage> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, OrderInformationMessage>()
         factory.consumerFactory = consumerFactory()
         //factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
         factory.containerProperties.isSyncCommits = true;

@@ -14,7 +14,7 @@ class MessageForTravelerSerializer : Serializer<OrderInformationMessage> {
 
     override fun serialize(topic: String?, data: OrderInformationMessage?): ByteArray? {
         objectMapper.findAndRegisterModules()
-        log.info("Serializing... to send to topic $topic")
+        log.info("Serializing...")
         return objectMapper.writeValueAsBytes(
                 data ?: throw SerializationException("Error when serializing OrderInformationForPayment to ByteArray[]")
         )
