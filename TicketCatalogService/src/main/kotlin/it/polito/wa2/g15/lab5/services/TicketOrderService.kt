@@ -17,7 +17,7 @@ interface TicketOrderService {
     /**
      * get all orders of the user
      */
-    suspend fun getUserTicketOrders(username: Mono<String>) : Flow<TicketOrder>
+    fun getUserTicketOrders(username: String) : Flow<TicketOrder>
 
     /**
      * save the order with pending status

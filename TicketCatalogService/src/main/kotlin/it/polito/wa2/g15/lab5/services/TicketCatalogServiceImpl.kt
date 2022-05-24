@@ -7,14 +7,14 @@ import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+import kotlin.coroutines.CoroutineContext
 
 @Service
 class TicketCatalogServiceImpl : TicketCatalogService {
@@ -45,48 +45,64 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         }
     }
 
-    override suspend fun buyTicket(mBuyTicketDTO: Mono<BuyTicketDTO>, ticketId: Long, mUserName: Mono<String>) : Long {
+    private fun checkRestriction(userAge: Int, ticketRequested: TicketItem): Boolean {
+        TODO("Not yet implemented")
+    }
 
-        /*
-        val userFuture= async {
-            getTravelerInfo(mUserName)
+    override suspend fun buyTicket(buyTicketDTO: BuyTicketDTO, ticketId: Long, userName: String) : Long
+     = coroutineScope()
+    {
+        val ctx : CoroutineContext = Dispatchers.IO
+
+        val ticketRequested : TicketItem
+        logger.info("ctx: ${this.coroutineContext.job} \t start buying info ")
+        val ticketFuture =
+            withContext(Dispatchers.IO + CoroutineName("find ticket")) {
+                logger.info("ctx:  ${this.coroutineContext.job} \t searching ticket info")
+                ticketItemRepository.findById(ticketId) ?: throw InvalidTicketOrderException("Ticket Not Found")
         }
-        */
 
+        ticketRequested = ticketFuture
+        if(ticketHasRestriction(ticketRequested)){
+            val travelerAge =
+                //async(Dispatcher.IO + CoroutineName("find user age")
+                withContext(Dispatchers.IO + CoroutineName("find user age")) {
+                    logger.info("ctx:  ${this.coroutineContext.job} \t searching user age")
+                    getTravelerAge(userName)
+            }
+            if ( ! checkRestriction(travelerAge,ticketRequested))
+                throw InvalidTicketRestrictionException("User $userName is $travelerAge years old and can not buy" +
+                        " ticket $ticketId")
 
-        val ticket = ticketItemRepository.findById(ticketId) ?: throw InvalidTicketOrderException("Ticket Not Found")
+        }
 
-        val buyTicketDTO = mBuyTicketDTO.awaitSingle()
-        val ticketPrice = ticket.price
+        val ticketPrice = ticketRequested.price
         val totalPrice = buyTicketDTO.numOfTickets * ticketPrice
-        if(ticketHasRestriction(ticket)){
 
-            getTravelerInfo(mUserName)
-
-            TODO("implement the cancellation of the other coroutine because the user can not perform the order")
-        }
-        val username = mUserName.awaitSingle()
-        logger.info("order request received from user $username for ${buyTicketDTO.numOfTickets } ticket $ticketId" +
+        logger.info("ctx: ${this.coroutineContext.job}\t order request received from user $userName for ${buyTicketDTO.numOfTickets } ticket $ticketId" +
                 "\n the user want to pay with ${buyTicketDTO.paymentInfo}" +
                 "\n\t totalPrice = $totalPrice")
 
-        val order = ticketOrderService.savePendingOrder(
-            totalPrice = totalPrice,
-            username = username,
-            ticketId = ticketId,
-            quantity = buyTicketDTO.numOfTickets
+        val order = withContext(Dispatchers.IO + CoroutineName("save pending order")){
 
-        )
+            ticketOrderService.savePendingOrder(
+                totalPrice = totalPrice,
+                username = userName,
+                ticketId = ticketId,
+                quantity = buyTicketDTO.numOfTickets
+            )
+        }
         logger.info("order $order set pending")
 
         publishOrderOnKafka(order)
 
-        return order.orderId ?: throw InvalidTicketOrderException("order id not saved correctly in the db")
+
+        order.orderId ?: throw InvalidTicketOrderException("order id not saved correctly in the db")
 
 
     }
 
-    private fun getTravelerInfo(mUserName: Mono<String>) {
+    private fun getTravelerAge(userName: String) : Int {
         // Use this to contact the travelerService:
         // Client is a webClient (val client = WebClient.create() ??) It should be in the consturctor of the controller
 //        client

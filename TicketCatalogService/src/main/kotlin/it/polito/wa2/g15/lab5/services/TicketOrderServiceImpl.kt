@@ -3,6 +3,9 @@ package it.polito.wa2.g15.lab5.services
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
 import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
@@ -21,8 +24,9 @@ class TicketOrderServiceImpl : TicketOrderService {
         return ticketOrderRepository.findAll()
     }
 
-    override suspend fun getUserTicketOrders(username: Mono<String>): Flow<TicketOrder> {
-        return ticketOrderRepository.findTicketOrdersByUsername(username.awaitSingle())
+    override fun getUserTicketOrders(username: String): Flow<TicketOrder> {
+
+            return ticketOrderRepository.findTicketOrdersByUsername(username)
     }
 
     override suspend fun savePendingOrder(totalPrice: Double, username: String,ticketId :Long, quantity: Int): TicketOrder {

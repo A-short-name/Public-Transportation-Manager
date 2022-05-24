@@ -33,5 +33,5 @@ interface TicketCatalogService {
      * The client to check the order result, must do polling to check the outcome.
      *
      */
-    suspend fun buyTicket(mBuyTicketDTO: Mono<BuyTicketDTO>, ticketId: Long, mUserName: Mono<String>) : Long
+    suspend fun buyTicket(mBuyTicketDTO: BuyTicketDTO, ticketId: Long, userName: String) : Long
 }

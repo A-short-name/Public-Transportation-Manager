@@ -2,6 +2,7 @@ package it.polito.wa2.g15.lab5
 
 import it.polito.wa2.g15.lab5.dtos.*
 import it.polito.wa2.g15.lab5.entities.TicketOrder
+import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import it.polito.wa2.g15.lab5.services.TicketOrderService
 import kotlinx.coroutines.flow.Flow
@@ -70,12 +71,21 @@ class Controller {
     @PostMapping("/shop/{ticket-id}/")
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
     suspend fun buyTickets(@PathVariable("ticket-id") ticketId: String,
-                           @RequestBody buyTicketBody: Mono<BuyTicketDTO>
-    ) : Long {
+                           @RequestBody buyTicketBody: BuyTicketDTO,
+                           response: ServerHttpResponse
+    ) : Long? {
 
     //Body da passare: listOf.(TicketForTravelerDTO(validFrom= it.validFrom, ticketItemId= ticket-id, zid=it.zid, ticketType=it.type) * numberOfTickets)
-    val userName = principal.map { p -> p.sub }
-        return ticketCatalogService.buyTicket(buyTicketBody,ticketId.toLong(),userName)
+    val userName = principal.map { p -> p.sub }.awaitSingle()
+
+        var res : Long? = try {
+            ticketCatalogService.buyTicket(buyTicketBody,ticketId.toLong(),userName)
+        }catch (e : InvalidTicketRestrictionException){
+            response.statusCode = HttpStatus.BAD_REQUEST
+            null
+        }
+        response.statusCode = HttpStatus.ACCEPTED
+        return res
     }
 
     /**
@@ -85,7 +95,7 @@ class Controller {
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
     suspend fun orders() : Flow<TicketOrder> {
         val userName = principal.map { p -> p.sub }
-        return ticketOrderService.getUserTicketOrders(userName)
+        return ticketOrderService.getUserTicketOrders(userName.awaitSingle())
     }
 
     /**
@@ -133,7 +143,7 @@ class Controller {
      */
     @GetMapping("admin/orders/{user-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
-    suspend fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: Mono<String>) : Flow<TicketOrder> {
+    fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String) : Flow<TicketOrder> {
         return ticketOrderService.getUserTicketOrders(userId)
     }
 }
