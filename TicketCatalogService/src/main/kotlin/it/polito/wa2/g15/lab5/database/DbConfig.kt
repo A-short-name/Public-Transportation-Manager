@@ -22,6 +22,4 @@ class DbConfig {
         )
         return initializer
     }
-
-
 }

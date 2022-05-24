@@ -15,6 +15,7 @@ import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
@@ -54,20 +55,11 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     private val logger = KotlinLogging.logger {}
 
-    val client = WebClient.builder()
-            .baseUrl("http://localhost:8080")
-            //.defaultCookie("cookieKey", "cookieValue")
-            .defaultHeaders(httpHeaders())
-            .defaultUriVariables(Collections.singletonMap("url", "http://localhost:8080"))
-            .build()
+    //Defined in config class
+    @Autowired
+    lateinit var client : WebClient
 
-    private fun httpHeaders(): Consumer<HttpHeaders> {
-        return Consumer<HttpHeaders> { headers ->
-            headers.contentType = MediaType.APPLICATION_JSON
-            headers.setBearerAuth(jwtUtils.generateJwtToken())
-            headers.set(HttpHeaders.ACCEPT_ENCODING, MediaType.APPLICATION_JSON_VALUE)
-        }
-    }
+
 
     override fun getAllTicketItems(): Flow<TicketItem> {
         return ticketItemRepository.findAll()
