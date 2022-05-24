@@ -5,14 +5,14 @@ import org.springframework.data.relational.core.mapping.Table
 
 @Table("ticket_orders")
 data class TicketOrder (
-    @Id
+        @Id
     val orderId: Long? = null,
 
-    val orderState: String,
+        var orderState: String,
 
-    val totalPrice: Double,
-    val username: String,
-    val ticketId: Long,
-    val quantity: Int
+        val totalPrice: Double,
+        val username: String,
+        val ticketId: Long,
+        val quantity: Int
 
     )

@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory
 import kotlin.text.Charsets.UTF_8
 
 
-class MessageForTravelerSerializer : Serializer<OrderInformationMessage> {
+class MessageForTravelerSerializer : Serializer<OrderProcessedMessage> {
     private val objectMapper = ObjectMapper()
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun serialize(topic: String?, data: OrderInformationMessage?): ByteArray? {
+    override fun serialize(topic: String?, data: OrderProcessedMessage?): ByteArray? {
         objectMapper.findAndRegisterModules()
         log.info("Serializing...")
         return objectMapper.writeValueAsBytes(

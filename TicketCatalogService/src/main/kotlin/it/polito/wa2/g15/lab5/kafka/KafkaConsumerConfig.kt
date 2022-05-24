@@ -19,7 +19,7 @@ class KafkaConsumerConfig(
 ) {
 
     @Bean
-    fun consumerFactory(): ConsumerFactory<String, OrderInformationMessage> {
+    fun consumerFactory(): ConsumerFactory<String, OrderProcessedMessage> {
         val props: MutableMap<String, Any> = HashMap()
         props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = servers
         props[ConsumerConfig.GROUP_ID_CONFIG] = "ppr"
@@ -30,8 +30,8 @@ class KafkaConsumerConfig(
     }
 
     @Bean
-    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, OrderInformationMessage> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, OrderInformationMessage>()
+    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, OrderProcessedMessage> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, OrderProcessedMessage>()
         factory.consumerFactory = consumerFactory()
         //factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
         factory.containerProperties.isSyncCommits = true

@@ -15,7 +15,7 @@ class KafkaProducerConfig(
         private val servers: String
 ) {
     @Bean
-    fun producerFactory(): ProducerFactory<String, OrderInformationMessage> {
+    fun producerFactory(): ProducerFactory<String, OrderProcessedMessage> {
         val configProps: MutableMap<String, Any> = HashMap()
         configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = servers
         configProps[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
@@ -24,7 +24,7 @@ class KafkaProducerConfig(
     }
 
     @Bean
-    fun kafkaTemplate(): KafkaTemplate<String, OrderInformationMessage> {
+    fun kafkaTemplate(): KafkaTemplate<String, OrderProcessedMessage> {
         return KafkaTemplate(producerFactory())
     }
 }

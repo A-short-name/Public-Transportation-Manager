@@ -7,5 +7,8 @@ data class OrderInformationMessage(
         @JsonProperty("billing_info")
         val billingInfo: PaymentInfo,
         @JsonProperty("total_cost")
-        val totalCost: Double
+        val totalCost: Double,
+        val username: String,
+        @JsonProperty("order_id")
+        val orderId: Long
 )

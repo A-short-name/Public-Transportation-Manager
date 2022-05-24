@@ -7,13 +7,17 @@ import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
 import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
+import it.polito.wa2.g15.lab5.kafka.OrderProcessedMessage
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
@@ -27,6 +31,11 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     @Autowired
     lateinit var ticketOrderService: TicketOrderService
+
+    @Value("\${kafka.topics.produce}")
+    lateinit var topic: String
+    @Autowired
+    private lateinit var kafkaTemplate: KafkaTemplate<String, OrderInformationMessage>
 
     private val logger = KotlinLogging.logger {}
 
@@ -83,7 +92,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         )
         logger.info("order $order set pending")
 
-        publishOrderOnKafka(order)
+        publishOrderOnKafka(buyTicketDTO, order)
 
         return order.orderId ?: throw InvalidTicketOrderException("order id not saved correctly in the db")
 
@@ -105,9 +114,18 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     /**
      * publish on kafka the event of the pending order
      */
-    private fun publishOrderOnKafka(ticketOrder: TicketOrder) {
-        TODO("Not yet implemented, should push on kafka that this ticketOrder: $ticketOrder is pending")
+    private fun publishOrderOnKafka(buyTicketDTO: BuyTicketDTO, ticketOrder: TicketOrder) {
+        val message: Message<OrderInformationMessage> = MessageBuilder
+                .withPayload(OrderInformationMessage(buyTicketDTO.paymentInfo, ticketOrder.totalPrice, ticketOrder.username, ticketOrder.ticketId))
+                .setHeader(KafkaHeaders.TOPIC, topic)
+                .setHeader("X-Custom-Header", "Custom header here")
+                .build()
+        kafkaTemplate.send(message)
+        logger.info("Message sent with success on topic: $topic")
     }
+
+    //Consume message is in order service
+
 
     /**
      * if the ticket has some restriction about the age or stuff like that return true, false otherwise
@@ -123,11 +141,4 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
         return true
     }
-
-    @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "ppr")
-    fun consumeMessage(message: OrderInformationMessage) {
-        logger.info("Message received {}", message)
-        //ack.acknowledge()
-    }
-
 }

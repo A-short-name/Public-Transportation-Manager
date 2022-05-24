@@ -7,17 +7,17 @@ import org.slf4j.LoggerFactory
 import kotlin.text.Charsets.UTF_8
 
 
-class MessageFromPaymentDeserializer : Deserializer<OrderInformationMessage> {
+class MessageFromPaymentDeserializer : Deserializer<OrderProcessedMessage> {
     private val objectMapper = ObjectMapper()
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun deserialize(topic: String?, data: ByteArray?): OrderInformationMessage? {
+    override fun deserialize(topic: String?, data: ByteArray?): OrderProcessedMessage? {
         objectMapper.findAndRegisterModules()
         log.info("Deserializing...")
         return objectMapper.readValue(
                 String(
                         data ?: throw SerializationException("Error when deserializing byte[] to Product"), UTF_8
-                ), OrderInformationMessage::class.java
+                ), OrderProcessedMessage::class.java
         )
     }
 
