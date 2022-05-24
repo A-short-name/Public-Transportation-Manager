@@ -1,11 +1,15 @@
 package it.polito.wa2.g15.lab5.paymentservice.services
 
+import it.polito.wa2.g15.lab5.paymentservice.dtos.TransactionDTO
+import it.polito.wa2.g15.lab5.paymentservice.dtos.toDTO
 import it.polito.wa2.g15.lab5.paymentservice.entities.Transaction
 import it.polito.wa2.g15.lab5.paymentservice.kafka.OrderInformationMessage
 import it.polito.wa2.g15.lab5.paymentservice.kafka.OrderProcessedMessage
 import it.polito.wa2.g15.lab5.paymentservice.kafka.PaymentInfo
 import it.polito.wa2.g15.lab5.paymentservice.repositories.TransactionRepository
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -31,17 +35,21 @@ class PaymentServiceImpl : PaymentService {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun getTransactionsByUser(username: String) : Flow<Transaction> {
-        return transactionRepository.getTransactionsByUsername(username)
+    override fun getTransactionsByUser(username: String) : Flow<TransactionDTO> {
+        return transactionRepository.getTransactionsByUsername(username).map { it.toDTO() }
     }
 
-    override fun getAllTransactions() : Flow<Transaction> {
-        return transactionRepository.findAll()
+    override fun getAllTransactions() : Flow<TransactionDTO> {
+        return transactionRepository.findAll().map { it.toDTO() }
     }
-
     @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "ppr")
-    suspend fun performPayment(message: OrderInformationMessage) {
+    fun performPayment(message: OrderInformationMessage) {
         logger.info("Message received {}", message)
+        CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { performPaymentSuspendable(message) } }
+    }
+
+    suspend fun performPaymentSuspendable(message: OrderInformationMessage) {
+
         /*  Pagamento accordato
         * Capire se bisogna accettare randomicamente oppure accordare sempre
         * */

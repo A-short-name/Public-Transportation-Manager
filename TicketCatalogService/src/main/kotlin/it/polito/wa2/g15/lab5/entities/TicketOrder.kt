@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("ticket_orders")
 data class TicketOrder (
         @Id
-    val orderId: Long? = null,
+        val orderId: Long? = null,
 
         var orderState: String,
 

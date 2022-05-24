@@ -7,21 +7,17 @@ import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
 import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
-import it.polito.wa2.g15.lab5.kafka.OrderProcessedMessage
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
@@ -58,7 +54,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         }
     }
 
-    override suspend fun buyTicket(mBuyTicketDTO: Mono<BuyTicketDTO>, ticketId: Long, mUserName: Mono<String>) : Long {
+    override suspend fun buyTicket(buyTicketDTO: BuyTicketDTO, ticketId: Long, mUserName: Mono<String>) : Long {
 
         /*
         val userFuture= async {
@@ -69,7 +65,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
         val ticket = ticketItemRepository.findById(ticketId) ?: throw InvalidTicketOrderException("Ticket Not Found")
 
-        val buyTicketDTO = mBuyTicketDTO.awaitSingle()
+        val buyTicketDTO = buyTicketDTO
         val ticketPrice = ticket.price
         val totalPrice = buyTicketDTO.numOfTickets * ticketPrice
         if(ticketHasRestriction(ticket)){
@@ -116,7 +112,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
      */
     private fun publishOrderOnKafka(buyTicketDTO: BuyTicketDTO, ticketOrder: TicketOrder) {
         val message: Message<OrderInformationMessage> = MessageBuilder
-                .withPayload(OrderInformationMessage(buyTicketDTO.paymentInfo, ticketOrder.totalPrice, ticketOrder.username, ticketOrder.ticketId))
+                .withPayload(OrderInformationMessage(buyTicketDTO.paymentInfo, ticketOrder.totalPrice, ticketOrder.username, ticketOrder.orderId!!))
                 .setHeader(KafkaHeaders.TOPIC, topic)
                 .setHeader("X-Custom-Header", "Custom header here")
                 .build()

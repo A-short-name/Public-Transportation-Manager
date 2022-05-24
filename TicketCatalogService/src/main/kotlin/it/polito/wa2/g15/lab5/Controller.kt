@@ -73,13 +73,13 @@ class Controller {
      */
     @PostMapping("/shop/{ticket-id}/")
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun buyTickets(@PathVariable("ticket-id") ticketId: String,
-                           @RequestBody buyTicketBody: Mono<BuyTicketDTO>
+    suspend fun buyTickets(@PathVariable("ticket-id") ticketId: Long,
+                           @RequestBody buyTicketBody: BuyTicketDTO
     ) : Long {
 
     //Body da passare: listOf.(TicketForTravelerDTO(validFrom= it.validFrom, ticketItemId= ticket-id, zid=it.zid, ticketType=it.type) * numberOfTickets)
     val userName = principal.map { p -> p.sub }
-        return ticketCatalogService.buyTicket(buyTicketBody,ticketId.toLong(),userName)
+        return ticketCatalogService.buyTicket(buyTicketBody,ticketId,userName)
     }
 
     /**
