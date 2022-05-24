@@ -8,6 +8,7 @@ import it.polito.wa2.g15.lab5.dtos.UserDetailsDTO
 import it.polito.wa2.g15.lab5.exceptions.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
@@ -22,6 +23,9 @@ class JwtUtils {
 
     @Value("\${security.privateKey.traveler}")
     lateinit var generateJwtStringKey : String
+
+    @Value("\${security.jwtExpirationMs}")
+    lateinit var jwtExpirationMs: String     //1 hour in ms
 
 
     val generateJwtKey: SecretKey by lazy {
@@ -46,6 +50,17 @@ class JwtUtils {
                 .setIssuedAt(iat)
                 .setExpiration(exp)
                 .claim("zid", zid)
+                .signWith(generateJwtKey)
+                .compact()
+    }
+    fun generateJwtToken(): String {
+        val authorities : List<String> = listOf("SERVICE")
+        return Jwts.builder()
+                .setSubject("TicketCatalog")
+                .setIssuedAt(Date())
+                .setExpiration(Date(Date().time + jwtExpirationMs.toInt()))
+                .claim("roles", authorities)
+                //check this algorithm and also what you want to return (if before you want to save a role or return directly the authoirities
                 .signWith(generateJwtKey)
                 .compact()
     }

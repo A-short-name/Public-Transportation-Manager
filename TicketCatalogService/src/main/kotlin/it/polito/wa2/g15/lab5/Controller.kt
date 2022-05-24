@@ -40,8 +40,8 @@ class Controller {
 
     @GetMapping(path = ["/whoami"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun getName(): Mono<String>? {
-        return principal.map { p -> p.sub }
+    suspend fun getName(): String? {
+        return principal.map { p -> p.sub }.awaitSingle()
     }
 
     /**
@@ -78,7 +78,7 @@ class Controller {
     //Body da passare: listOf.(TicketForTravelerDTO(validFrom= it.validFrom, ticketItemId= ticket-id, zid=it.zid, ticketType=it.type) * numberOfTickets)
     val userName = principal.map { p -> p.sub }.awaitSingle()
 
-        var res : Long? = try {
+        val res : Long? = try {
             ticketCatalogService.buyTicket(buyTicketBody,ticketId.toLong(),userName)
         }catch (e : InvalidTicketRestrictionException){
             response.statusCode = HttpStatus.BAD_REQUEST

@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import javax.validation.Valid
 
 @RestController
@@ -211,11 +212,11 @@ class Controller {
      */
     @GetMapping("/services/user/{username}/profile/")
     @PreAuthorize("hasAuthority('SERVICE')")
-    fun selectedUserProfile(@PathVariable("username") username: String): ResponseEntity<UserProfileDTO> {
+    fun selectedUserProfile(@PathVariable("username") username: String): ResponseEntity<LocalDate> {
         return try {
             val result: UserProfileDTO = travelerService.getUserDetails(username)
 
-            ResponseEntity<UserProfileDTO>(result, HttpStatus.OK)
+            ResponseEntity<LocalDate>(result.dateOfBirth, HttpStatus.OK)
         } catch (ex: Exception) {
             logger.error { "\tProfile not valid: ${ex.message}" }
             ResponseEntity(HttpStatus.NOT_FOUND)
