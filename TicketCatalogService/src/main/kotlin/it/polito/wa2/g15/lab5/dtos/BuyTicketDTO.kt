@@ -42,6 +42,9 @@ data class PaymentInfo(
     @field:NotBlank
     val csv: String,
 
+    @field:NotBlank
+    val cardHolder: String
+
     )
 
 data class TicketForTravelerDTO (

@@ -35,3 +35,62 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
   }
 }
 
+### Test generazione message in kafka
+
+POST http://localhost:8082/test/kafka/produce/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
+{
+  "total_cost": 10,
+  "billing_info": {
+    "creditCardNumber": "1234-4567-8901-2345",
+    "exp": "2030-01-01",
+    "csv": "123"
+  }
+}
+
+### Test acquisto biglietto con pagamento a buon fine e aggiornamento dello status
+#esegui solo una volta l'aggiunta di questo item al catalog
+### Admin mette tipi di biglietti
+POST http://localhost:8082/admin/tickets/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
+{
+  "type": "Settimanale",
+  "price": 10
+}
+### Admin acquista biglietti
+POST http://localhost:8082/shop/1/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
+{
+  "numOfTickets": 10,
+  "paymentInfo": {
+    "creditCardNumber": "1234-4567-8901-2345",
+    "exp": "2030-01-01",
+    "csv": "123",
+    "cardHolder": "Gabriele SM"
+  },
+  "validFrom":"2029-01-01",
+  "zid": "123"
+}
+###Inserisci l'order l'id restituito dalla post precedente per vederlo pending per 10 secondi
+GET http://localhost:8082/orders/17/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
+###Contatta il payment per vedere che la transazione sia stata inserita
+GET http://localhost:8083/transactions/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
+###Ricontatta il catalog per vederlo completed
+GET http://localhost:8082/orders/9/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A

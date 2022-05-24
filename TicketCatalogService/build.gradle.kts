@@ -26,7 +26,13 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
 
+    implementation("org.springframework.kafka:spring-kafka")
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    //Add to perform date handling building the message for kafka
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    //But then objectMapper.findAndRegisterModules() on serializer and deserializer
+
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
@@ -38,6 +44,8 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test:5.6.3")
     testImplementation("org.apache.httpcomponents:httpclient:4.5.13")
     testImplementation("io.projectreactor:reactor-test")
+
+    testImplementation("org.springframework.kafka:spring-kafka-test")
 }
 
 tasks.withType<KotlinCompile> {

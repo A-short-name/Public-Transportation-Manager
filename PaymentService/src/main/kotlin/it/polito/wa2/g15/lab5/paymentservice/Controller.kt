@@ -1,5 +1,6 @@
 package it.polito.wa2.g15.lab5.paymentservice
 
+import it.polito.wa2.g15.lab5.paymentservice.dtos.TransactionDTO
 import it.polito.wa2.g15.lab5.paymentservice.dtos.UserDetailsDTO
 import it.polito.wa2.g15.lab5.paymentservice.entities.Transaction
 import it.polito.wa2.g15.lab5.paymentservice.services.PaymentService
@@ -26,7 +27,7 @@ class Controller {
      */
     @GetMapping("transactions/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAnyAuthority('CUSTOMER','ADMIN')")
-    suspend fun getTransactions() : Flow<Transaction> {
+    suspend fun getTransactions() : Flow<TransactionDTO> {
         val sub = principal.awaitSingle().sub
         return paymentService.getTransactionsByUser(sub)
     }
@@ -36,7 +37,7 @@ class Controller {
      */
     @GetMapping("admin/transactions/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getAllTransactions() : Flow<Transaction> {
+    fun getAllTransactions() : Flow<TransactionDTO> {
         return paymentService.getAllTransactions()
     }
 }

@@ -3,24 +3,28 @@ package it.polito.wa2.g15.lab5
 import it.polito.wa2.g15.lab5.dtos.*
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
+import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import it.polito.wa2.g15.lab5.services.TicketOrderService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.server.reactive.ServerHttpResponse
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.KafkaHeaders
+import org.springframework.messaging.Message
+import org.springframework.messaging.support.MessageBuilder
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
-import org.springframework.validation.BindingResult
-import org.springframework.validation.FieldError
-import org.springframework.validation.ObjectError
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController
@@ -70,7 +74,7 @@ class Controller {
      */
     @PostMapping("/shop/{ticket-id}/")
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun buyTickets(@PathVariable("ticket-id") ticketId: String,
+    suspend fun buyTickets(@PathVariable("ticket-id") ticketId: Long,
                            @RequestBody buyTicketBody: BuyTicketDTO,
                            response: ServerHttpResponse
     ) : Long? {
@@ -79,7 +83,7 @@ class Controller {
     val userName = principal.map { p -> p.sub }.awaitSingle()
 
         val res : Long? = try {
-            ticketCatalogService.buyTicket(buyTicketBody,ticketId.toLong(),userName)
+            ticketCatalogService.buyTicket(buyTicketBody,ticketId,userName)
         }catch (e : InvalidTicketRestrictionException){
             response.statusCode = HttpStatus.BAD_REQUEST
             null
@@ -146,4 +150,36 @@ class Controller {
     fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String) : Flow<TicketOrder> {
         return ticketOrderService.getUserTicketOrders(userId)
     }
+
+    /*Endpoint to test kafka communication with the payment service*/
+
+    /*
+    This Doesn't work anymore because the listener of the topic in payment now does other things
+    @Value("\${kafka.topics.produce}")
+    lateinit var topic: String
+    @Autowired
+    private lateinit var kafkaTemplate: KafkaTemplate<String, OrderInformationMessage>
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    @PostMapping("test/kafka/produce/")
+    fun testKafkaProduceMessage(@Validated @RequestBody product: OrderInformationMessage, response: ServerHttpResponse) {
+        return try {
+            log.info("Receiving product request")
+            log.info("Sending message to Kafka {}", product)
+            val message: Message<OrderInformationMessage> = MessageBuilder
+                    .withPayload(product)
+                    .setHeader(KafkaHeaders.TOPIC, topic)
+                    .setHeader("X-Custom-Header", "Custom header here")
+                    .build()
+            kafkaTemplate.send(message)
+            log.info("Message sent with success on topic: $topic")
+            response.statusCode = HttpStatus.OK
+        } catch (e: Exception) {
+            log.error("Exception: {}",e)
+            response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+        }
+    }*/
+
+
 }

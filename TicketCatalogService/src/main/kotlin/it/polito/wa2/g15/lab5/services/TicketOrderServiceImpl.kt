@@ -2,14 +2,19 @@ package it.polito.wa2.g15.lab5.services
 
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
+import it.polito.wa2.g15.lab5.kafka.OrderProcessedMessage
 import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
@@ -46,4 +51,26 @@ class TicketOrderServiceImpl : TicketOrderService {
     }
 
 
+    @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "onlyOneGroup")
+    fun updateStatus(message: OrderProcessedMessage) {
+        logger.info("Message received {}", message)
+        CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { updateStatusSuspendable(message) } }
+    }
+    suspend fun updateStatusSuspendable(message: OrderProcessedMessage) {
+        val pendingTicketOrder: TicketOrder?
+        try {
+            pendingTicketOrder = ticketOrderRepository.findById(message.orderId)
+            } catch (e: Exception){
+                throw InvalidTicketOrderException("Error updating ticketOrder status: ${e.message}")
+            }
+        if(pendingTicketOrder == null)
+            throw InvalidTicketOrderException("No ticket order with such id")
+        if(message.accepted) pendingTicketOrder.orderState = "COMPLETED" else pendingTicketOrder.orderState = "CANCELLED"
+        //Senza il codice di sotto non l'ha aggiornato... vuol dire che non funziona come jpa
+        try {
+            ticketOrderRepository.save(pendingTicketOrder)
+        } catch (e: Exception){
+            throw InvalidTicketOrderException("Error updating ticketOrder status: ${e.message}")
+        }
+    }
 }
