@@ -43,7 +43,7 @@ class PaymentServiceImpl : PaymentService {
     override fun getAllTransactions() : Flow<TransactionDTO> {
         return transactionRepository.findAll().map { it.toDTO() }
     }
-    @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "ppr")
+    @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "onlyOneGroup")
     fun performPayment(message: OrderInformationMessage) {
         logger.info("Message received {}", message)
         CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { performPaymentSuspendable(message) } }

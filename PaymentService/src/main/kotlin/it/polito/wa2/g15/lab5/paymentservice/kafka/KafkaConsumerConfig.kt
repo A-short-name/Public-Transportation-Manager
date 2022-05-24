@@ -21,7 +21,7 @@ class KafkaConsumerConfig(
     fun consumerFactory(): ConsumerFactory<String?, OrderInformationMessage?> {
         val props: MutableMap<String, Any> = HashMap()
         props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = servers
-        props[ConsumerConfig.GROUP_ID_CONFIG] = "ppr"
+        props[ConsumerConfig.GROUP_ID_CONFIG] = "onlyOneGroup"
         props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = MessageFromTravelerDeserializer::class.java
         props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"

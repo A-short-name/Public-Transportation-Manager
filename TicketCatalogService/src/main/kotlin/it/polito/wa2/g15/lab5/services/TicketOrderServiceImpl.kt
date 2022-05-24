@@ -47,7 +47,7 @@ class TicketOrderServiceImpl : TicketOrderService {
     }
 
 
-    @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "ppr")
+    @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "onlyOneGroup")
     fun updateStatus(message: OrderProcessedMessage) {
         logger.info("Message received {}", message)
         CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { updateStatusSuspendable(message) } }

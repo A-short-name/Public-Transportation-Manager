@@ -143,7 +143,8 @@ class Controller {
 
     /*Endpoint to test kafka communication with the payment service*/
 
-
+    /*
+    This Doesn't work anymore because the listener of the topic in payment now does other things
     @Value("\${kafka.topics.produce}")
     lateinit var topic: String
     @Autowired
@@ -168,5 +169,7 @@ class Controller {
             log.error("Exception: {}",e)
             response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
         }
-    }
+    }*/
+
+
 }
