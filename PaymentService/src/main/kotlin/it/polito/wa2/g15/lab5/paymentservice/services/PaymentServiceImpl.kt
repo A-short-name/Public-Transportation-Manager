@@ -21,6 +21,7 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import javax.validation.constraints.NotBlank
+import kotlin.random.Random
 
 @Service
 class PaymentServiceImpl : PaymentService {
@@ -49,28 +50,33 @@ class PaymentServiceImpl : PaymentService {
     }
 
     suspend fun performPaymentSuspendable(message: OrderInformationMessage) {
-
         /*  Pagamento accordato
         * Capire se bisogna accettare randomicamente oppure accordare sempre
         * */
+        val declinedPayment = "Payment declined, transaction not created"
+        val errorDuringPayment = "Error during payment processing, transaction not created"
+        val successfulPayment = "Payment successful, transaction created"
+
+        if(!Random.nextBoolean()){
+            sendMessageForPayment(declinedPayment, false, -1, message.orderId)
+            return
+        }
+
         val transaction: Transaction
         try {
             val (creditCardNumber, exp, csv, cardHolder)= message.billingInfo
             transaction = transactionRepository.save(Transaction(username = message.username, creditCardNumber = creditCardNumber, exp = exp, csv = csv, cardHolder = cardHolder, totalCost = message.totalCost, orderId = message.orderId))
         } catch (e: Exception) {
-            val messageToSend: Message<OrderProcessedMessage> = MessageBuilder
-                            .withPayload(OrderProcessedMessage(false, -1, "Payment declined, transaction not created", message.orderId))
-                            .setHeader(KafkaHeaders.TOPIC, topic)
-                            .setHeader("X-Custom-Header", "Custom header here")
-                            .build()
-            kafkaTemplate.send(messageToSend)
-            logger.info("Message sent with success on topic: $topic")
+            sendMessageForPayment(errorDuringPayment, false, -1, message.orderId)
             throw Exception("Failed saving transaction info: ${e.message}")
         }
 
+        sendMessageForPayment(successfulPayment, true, transaction.id!!, transaction.orderId)
+    }
 
+    fun sendMessageForPayment(info: String, successful: Boolean, transactionId: Long, orderId: Long){
         val messageToSend: Message<OrderProcessedMessage> = MessageBuilder
-                .withPayload( OrderProcessedMessage(true, transaction.id!!, "Payment successful, transaction created", transaction.orderId))
+                .withPayload(OrderProcessedMessage(successful, transactionId, info, orderId))
                 .setHeader(KafkaHeaders.TOPIC, topic)
                 .setHeader("X-Custom-Header", "Custom header here")
                 .build()
