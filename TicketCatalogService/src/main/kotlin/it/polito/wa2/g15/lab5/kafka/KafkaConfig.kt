@@ -12,7 +12,9 @@ class KafkaConfig(
         @Value("\${spring.kafka.bootstrap-servers}")
         private val servers: String,
         @Value("\${kafka.topics.product}")
-        private val topic: String
+        private val topic: String,
+        @Value("\${kafka.topics.listOfTopics}")
+        private val listOfTopics :List<String>
 ) {
 
     @Bean
@@ -23,7 +25,7 @@ class KafkaConfig(
     }
 
     @Bean
-    fun porduto(): NewTopic {
-        return NewTopic(topic, 1, 1.toShort())
+    fun topics(): List<NewTopic> {
+        return listOfTopics.map { NewTopic(it, 1, 1.toShort()) }
     }
 }

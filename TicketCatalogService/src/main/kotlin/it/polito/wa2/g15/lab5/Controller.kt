@@ -144,7 +144,7 @@ class Controller {
     /*Endpoint to test kafka communication with the payment service*/
 
 
-    @Value("\${kafka.topics.product}")
+    @Value("\${kafka.topics.produce}")
     lateinit var topic: String
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
