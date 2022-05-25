@@ -12,5 +12,6 @@ data class TicketItem (
     val ticketType: String,
     val price: Double,
     val minAge: Int? = null,
-    val maxAge: Int? = null
+    val maxAge: Int? = null,
+    val duration: Long
     )

@@ -21,9 +21,9 @@ class Config {
                 .baseUrl("http://localhost:8080")
                 //.defaultCookie("cookieKey", "cookieValue")
                 .defaultHeaders { headers ->
-                    headers.contentType = MediaType.APPLICATION_JSON
-                    headers.setBearerAuth(jwtUtils.generateJwtToken())
-                    headers.set(HttpHeaders.ACCEPT_ENCODING, MediaType.APPLICATION_JSON_VALUE)
+                        headers.contentType = MediaType.APPLICATION_JSON
+                        headers.setBearerAuth(jwtUtils.generateJwtToken())
+                        headers.set(HttpHeaders.ACCEPT_ENCODING, MediaType.APPLICATION_JSON_VALUE)
                 }
                 .defaultUriVariables(Collections.singletonMap("url", "http://localhost:8080"))
                 .build()

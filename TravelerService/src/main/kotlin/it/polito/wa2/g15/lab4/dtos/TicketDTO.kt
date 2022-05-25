@@ -65,17 +65,13 @@ data class ExecuteCommandOnTicketsDTO(
 )
 
 data class TicketFromCatalogDTO (
-
-        @field:NotNull
         @field:Positive
-        val ticketItemId: Long,
-
+        val duration: Long,
         @field:NotBlank(message = "Type can't be empty or null")
-        val type: String? = null,
-
-        //Present only for subscriptions
-        val validFrom: LocalDate? = null,
-
-        //Present only for standard ticket
-        val zid: String? = null
+        val type: String,
+        @field:NotNull
+        val validFrom: LocalDate,
+        @field:NotBlank
+        val zid: String,
+        val quantity: Int
 )

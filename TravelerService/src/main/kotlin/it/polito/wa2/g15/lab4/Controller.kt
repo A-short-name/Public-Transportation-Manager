@@ -235,7 +235,7 @@ class Controller {
     @PostMapping("/services/user/{username}/tickets/add")
     @PreAuthorize("hasAuthority('SERVICE')")
     fun generateTicketsForSelectedUser(@PathVariable("username") username: String,
-            @Valid @RequestBody ticketsDTO: List<TicketFromCatalogDTO>,
+            @Valid @RequestBody ticketDTO: TicketFromCatalogDTO,
             bindingResult: BindingResult) : ResponseEntity<Set<TicketDTO>> {
 
         // bindingResult is automatically populated by Spring and Hibernate-validate, trying to parse a userRequestDTO which
@@ -254,7 +254,7 @@ class Controller {
         return try {
             //val result = travelerService.buyTickets(ticketsDTO, username)
             //ResponseEntity(result,HttpStatus.OK)
-            ResponseEntity(HttpStatus.OK)
+            ResponseEntity(HttpStatus.ACCEPTED)
         } catch (ex: Exception) {
             logger.error { "\tProfile not valid: ${ex.message}" }
             ResponseEntity(HttpStatus.BAD_REQUEST)
