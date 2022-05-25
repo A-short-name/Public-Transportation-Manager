@@ -5,6 +5,7 @@ import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
 import it.polito.wa2.g15.lab5.kafka.OrderProcessedMessage
+import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -33,9 +34,12 @@ class TicketOrderServiceImpl : TicketOrderService {
 
     @Autowired
     lateinit var ticketOrderRepository: TicketOrderRepository
+    /*  Not possible for circular dependencies
     @Autowired
     lateinit var ticketCatalogService: TicketCatalogServiceImpl
-
+    */
+    @Autowired
+    lateinit var ticketItemRepository: TicketItemRepository
 
     private val logger = KotlinLogging.logger {}
     override suspend fun getAllTicketOrders(): Flow<TicketOrder> {
@@ -94,15 +98,15 @@ class TicketOrderServiceImpl : TicketOrderService {
     }
 
     private suspend fun postTicketInfo(ticketOrder: TicketOrder) {
-        val ticketInfo = ticketCatalogService.getTicketInfo(ticketOrder.ticketId)
-        val ticketForTraveler= TicketForTravelerDTO(ticketInfo.duration, ticketInfo.type, ticketOrder.validFrom, ticketOrder.zid, ticketOrder.quantity)
+        val ticket = ticketItemRepository.findById(ticketOrder.ticketId)!!
+        val ticketForTraveler= TicketForTravelerDTO(ticket.duration, ticket.ticketType, ticketOrder.validFrom, ticketOrder.zid, ticketOrder.quantity)
 
         client.post()
-            .uri("/services/user/${ticketOrder.username}/tickets/add")
+            .uri("/services/user/${ticketOrder.username}/tickets/add/")
             .bodyValue(ticketForTraveler)
             .awaitExchange {
                 if (it.statusCode() != HttpStatus.ACCEPTED)
-                    throw InvalidTicketRestrictionException("User info not found")
+                    throw InvalidTicketRestrictionException("Post for ticket failed")
             }
         logger.info { "Ticket post successful" }
     }

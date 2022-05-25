@@ -2,8 +2,6 @@ package it.polito.wa2.g15.lab5.services
 
 import it.polito.wa2.g15.lab5.dtos.BuyTicketDTO
 import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.TicketInfoDTO
-import it.polito.wa2.g15.lab5.dtos.toTicketInfoDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
@@ -192,10 +190,5 @@ class TicketCatalogServiceImpl : TicketCatalogService {
                     throw InvalidTicketRestrictionException("ticket restriction is not valid, min age = ${ticket.minAge} > max age = ${ticket.maxAge}")
 
         return true
-    }
-
-    suspend fun getTicketInfo(ticketId: Long): TicketInfoDTO{
-        val ticket = ticketItemRepository.findById(ticketId)
-        return ticket!!.toTicketInfoDTO()
     }
 }

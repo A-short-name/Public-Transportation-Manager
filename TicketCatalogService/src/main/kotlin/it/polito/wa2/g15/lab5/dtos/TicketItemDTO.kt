@@ -38,11 +38,3 @@ data class NewTicketItemDTO(
     @field:Positive
     val duration: Long = -1
     )
-
-data class TicketInfoDTO(
-    val type: String,
-    val duration: Long
-)
-fun TicketItem.toTicketInfoDTO() : TicketInfoDTO{
-    return TicketInfoDTO(ticketType, duration)
-}

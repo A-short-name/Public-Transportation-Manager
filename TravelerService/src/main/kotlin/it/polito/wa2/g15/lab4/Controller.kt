@@ -232,11 +232,12 @@ class Controller {
      * @param CommandOnTicketsDTO a JSON formatted as the object
      * @param BindingResult result of validation
      */
-    @PostMapping("/services/user/{username}/tickets/add")
+    @PostMapping("/services/user/{username}/tickets/add/")
     @PreAuthorize("hasAuthority('SERVICE')")
     fun generateTicketsForSelectedUser(@PathVariable("username") username: String,
             @Valid @RequestBody ticketDTO: TicketFromCatalogDTO,
             bindingResult: BindingResult) : ResponseEntity<Set<TicketDTO>> {
+        logger.info { "Mi hanno chiesto di generare per $username :$ticketDTO" }
 
         // bindingResult is automatically populated by Spring and Hibernate-validate, trying to parse a userRequestDTO which
         // respects the validation annotations in UserRequestDTO. These errors can be detected before trying to insert into

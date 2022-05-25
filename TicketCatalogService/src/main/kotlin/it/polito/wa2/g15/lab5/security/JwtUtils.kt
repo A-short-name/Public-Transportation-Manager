@@ -21,17 +21,9 @@ class JwtUtils {
     @Value("\${security.privateKey.common}")
     lateinit var validateJwtStringKey : String
 
-    @Value("\${security.privateKey.traveler}")
-    lateinit var generateJwtStringKey : String
-
     @Value("\${security.jwtExpirationMs}")
     lateinit var jwtExpirationMs: String     //1 hour in ms
 
-
-    val generateJwtKey: SecretKey by lazy {
-        val decodedKey = Decoders.BASE64.decode(generateJwtStringKey)
-        Keys.hmacShaKeyFor(decodedKey)
-    }
 
     val validateJwtKey: SecretKey by lazy {
         // To generate private key:
@@ -43,16 +35,7 @@ class JwtUtils {
         val decodedKey = Decoders.BASE64.decode(validateJwtStringKey)
         Keys.hmacShaKeyFor(decodedKey)
     }
-    
-    fun generateTicketJwt(sub: Int, iat: Date, exp: Date, zid: String): String {
-        return Jwts.builder()
-                .setSubject(sub.toString())
-                .setIssuedAt(iat)
-                .setExpiration(exp)
-                .claim("zid", zid)
-                .signWith(generateJwtKey)
-                .compact()
-    }
+
     fun generateJwtToken(): String {
         val authorities : List<String> = listOf("SERVICE")
         return Jwts.builder()
@@ -61,7 +44,7 @@ class JwtUtils {
                 .setExpiration(Date(Date().time + jwtExpirationMs.toInt()))
                 .claim("roles", authorities)
                 //check this algorithm and also what you want to return (if before you want to save a role or return directly the authoirities
-                .signWith(generateJwtKey)
+                .signWith(validateJwtKey)
                 .compact()
     }
 
