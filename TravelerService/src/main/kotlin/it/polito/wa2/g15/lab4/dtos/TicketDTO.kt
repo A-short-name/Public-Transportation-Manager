@@ -65,7 +65,6 @@ data class ExecuteCommandOnTicketsDTO(
 )
 
 data class TicketFromCatalogDTO (
-        @field:Positive
         val duration: Long,
         @field:NotBlank(message = "Type can't be empty or null")
         val type: String,
