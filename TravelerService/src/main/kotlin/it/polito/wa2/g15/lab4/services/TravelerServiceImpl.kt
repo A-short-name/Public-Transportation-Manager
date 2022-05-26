@@ -11,7 +11,14 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoField
+import java.time.temporal.IsoFields
+import java.time.temporal.TemporalAdjusters
 import java.util.*
+
 
 @Service
 @Transactional
@@ -88,9 +95,13 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
 
         for(i in 0 until ticketFromCatalog.quantity) {
             val iat = Date()
-            val exp = calculateExp(ticketFromCatalog)
+            //If a week-end pass you must update the startFrom if the user select a different day of week
+            val validFrom = adjustValidFrom(ticketFromCatalog)
+
             //val exp = Date(Date().time+jwtExpirationMs.toLong())
-            val (duration, type, validFrom, zones, _) = ticketFromCatalog
+            val (duration, type, _, zones, _) = ticketFromCatalog
+
+            val exp = calculateExp(type, validFrom, duration)
 
             // Prepare ticket without jws
             val ticket = TicketPurchased(iat,exp,zones,"",userBuyer, type, validFrom, duration)
@@ -106,7 +117,7 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
             // Generate jws and save again with jws
             val sub = ticketdb.getId()!!
             ticket.jws = jwtUtils.generateTicketJwt(sub, iat, exp, zones, type, validFrom, duration)
-            //Va aggiunta questa?
+            //TODO Va aggiunta questa?
             //ticket.setId(sub)
             try {
                 ticketPurchasedRepository.save(ticket)
@@ -122,8 +133,44 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
 
         logger.info { "Generated ticked: $result" }
     }
-    private fun calculateExp(ticketFromCatalog: TicketFromCatalogDTO): Date{
-        TODO()
+    private fun adjustValidFrom(ticketFromCatalog: TicketFromCatalogDTO): LocalDate{
+        return if(ticketFromCatalog.type == "WEEKEND-PASS") {
+            if (ticketFromCatalog.validFrom.dayOfWeek != DayOfWeek.SATURDAY && ticketFromCatalog.validFrom.dayOfWeek != DayOfWeek.SUNDAY) {
+                ticketFromCatalog.validFrom.with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
+            } else {
+                ticketFromCatalog.validFrom
+            }
+        }
+        else
+            ticketFromCatalog.validFrom
+    }
+
+    private fun calculateExp(type: String, validFrom: LocalDate, duration: Long): Date{
+        return when (type) {
+            "WEEKEND-PASS" -> {
+                //duration is in number of week-end
+                //e.g. I want a weekend-pass with duration 4 (for 4 week-end->a month)
+                //I check valid from before. Now I'm sure that is a Saturday
+                val endDate = validFrom.plusWeeks(duration)
+                                 .with(ChronoField.DAY_OF_WEEK, DayOfWeek.SUNDAY.value.toLong())
+                return fromLocalDateToDate(endDate)
+            }
+            //duration is in day
+            "ORDINAL" -> fromLocalDateToDate(validFrom.plusDays(duration))
+            else -> Date(Date().time+jwtExpirationMs.toLong())
+        }
+    }
+
+    private fun fromLocalDateToDate(localDate: LocalDate): Date{
+        //default time zone
+        val defaultZoneId = ZoneId.systemDefault()
+        //the instance of LocalDate contains the day, month, year info
+        // localDate = 2016/08/19
+
+        val date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant())
+        logger.info { "LocalDate is: $localDate" }
+        logger.info {"Date is: $date"}
+        return date
     }
 
     override fun getListOfUsername():List<String>{
