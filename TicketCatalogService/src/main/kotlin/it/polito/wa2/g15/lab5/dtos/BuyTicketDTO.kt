@@ -45,7 +45,7 @@ data class PaymentInfo(
     val exp: LocalDate,
 
     @field:NotBlank
-    val csv: String,
+    val cvv: String,
 
     @field:NotBlank
     val cardHolder: String
