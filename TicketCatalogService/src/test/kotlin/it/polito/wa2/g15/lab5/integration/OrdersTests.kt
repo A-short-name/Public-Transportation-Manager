@@ -197,7 +197,7 @@ class OrdersTests {
                 }"
             )
             .exchange()
-            .expectStatus().isOk
+            .expectStatus().isNotFound
             .expectBodyList(TicketOrder::class.java)
             .hasSize(0)
     }
@@ -234,7 +234,7 @@ class OrdersTests {
                 Assertions.assertEquals(body.first(), addedOrders[0])
             }
 
-        /* Authorized User with an order NOT created by him */
+         /*Authorized User with an order NOT created by him */
         webTestClient.get()
             .uri("orders/${addedOrders.first().orderId}/")
             .accept(MediaType.APPLICATION_NDJSON)
@@ -281,9 +281,7 @@ class OrdersTests {
                 }"
             )
             .exchange()
-            .expectStatus().isNotFound
-            .expectBodyList(TicketOrder::class.java)
-            .hasSize(0)
+            .expectStatus().isBadRequest
     }
 
     fun generateJwtToken(

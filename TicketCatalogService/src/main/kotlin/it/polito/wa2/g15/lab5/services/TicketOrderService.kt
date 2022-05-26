@@ -25,7 +25,7 @@ interface TicketOrderService {
      * @return orderId of the saved order
      */
     suspend fun savePendingOrder(totalPrice: Double, username: String,ticketId :Long, quantity: Int, validFrom: LocalDate, zid: String) : TicketOrder
-    suspend fun getTicketOrderById(orderId: Long, username: String): TicketOrder
+    suspend fun getTicketOrderById(orderId: Long, username: String): TicketOrder?
 
 
 }
