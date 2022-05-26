@@ -17,9 +17,11 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.WebTestClient.ListBodySpec
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
@@ -60,42 +62,47 @@ class OrdersTests {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
-
-    @BeforeEach
-    fun initDb() = runBlocking {
-        println("start init db ...")
-
-        ticketItemRepo.save(TicketItem(
+    val tickets = listOf(
+        TicketItem(
             null,
             "ORDINAL",
             1.5,
             0,
             200,
-            120*60
-        )
-        )
-        ticketItemRepo.save(TicketItem(
+            120 * 60
+        ), TicketItem(
             null,
             "WEEKEND-PASS",
             5.0,
             0,
             27,
-            14*24*60*60
+            14 * 24 * 60 * 60
         )
-        )
+    )
 
-        ticketOrderRepository.save(
-            TicketOrder(
-                null,
-                "PENDING",
-                5.0,
-                "R2D2",
-                2,
-                1,
-                LocalDate.now(),
-                "1"
-            )
+    val orders = listOf(
+        TicketOrder(
+            null,
+            "PENDING",
+            5.0,
+            "R2D2",
+            2,
+            1,
+            LocalDate.now(),
+            "1"
         )
+    )
+
+    val addedTickets : MutableList<TicketItem> = mutableListOf()
+    val addedOrders : MutableList<TicketOrder> = mutableListOf()
+
+    @BeforeEach
+    fun initDb() = runBlocking {
+        println("start init db ...")
+
+        tickets.forEach { addedTickets.add(ticketItemRepo.save(it)) }
+
+        orders.forEach { addedOrders.add(ticketOrderRepository.save(it)) }
 
         println("... init db finished")
     }
@@ -105,33 +112,94 @@ class OrdersTests {
         println("start tear down db...")
         ticketItemRepo.deleteAll()
         ticketOrderRepository.deleteAll()
+        addedOrders.clear()
+        addedTickets.clear()
         println("...end tear down db")
     }
 
     @Test
-    fun viewUserOrders() = runBlocking{
+    fun viewUserOrders() {
+        /* Unauthorized user */
         webTestClient.get()
             .uri("/orders/")
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .accept(MediaType.APPLICATION_NDJSON)
             .exchange()
             .expectStatus().isUnauthorized
             .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
 
-
+        /* User with one order */
         webTestClient.get()
             .uri("/orders/")
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer ${generateJwtToken(
-                "R2D2",
-                setOf("CUSTOMER")
-            )}")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R2D2",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
             .exchange()
             .expectStatus().isOk
             .expectBodyList(TicketOrder::class.java)
+            .hasSize(1)
+            .consumeWith<ListBodySpec<TicketOrder>> {
+                val body = it.responseBody!!
+                Assertions.assertEquals(body.first(), addedOrders[0])
+            }
 
+        val newOrder = TicketOrder(
+            null,
+            "PENDING",
+            10.0,
+            "R2D2",
+            2,
+            2,
+            LocalDate.now(),
+            "1"
+        )
 
-        Assertions.assertTrue(true)
+        runBlocking { addedOrders.add(ticketOrderRepository.save(newOrder)) }
 
+        /* User with two orders */
+        webTestClient.get()
+            .uri("/orders/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R2D2",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(2)
+            .consumeWith<ListBodySpec<TicketOrder>> {
+                val body = it.responseBody!!
+                Assertions.assertEquals(body[0], addedOrders[0])
+                Assertions.assertEquals(body[1], addedOrders[1])
+            }
+
+        /* User with no orders */
+        webTestClient.get()
+            .uri("/orders/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R3D3",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
     }
 
     fun generateJwtToken(

@@ -60,19 +60,23 @@ class CatalogTests {
     @Autowired
     lateinit var client: WebTestClient
 
-    var ticketOne = TicketItem(
-        null,
-        "ORDINAL",
-        20.0,
-        0,
-        200,
-        2000L,
+    val tickets = listOf(
+        TicketItem(
+            null,
+            "ORDINAL",
+            20.0,
+            0,
+            200,
+            2000L,
+        )
     )
+
+    val addedTickets = mutableListOf<TicketItem>()
 
     @BeforeEach
     fun initDb() = runBlocking {
         println("start init db ...")
-        ticketOne = ticketItemRepo.save(ticketOne)
+        tickets.forEach{ addedTickets.add(ticketItemRepo.save(it)) }
 
         println("... init db finished")
     }
@@ -82,6 +86,7 @@ class CatalogTests {
     fun tearDownDb() = runBlocking {
         println("start tear down db...")
         ticketItemRepo.deleteAll()
+        addedTickets.clear()
         println("...end tear down db")
     }
 
@@ -137,7 +142,7 @@ class CatalogTests {
             .consumeWith {
                 val body = it.responseBody!!
                 //Assertions.assertNotEquals(body,TicketItem(2,"ORR",25.0,30,30,-1).toDTO())
-                Assertions.assertEquals(body,ticketOne.toDTO())
+                Assertions.assertEquals(body,addedTickets[0].toDTO())
             }
     }
 
