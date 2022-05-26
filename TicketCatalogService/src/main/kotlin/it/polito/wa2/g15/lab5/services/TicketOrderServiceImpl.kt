@@ -13,6 +13,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
@@ -68,8 +69,8 @@ class TicketOrderServiceImpl : TicketOrderService {
         return ticketOrderRepository.save(ticketOrder)
     }
 
-    override suspend fun getTicketOrderById(orderId: Long): TicketOrder {
-        return ticketOrderRepository.findById(orderId) ?: throw InvalidTicketOrderException("ticket order $orderId not found")
+    override suspend fun getTicketOrderById(orderId: Long, username: String): TicketOrder {
+        return ticketOrderRepository.findTicketOrderByOrderIdAndUsername(orderId, username).first()
     }
 
 

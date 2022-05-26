@@ -10,4 +10,5 @@ interface TicketOrderRepository : CoroutineCrudRepository<TicketOrder, Long> {
 
     fun findTicketOrdersByUsername(username: String) : Flow<TicketOrder>
 
+    fun findTicketOrderByOrderIdAndUsername(orderId: Long, username: String) : Flow<TicketOrder>
 }

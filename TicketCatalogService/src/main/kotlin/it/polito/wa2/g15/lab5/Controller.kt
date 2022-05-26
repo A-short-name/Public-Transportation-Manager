@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContext
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+import javax.validation.constraints.Positive
 
 @RestController
 class Controller {
@@ -108,8 +109,8 @@ class Controller {
      */
     @GetMapping("orders/{order-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun getSpecificOrder(@PathVariable("order-id") orderId: String) : TicketOrder {
-        return ticketOrderService.getTicketOrderById(orderId.toLong())
+    suspend fun getSpecificOrder(@PathVariable("order-id") @Positive orderId: Long) : TicketOrder {
+        return ticketOrderService.getTicketOrderById(orderId, principal.map { it.sub }.awaitSingle())
     }
 
     /**
