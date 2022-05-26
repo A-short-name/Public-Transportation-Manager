@@ -44,6 +44,8 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test:5.6.3")
     testImplementation("org.apache.httpcomponents:httpclient:4.5.13")
     testImplementation("io.projectreactor:reactor-test")
+    testImplementation ("org.testcontainers:junit-jupiter:1.16.3")
+    testImplementation("org.testcontainers:postgresql:1.16.3")
 
     testImplementation("org.springframework.kafka:spring-kafka-test")
 }
