@@ -3,72 +3,56 @@ package it.polito.wa2.g15.lab5.paymentservice
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import io.r2dbc.spi.ConnectionFactory
 import it.polito.wa2.g15.lab5.paymentservice.dtos.TransactionDTO
+import it.polito.wa2.g15.lab5.paymentservice.dtos.toDTO
 import it.polito.wa2.g15.lab5.paymentservice.entities.Transaction
 import it.polito.wa2.g15.lab5.paymentservice.repositories.TransactionRepository
 import it.polito.wa2.g15.lab5.paymentservice.security.WebFluxSecurityConfig
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.junit.Before
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.client.exchange
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.context.annotation.Bean
-import org.springframework.core.io.ClassPathResource
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.r2dbc.connection.init.CompositeDatabasePopulator
-import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer
-import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator
-import org.springframework.r2dbc.core.DatabaseClient
-import org.springframework.security.web.csrf.CsrfTokenRepository
 import org.springframework.security.web.server.csrf.ServerCsrfTokenRepository
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.PostgreSQLContainer
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.*
 import java.util.*
 import javax.crypto.SecretKey
-
-class MyPostgresSQLContainer(imageName: String) : PostgreSQLContainer<MyPostgresSQLContainer>(imageName)
 
 //@DataR2dbcTest
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ControllerTest {
     
-    @TestConfiguration
-    class TestConfig {
-        @Bean
-        fun initializer(connectionFactory: ConnectionFactory): ConnectionFactoryInitializer {
-            val initializer = ConnectionFactoryInitializer()
-            initializer.setConnectionFactory(connectionFactory)
-            val populator = CompositeDatabasePopulator()
-            populator.addPopulators(ResourceDatabasePopulator(ClassPathResource("schema.sql")))
-            initializer.setDatabasePopulator(populator)
-            return initializer
-        }
-    }
+    /*    @TestConfiguration
+        class TestConfig {
+            @Bean
+            fun initializer(connectionFactory: ConnectionFactory): ConnectionFactoryInitializer {
+                val initializer = ConnectionFactoryInitializer()
+                initializer.setConnectionFactory(connectionFactory)
+                val populator = CompositeDatabasePopulator()
+                populator.addPopulators(ResourceDatabasePopulator(ClassPathResource("schema.sql")))
+                initializer.setDatabasePopulator(populator)
+                return initializer
+            }
+        }*/
     
     companion object {
         @Container
-        val postgres = MyPostgresSQLContainer("postgres:latest")
+        val postgres = MyPostgresSQLContainer("postgres:latest").apply {
+            withDatabaseName("payments")
+        }
         
         @JvmStatic
         @DynamicPropertySource
@@ -104,64 +88,112 @@ class ControllerTest {
     
     private val logger = KotlinLogging.logger {}
     
-    val t1 = Transaction(1, "BigBoss", 100.0, "7992-7398-713", "Roberto Boss", 1L)
-    val t2 = Transaction(2, "BigBoss", 200.0, "7992-7398-713", "Roberto Boss", 2L)
+    @Autowired
+    lateinit var client: WebTestClient
+    
+    var t1 = Transaction(null, "BigBoss", 100.0, "7992-7398-713", "Roberto Boss", 1L)
+    var t2 = Transaction(null, "BigBoss", 200.0, "7992-7398-713", "Roberto Boss", 2L)
+    var t3 = Transaction(null, "Giovanni", 300.0, "7992-7398-713", "Giovannino Panevino", 3L)
+    val userTransactions : MutableList<TransactionDTO> = mutableListOf()
+    val allTransactions : MutableList<TransactionDTO> = mutableListOf()
     
     @BeforeEach
     fun initDb() {
         runBlocking {
-/*            transactionRepository.deleteAll()
-            transactionRepository.save(t1)
+            transactionRepository.deleteAll()
+            t1 = transactionRepository.save(t1)
             logger.info("Saved: $t1")
-            transactionRepository.save(t2)
+            t2 = transactionRepository.save(t2)
             logger.info("Saved: $t2")
-            Assertions.assertEquals(2, transactionRepository.count(), "transactions not saved in db")*/
+            t3 = transactionRepository.save(t3)
+            logger.info("Saved: $t3")
+            userTransactions.add(t1.toDTO())
+            userTransactions.add(t2.toDTO())
+            allTransactions.add(t1.toDTO())
+            allTransactions.add(t2.toDTO())
+            allTransactions.add(t3.toDTO())
+            Assertions.assertEquals(3, transactionRepository.count(), "transactions not saved in db")
+            logger.info(transactionRepository.findAll().toList().toString())
         }
     }
     
     @Test
     fun getUserTransactions() {
-        val validAdminToken = generateJwtToken("BigBoss", setOf("ADMIN"))
-        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
-        
-        val request = HttpEntity("", requestHeader)
-        
-        val response: ResponseEntity<TransactionDTO> = restTemplate.exchange(
-            "/transactions/",
-            HttpMethod.GET,
-            request
-        )
-        Assertions.assertEquals(HttpStatus.OK, response.statusCode, "response status code not expected")
-        
-        /*
-        Assertions.assertEquals(r2d2User.toDTO(), response.body, "wrong profile user")
-        */
+        runBlocking {
+            val validAdminToken = generateJwtToken("BigBoss", setOf("ADMIN"))
+            val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+            requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
+            
+            val response : MutableList<TransactionDTO> = mutableListOf()
+            
+            client.get()
+                .uri("/transactions/")
+                .headers { httpHeaders ->
+                    httpHeaders.addAll(requestHeader)
+                }
+                .exchange()
+                .expectStatus().isOk
+                .expectHeader().valueEquals("Content-Type", "application/x-ndjson")
+                .expectBodyList(TransactionDTO::class.java)
+                .consumeWith<WebTestClient.ListBodySpec<TransactionDTO>>{
+                    //println(it.responseBody)
+                    Assertions.assertEquals(userTransactions,it.responseBody,"Wrong transactions found")
+                }
+            
+            //.expectBody().jsonPath("field").isEqualTo("value");
+            /*                .post()
+                            .uri("/resource")
+                            .exchange()
+                            .expectStatus().isCreated()
+                            .expectHeader().valueEquals("Content-Type", "application/json")
+                            .expectBody().jsonPath("field").isEqualTo("value");*/
+            
+        }
     }
-    /*    @AfterEach
-        fun tearDownDb() {
-            ticketPurchasedRepository.deleteAll()
-            userRepo.deleteAll()
-        }*/
     
-    /*
-        @Autowired
-        lateinit var securityConfig: WebSecurityConfig
-        
-        @Autowired
-        lateinit var csrfTokenRepository: CsrfTokenRepository
-        */
-    /*    @Autowired
-        lateinit var connectionFactory:ConnectionFactory
-        
-        var client: DatabaseClient = DatabaseClient.builder()
-                .connectionFactory(connectionFactory)
-                //.bindMarkers(() -> BindMarkersFactory.named(":", "", 20).create())
-                .namedParameters(true)
-                .build();*/
-    
-    /*    @Autowired
-        var posts: PostRepository? = null*/
+    @Test
+    fun getAllTransactions() {
+        runBlocking {
+            val validAdminToken = generateJwtToken("BigBoss", setOf("ADMIN"))
+            val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+            requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
+            
+            val response : MutableList<TransactionDTO> = mutableListOf()
+            
+            client.get()
+                .uri("/admin/transactions/")
+                .headers { httpHeaders ->
+                    httpHeaders.addAll(requestHeader)
+                }
+                .exchange()
+                .expectStatus().isOk
+                .expectHeader().valueEquals("Content-Type", "application/x-ndjson")
+                .expectBodyList(TransactionDTO::class.java)
+                .consumeWith<WebTestClient.ListBodySpec<TransactionDTO>>{
+                    println(it.responseBody)
+                    Assertions.assertEquals(allTransactions,it.responseBody,"Wrong transactions found")
+                }
+        }
+    }
+
+    @Test
+    fun `non admin cannot obtain all transactions`() {
+        runBlocking {
+            val validAdminToken = generateJwtToken("Alberto", setOf("CUSTOMER"))
+            val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+            requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
+            
+            val response : MutableList<TransactionDTO> = mutableListOf()
+            
+            client.get()
+                .uri("/admin/transactions/")
+                .headers { httpHeaders ->
+                    httpHeaders.addAll(requestHeader)
+                }
+                .exchange()
+                .expectStatus().isForbidden
+        }
+    }
     
     /*@Test
         fun testDatabaseClientExisted() {
@@ -193,6 +225,7 @@ class ControllerTest {
         }*/
     @Value("\${security.privateKey.common}")
     private lateinit var validateJwtStringKey: String
+    
     @Value("\${security.jwtExpirationMs}")
     private lateinit var jwtExpirationMs: String
     fun generateJwtToken(
