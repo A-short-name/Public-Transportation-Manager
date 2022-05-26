@@ -5,8 +5,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     username VARCHAR(255) NOT NULL,
     total_cost DOUBLE PRECISION,
     credit_card_number VARCHAR(255) NOT NULL,
-    exp DATE,
-    csv VARCHAR(255) NOT NULL,
     card_holder VARCHAR(255) NOT NULL,
     order_id BIGINT
 );

@@ -30,8 +30,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
   "numOfTickets": 10,
   "paymentInfo": {
     "creditCardNumber": "1234-4567-8901-2345",
-    "exp": "2030-01-01",
-    "csv": "123"
+    "cardHolder": "Gabriele SM"
   }
 }
 
@@ -76,8 +75,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
   "numOfTickets": 10,
   "paymentInfo": {
     "creditCardNumber": "1234-4567-8901-2345",
-    "exp": "2030-01-01",
-    "csv": "123",
     "cardHolder": "Gabriele SM"
   },
   "validFrom":"2029-01-01",

@@ -19,10 +19,6 @@ data class Transaction (
     @NotBlank
     val creditCardNumber: String,
     @NotBlank
-    val exp: LocalDate,
-    @NotBlank
-    val csv: String,
-    @NotBlank
     val cardHolder: String,
 
     @Positive

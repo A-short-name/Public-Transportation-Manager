@@ -1,6 +1,22 @@
+// {
+  "sub": "xxxx",
+  "iat": 1652434324,
+  "exp": 1656034324, 24 june 2022
+  "roles": [
+    "ADMIN",
+    "CUSTOMER"
+  ]
+  }
 ###
 GET http://localhost:8083/transactions/
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
 ###
 GET http://localhost:8083/admin/transactions/
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+###
+GET http://localhost:8083/transactions/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+###
+GET http://localhost:8083/admin/transactions/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A

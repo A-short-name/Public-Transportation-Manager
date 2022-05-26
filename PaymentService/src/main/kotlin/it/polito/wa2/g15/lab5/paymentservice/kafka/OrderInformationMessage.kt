@@ -18,12 +18,6 @@ data class PaymentInfo(
         @field:NotBlank
         val creditCardNumber: String,
 
-        val exp: LocalDate,
-
-        @field:NotBlank
-        val csv: String,
-
         @field:NotBlank
         val cardHolder: String
-
-        )
+)
