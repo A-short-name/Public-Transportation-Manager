@@ -25,7 +25,7 @@ class Controller {
     /**
      * Get transactions of the current user
      */
-    @GetMapping("transactions/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
+    @GetMapping("/transactions/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAnyAuthority('CUSTOMER','ADMIN')")
     suspend fun getTransactions() : Flow<TransactionDTO> {
         val sub = principal.awaitSingle().sub
@@ -35,7 +35,7 @@ class Controller {
     /**
      *  Get transactions of all users
      */
-    @GetMapping("admin/transactions/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
+    @GetMapping("/admin/transactions/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getAllTransactions() : Flow<TransactionDTO> {
         return paymentService.getAllTransactions()
