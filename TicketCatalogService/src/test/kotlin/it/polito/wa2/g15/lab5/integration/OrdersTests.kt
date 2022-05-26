@@ -27,6 +27,7 @@ import org.springframework.test.web.reactive.server.WebTestClient.ListBodySpec
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 import javax.crypto.SecretKey
@@ -91,7 +92,7 @@ class OrdersTests {
             "R2D2",
             2,
             1,
-            ZonedDateTime.now(),
+            ZonedDateTime.now(ZoneId.of("UTC")),
             "1"
         )
     )
