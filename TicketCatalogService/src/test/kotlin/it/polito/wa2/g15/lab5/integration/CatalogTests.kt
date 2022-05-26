@@ -1,5 +1,8 @@
 package it.polito.wa2.g15.lab5.integration
 
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.io.Decoders
+import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.lab5.MyPostgresSQLContainer
 import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
 import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -20,6 +24,8 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.util.*
+import javax.crypto.SecretKey
 
 
 @Testcontainers
@@ -43,25 +49,34 @@ class CatalogTests {
         }
     }
 
+    @Value("\${security.jwtExpirationMs}")
+    private lateinit var jwtExpirationMs: String
+    @Value("\${security.privateKey.common}")
+    private lateinit var validateJwtStringKey: String
+
     @Autowired
     lateinit var ticketItemRepo: TicketItemRepository
 
     @Autowired
     lateinit var client: WebTestClient
 
-    var ticketOne = TicketItem(
-        null,
-        "ORDINAL",
-        20.0,
-        0,
-        200,
-        2000L,
+    val tickets = listOf(
+        TicketItem(
+            null,
+            "ORDINAL",
+            20.0,
+            0,
+            200,
+            2000L,
+        )
     )
+
+    val addedTickets = mutableListOf<TicketItem>()
 
     @BeforeEach
     fun initDb() = runBlocking {
         println("start init db ...")
-        ticketOne = ticketItemRepo.save(ticketOne)
+        tickets.forEach{ addedTickets.add(ticketItemRepo.save(it)) }
 
         println("... init db finished")
     }
@@ -71,6 +86,7 @@ class CatalogTests {
     fun tearDownDb() = runBlocking {
         println("start tear down db...")
         ticketItemRepo.deleteAll()
+        addedTickets.clear()
         println("...end tear down db")
     }
 
@@ -82,7 +98,7 @@ class CatalogTests {
             .uri("admin/tickets/")
             .bodyValue(newTicket)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
+            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("BigBoss", setOf("ADMIN","CUSTOMER")))
             .exchange()
             .expectStatus().isOk
     }
@@ -98,7 +114,7 @@ class CatalogTests {
             .uri("admin/tickets/")
             .bodyValue(invalidBody)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
+            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("BigBoss", setOf("ADMIN","CUSTOMER")))
             .exchange()
             .expectStatus().isBadRequest
     }
@@ -126,7 +142,27 @@ class CatalogTests {
             .consumeWith {
                 val body = it.responseBody!!
                 //Assertions.assertNotEquals(body,TicketItem(2,"ORR",25.0,30,30,-1).toDTO())
-                Assertions.assertEquals(body,ticketOne.toDTO())
+                Assertions.assertEquals(body,addedTickets[0].toDTO())
             }
+    }
+
+    fun generateJwtToken(
+        username: String,
+        roles: Set<String>,
+        expiration: Date = Date(Date().time + jwtExpirationMs.toLong())
+    ): String {
+
+        val validateJwtKey: SecretKey by lazy {
+            val decodedKey = Decoders.BASE64.decode(validateJwtStringKey)
+            Keys.hmacShaKeyFor(decodedKey)
+        }
+
+        return Jwts.builder()
+            .setSubject(username)
+            .setIssuedAt(Date())
+            .setExpiration(expiration)
+            .claim("roles", roles)
+            .signWith(validateJwtKey)
+            .compact()
     }
 }

@@ -113,32 +113,6 @@ class BuyTicketTest {
         println("...end tear down db")
     }
 
-    @Test
-    fun viewUserOrders() = runBlocking{
-        webTestClient.get()
-            .uri("/orders/")
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .exchange()
-            .expectStatus().isUnauthorized
-            .expectBodyList(TicketOrder::class.java)
-
-
-        webTestClient.get()
-            .uri("/orders/")
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer ${generateJwtToken(
-                "R2D2",
-                setOf("CUSTOMER")
-            )}")
-            .exchange()
-            .expectStatus().isOk
-            .expectBodyList(TicketOrder::class.java)
-
-
-        Assertions.assertTrue(true)
-
-    }
-
     fun generateJwtToken(
         username: String,
         roles: Set<String>,
