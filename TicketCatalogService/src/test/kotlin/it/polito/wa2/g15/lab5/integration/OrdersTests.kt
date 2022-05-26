@@ -4,11 +4,10 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.lab5.MyPostgresSQLContainer
-import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.toDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
+import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
+import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
 import kotlinx.coroutines.runBlocking
 import org.apache.http.HttpHeaders
 import org.junit.jupiter.api.AfterEach
@@ -18,19 +17,19 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.time.LocalDate
 import java.util.*
 import javax.crypto.SecretKey
 
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class CatalogTests {
+class OrdersTests {
 
     companion object {
         @Container
@@ -55,90 +54,84 @@ class CatalogTests {
     private lateinit var validateJwtStringKey: String
 
     @Autowired
-    lateinit var ticketItemRepo: TicketItemRepository
-
+    lateinit var ticketItemRepo : TicketItemRepository
     @Autowired
-    lateinit var client: WebTestClient
+    lateinit var ticketOrderRepository: TicketOrderRepository
+    @Autowired
+    lateinit var webTestClient: WebTestClient
 
-    var ticketOne = TicketItem(
-        null,
-        "ORDINAL",
-        20.0,
-        0,
-        200,
-        2000L,
-    )
 
     @BeforeEach
     fun initDb() = runBlocking {
         println("start init db ...")
-        ticketOne = ticketItemRepo.save(ticketOne)
+
+        ticketItemRepo.save(TicketItem(
+            null,
+            "ORDINAL",
+            1.5,
+            0,
+            200,
+            120*60
+        )
+        )
+        ticketItemRepo.save(TicketItem(
+            null,
+            "WEEKEND-PASS",
+            5.0,
+            0,
+            27,
+            14*24*60*60
+        )
+        )
+
+        ticketOrderRepository.save(
+            TicketOrder(
+                null,
+                "PENDING",
+                5.0,
+                "R2D2",
+                2,
+                1,
+                LocalDate.now(),
+                "1"
+            )
+        )
 
         println("... init db finished")
     }
 
-
     @AfterEach
-    fun tearDownDb() = runBlocking {
+    fun tearDownDB() = runBlocking{
         println("start tear down db...")
         ticketItemRepo.deleteAll()
+        ticketOrderRepository.deleteAll()
         println("...end tear down db")
     }
 
-
     @Test
-    fun validAdminTicketsAPI() {
-        val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000)
-        client.post()
-            .uri("admin/tickets/")
-            .bodyValue(newTicket)
+    fun viewUserOrders() = runBlocking{
+        webTestClient.get()
+            .uri("/orders/")
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
-            .exchange()
-            .expectStatus().isOk
-    }
-
-    @Test
-    fun invalidAdminTicketsAPI() {
-        val invalidBody = mapOf("type" to "Settimanale", "price" to "Error")
-//        {
-//            "type": "Settimanale",
-//            "price": Error
-//        }
-        client.post()
-            .uri("admin/tickets/")
-            .bodyValue(invalidBody)
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
-            .exchange()
-            .expectStatus().isBadRequest
-    }
-
-    @Test
-    fun forbiddenAdminTicketsAPI() {
-        val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000)
-        client.post()
-            .uri("admin/tickets/")
-            .bodyValue(newTicket)
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer InvalidToken")
             .exchange()
             .expectStatus().isUnauthorized
-    }
+            .expectBodyList(TicketOrder::class.java)
 
-    @Test
-    fun getAvailableTicketsAPI() {
-        client.get()
-            .uri("tickets/")
-            .accept(MediaType.APPLICATION_NDJSON)
+
+        webTestClient.get()
+            .uri("/orders/")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.AUTHORIZATION,"Bearer ${generateJwtToken(
+                "R2D2",
+                setOf("CUSTOMER")
+            )}")
             .exchange()
             .expectStatus().isOk
-            .expectBody(TicketItemDTO::class.java)
-            .consumeWith {
-                val body = it.responseBody!!
-                //Assertions.assertNotEquals(body,TicketItem(2,"ORR",25.0,30,30,-1).toDTO())
-                Assertions.assertEquals(body,ticketOne.toDTO())
-            }
+            .expectBodyList(TicketOrder::class.java)
+
+
+        Assertions.assertTrue(true)
+
     }
 
     fun generateJwtToken(
@@ -160,4 +153,5 @@ class CatalogTests {
             .signWith(validateJwtKey)
             .compact()
     }
+
 }
