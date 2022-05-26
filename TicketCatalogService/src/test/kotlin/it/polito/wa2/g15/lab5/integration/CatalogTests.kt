@@ -82,8 +82,6 @@ class CatalogTests {
             .uri("admin/tickets/")
             .bodyValue(newTicket)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header("X-XSRF-TOKEN","224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
-            .header("Cookie","XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
             .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
             .exchange()
             .expectStatus().isOk
@@ -100,8 +98,6 @@ class CatalogTests {
             .uri("admin/tickets/")
             .bodyValue(invalidBody)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header("X-XSRF-TOKEN","224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
-            .header("Cookie","XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
             .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
             .exchange()
             .expectStatus().isBadRequest
@@ -114,8 +110,6 @@ class CatalogTests {
             .uri("admin/tickets/")
             .bodyValue(newTicket)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header("X-XSRF-TOKEN","224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
-            .header("Cookie","XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
             .header(HttpHeaders.AUTHORIZATION,"Bearer InvalidToken")
             .exchange()
             .expectStatus().isUnauthorized
@@ -126,8 +120,6 @@ class CatalogTests {
         client.get()
             .uri("tickets/")
             .accept(MediaType.APPLICATION_NDJSON)
-            .header("X-XSRF-TOKEN","224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
-            .header("Cookie","XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
             .exchange()
             .expectStatus().isOk
             .expectBody(TicketItemDTO::class.java)
