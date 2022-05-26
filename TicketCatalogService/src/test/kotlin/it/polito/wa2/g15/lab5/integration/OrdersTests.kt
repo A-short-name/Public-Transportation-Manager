@@ -286,6 +286,56 @@ class OrdersTests {
             .hasSize(0)
     }
 
+    @Test
+    fun getAllOrdersFromUsersAsAdmin() {
+        /* Unauthorized user */
+        webTestClient.get()
+            .uri("admin/orders/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .exchange()
+            .expectStatus().isUnauthorized
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
+
+        /* Customer tries to access admin API */
+        webTestClient.get()
+            .uri("admin/orders/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R2D2",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isForbidden
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
+
+        /* Valid request */
+        webTestClient.get()
+            .uri("admin/orders/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(addedOrders.size)
+            .consumeWith<ListBodySpec<TicketOrder>> {
+                val body = it.responseBody!!
+                body.forEach { item -> Assertions.assertEquals(item,addedOrders[addedOrders.indexOf(item)]) }
+            }
+    }
+
     fun generateJwtToken(
         username: String,
         roles: Set<String>,
