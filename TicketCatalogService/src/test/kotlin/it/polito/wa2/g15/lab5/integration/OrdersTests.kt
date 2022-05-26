@@ -350,6 +350,7 @@ class OrdersTests {
 
         val zonedDateTime = ZonedDateTime.now()
         val newBuyTicket = BuyTicketDTO(3,paymentInfo,zonedDateTime,"1")
+        val wrongBuyTicket = mapOf("numOfTickets" to "ERROR","paymentInfo" to paymentInfo,"zonedDateTime" to zonedDateTime,"zid" to 3)
 
         /* Unauthorized user */
         webTestClient.post()
@@ -359,6 +360,128 @@ class OrdersTests {
             .bodyValue(newBuyTicket)
             .exchange()
             .expectStatus().isUnauthorized
+
+        /* Authorized user with wrong input */
+        webTestClient.post()
+            .uri("shop/${addedTickets.first().id}/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .bodyValue(wrongBuyTicket)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+
+        /* Authorized user with wrong ID */
+        // TODO: Does not pass
+        webTestClient.post()
+            .uri("shop/-1/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .bodyValue(newBuyTicket)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+
+        // TODO: Does not pass
+        webTestClient.post()
+            .uri("shop/ERROR/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .bodyValue(newBuyTicket)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+
+        /* Authorized user with valid input */
+        // WARNING !!!! IT DOES NOT PASS IF THE USER IS NOT IN TRAVELER DATABASE
+        var createdOrderId : Long? = null
+        webTestClient.post()
+            .uri("shop/${addedTickets.first().id}/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .bodyValue(newBuyTicket)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isAccepted
+            .expectBody(Long::class.java)
+            .consumeWith {
+                createdOrderId = it.responseBody!!
+            }
+
+        Assertions.assertNotNull(createdOrderId)
+
+        webTestClient.get()
+            .uri("orders/$createdOrderId/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(1)
+            .consumeWith<ListBodySpec<TicketOrder>> {
+                val body = it.responseBody!!
+                Assertions.assertEquals("PENDING",body.first().orderState)
+                Assertions.assertEquals(body.first().orderId, createdOrderId)
+            }
+
+        // TODO: Still pending after 5s and 10s
+        Thread.sleep(5000)
+
+        webTestClient.get()
+            .uri("orders/$createdOrderId/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(1)
+            .consumeWith<ListBodySpec<TicketOrder>> {
+                val body = it.responseBody!!
+                Assertions.assertEquals("COMPLETED", body.first().orderState)
+                Assertions.assertEquals(body.first().orderId, createdOrderId)
+            }
     }
 
     fun generateJwtToken(

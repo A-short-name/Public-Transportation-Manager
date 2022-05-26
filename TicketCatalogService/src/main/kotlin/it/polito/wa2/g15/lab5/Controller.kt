@@ -73,20 +73,21 @@ class Controller {
      */
     @PostMapping("/shop/{ticket-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun buyTickets(@PathVariable("ticket-id") ticketId: Long,
-                           @RequestBody buyTicketBody: BuyTicketDTO,
-                           response: ServerHttpResponse
-    ) : Long? {
+    suspend fun buyTickets(
+        @PathVariable("ticket-id") @Positive ticketId: Long,
+        @RequestBody buyTicketBody: BuyTicketDTO,
+        response: ServerHttpResponse
+    ): Long? {
 
-    val userName = principal.map { p -> p.sub }.awaitSingle()
+        val userName = principal.map { p -> p.sub }.awaitSingle()
 
-        val res : Long? = try {
-            ticketCatalogService.buyTicket(buyTicketBody,ticketId,userName)
-        }catch (e : InvalidTicketRestrictionException){
+        val res: Long? = try {
+            response.statusCode = HttpStatus.ACCEPTED
+            ticketCatalogService.buyTicket(buyTicketBody, ticketId, userName)
+        } catch (e: InvalidTicketRestrictionException) {
             response.statusCode = HttpStatus.BAD_REQUEST
             null
         }
-        response.statusCode = HttpStatus.ACCEPTED
         return res
     }
 
