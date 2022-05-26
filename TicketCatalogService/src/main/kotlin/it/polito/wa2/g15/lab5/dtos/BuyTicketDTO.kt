@@ -1,17 +1,19 @@
 package it.polito.wa2.g15.lab5.dtos
 
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Positive
 
 data class BuyTicketDTO (
 
-    @field:NotNull
+        @field:NotNull
     @field:Positive
     val numOfTickets: Int,
 
-    @field:NotNull
+        @field:NotNull
     @field:Positive
     val paymentInfo: PaymentInfo,
 
@@ -21,7 +23,7 @@ data class BuyTicketDTO (
     *   scelta la data corrente come startingDate
     * */
     @field:NotNull
-    val validFrom: LocalDate,
+    val validFrom: ZonedDateTime,
     /* Possibili scelte implementative:
     *  -L'utente seleziona un certo item da catalogo (es. biglietto ordinario)
     *   Nel body inserisce le informazioni sulle zone per cui deve essere valevole il biglietto.
@@ -56,7 +58,7 @@ data class TicketForTravelerDTO (
         @field:NotBlank(message = "Type can't be empty or null")
         val type: String,
         @field:NotNull
-        val validFrom: LocalDate,
+        val validFrom: ZonedDateTime,
         @field:NotBlank
         val zid: String,
         val quantity: Int

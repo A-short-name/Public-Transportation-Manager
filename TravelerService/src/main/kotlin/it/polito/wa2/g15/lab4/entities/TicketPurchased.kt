@@ -1,6 +1,8 @@
 package it.polito.wa2.g15.lab4.entities
 
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -27,7 +29,7 @@ class TicketPurchased(
 
         var type: String,
 
-        var validFrom: LocalDate,
+        var validFrom: ZonedDateTime,
 
         var duration: Long
 ) : EntityBase<Int>()

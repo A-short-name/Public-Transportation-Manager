@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 import javax.crypto.SecretKey
 import kotlin.collections.ArrayList
@@ -42,7 +43,9 @@ class JwtUtils {
     }
 
     
-    fun generateTicketJwt(sub: Int, iat: Date, exp: Date, zid: String, type: String, validFrom: LocalDate, duration: Long): String {
+    fun generateTicketJwt(sub: Int, iat: Date, exp: Date, zid: String, type: String, validFrom: Long): String {
+        //validFrom is a long, otherwise the date is saved with trailing 0.
+        //iat and exp haven't this problem because aren't inserted with claims
         return Jwts.builder()
                 .setSubject(sub.toString())
                 .setIssuedAt(iat)
@@ -50,7 +53,6 @@ class JwtUtils {
                 .claim("zid", zid)
                 .claim("type", type)
                 .claim("validFrom", validFrom)
-                .claim("duration", duration)
                 .signWith(generateJwtKey)
                 .compact()
     }

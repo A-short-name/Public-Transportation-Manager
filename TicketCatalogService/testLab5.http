@@ -53,7 +53,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
 }
 
 ### Test acquisto biglietto con pagamento a buon fine e aggiornamento dello status
-#esegui solo una volta l'aggiunta di questo item al catalog
+#esegui solo una volta l'aggiunta di questo item al catalog (duration : 2 giorni in millis)
 ### Admin mette tipi di biglietti
 POST http://localhost:8082/admin/tickets/
 X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
@@ -62,8 +62,9 @@ Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
 
 {
-  "type": "Settimanale",
-  "price": 10
+  "type": "WEEKEND-PASS",
+  "price": 10,
+  "duration": 172800000
 }
 ### Admin acquista biglietti
 POST http://localhost:8082/shop/1/
@@ -73,18 +74,18 @@ Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
 
 {
-  "numOfTickets": 10,
+  "numOfTickets": 1,
   "paymentInfo": {
     "creditCardNumber": "1234-4567-8901-2345",
     "exp": "2030-01-01",
     "csv": "123",
     "cardHolder": "Gabriele SM"
   },
-  "validFrom":"2029-01-01",
+  "validFrom":"2022-05-28T12:40:00Z[UTC]",
   "zid": "123"
 }
 ###Inserisci l'order l'id restituito dalla post precedente per vederlo pending per 10 secondi
-GET http://localhost:8082/orders/8/
+GET http://localhost:8082/orders/2/
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
 
 ###Contatta il payment per vedere che la transazione sia stata inserita

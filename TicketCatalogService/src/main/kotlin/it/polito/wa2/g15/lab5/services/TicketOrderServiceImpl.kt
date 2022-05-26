@@ -27,6 +27,8 @@ import org.springframework.web.reactive.function.client.awaitExchange
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
 @Service
@@ -54,7 +56,7 @@ class TicketOrderServiceImpl : TicketOrderService {
             return ticketOrderRepository.findTicketOrdersByUsername(username)
     }
 
-    override suspend fun savePendingOrder(totalPrice: Double, username: String,ticketId :Long, quantity: Int, validFrom:LocalDate, zid:String): TicketOrder {
+    override suspend fun savePendingOrder(totalPrice: Double, username: String, ticketId :Long, quantity: Int, validFrom: ZonedDateTime, zid:String): TicketOrder {
         val ticketOrder = TicketOrder(
             orderState = "PENDING",
             totalPrice = totalPrice,

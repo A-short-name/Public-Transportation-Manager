@@ -3,6 +3,8 @@ package it.polito.wa2.g15.lab5.entities
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
@@ -18,7 +20,7 @@ data class TicketOrder (
         val ticketId: Long,
         val quantity: Int,
         @NotNull
-        val validFrom: LocalDate,
+        val validFrom: ZonedDateTime,
         @NotBlank
         val zid: String
     )

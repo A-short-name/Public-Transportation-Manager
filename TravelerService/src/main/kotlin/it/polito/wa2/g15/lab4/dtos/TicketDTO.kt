@@ -2,6 +2,8 @@ package it.polito.wa2.g15.lab4.dtos
 
 import it.polito.wa2.g15.lab4.entities.TicketPurchased
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
@@ -25,7 +27,7 @@ data class TicketDTO(
 
     val type: String,
 
-    val validFrom: LocalDate,
+    val validFrom: ZonedDateTime,
 
     val duration: Long
 
@@ -76,7 +78,7 @@ data class TicketFromCatalogDTO (
         @field:NotBlank(message = "Type can't be empty or null")
         val type: String,
         @field:NotNull
-        val validFrom: LocalDate,
+        val validFrom: ZonedDateTime,
         @field:NotBlank
         val zid: String,
         val quantity: Int

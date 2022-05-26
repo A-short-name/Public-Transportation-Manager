@@ -8,6 +8,7 @@ import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import it.polito.wa2.g15.lab5.services.TicketOrderService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.slf4j.LoggerFactory
@@ -79,7 +80,6 @@ class Controller {
                            response: ServerHttpResponse
     ) : Long? {
 
-    //Body da passare: listOf.(TicketForTravelerDTO(validFrom= it.validFrom, ticketItemId= ticket-id, zid=it.zid, ticketType=it.type) * numberOfTickets)
     val userName = principal.map { p -> p.sub }.awaitSingle()
 
         val res : Long? = try {

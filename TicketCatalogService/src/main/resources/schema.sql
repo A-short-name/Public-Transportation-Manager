@@ -15,6 +15,6 @@ CREATE TABLE IF NOT EXISTS ticket_orders (
     quantity DOUBLE PRECISION,
     ticket_id DOUBLE PRECISION,
     username VARCHAR ( 255 ) NOT NULL,
-    valid_from DATE,
+    valid_from TIMESTAMPTZ,
     zid VARCHAR ( 255 ) NOT NULL
 );
