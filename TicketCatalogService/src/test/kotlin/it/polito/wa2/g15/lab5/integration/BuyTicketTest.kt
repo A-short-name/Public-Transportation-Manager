@@ -24,6 +24,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.*
 import javax.crypto.SecretKey
 
@@ -97,7 +98,7 @@ class BuyTicketTest {
                 "R2D2",
                 2,
                 1,
-                LocalDate.now(),
+                ZonedDateTime.now(),
                 "1"
             )
         )

@@ -71,7 +71,7 @@ class Controller {
      * TravellerService.
      * The client to check the order result, must do polling to check the outcome.
      */
-    @PostMapping("/shop/{ticket-id}/")
+    @PostMapping("/shop/{ticket-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
     suspend fun buyTickets(@PathVariable("ticket-id") ticketId: Long,
                            @RequestBody buyTicketBody: BuyTicketDTO,

@@ -23,4 +23,34 @@ data class TicketOrder (
         val validFrom: ZonedDateTime,
         @NotBlank
         val zid: String
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as TicketOrder
+
+                if (orderId != other.orderId) return false
+                if (orderState != other.orderState) return false
+                if (totalPrice != other.totalPrice) return false
+                if (username != other.username) return false
+                if (ticketId != other.ticketId) return false
+                if (quantity != other.quantity) return false
+                if (validFrom != other.validFrom) return false
+                if (zid != other.zid) return false
+
+                return true
+        }
+
+        override fun hashCode(): Int {
+                var result = orderId?.hashCode() ?: 0
+                result = 31 * result + orderState.hashCode()
+                result = 31 * result + totalPrice.hashCode()
+                result = 31 * result + username.hashCode()
+                result = 31 * result + ticketId.hashCode()
+                result = 31 * result + quantity
+                result = 31 * result + validFrom.hashCode()
+                result = 31 * result + zid.hashCode()
+                return result
+        }
+}

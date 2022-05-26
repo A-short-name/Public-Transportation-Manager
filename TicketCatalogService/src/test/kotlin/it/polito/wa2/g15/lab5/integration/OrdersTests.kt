@@ -4,6 +4,8 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.lab5.MyPostgresSQLContainer
+import it.polito.wa2.g15.lab5.dtos.BuyTicketDTO
+import it.polito.wa2.g15.lab5.dtos.PaymentInfo
 import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
@@ -25,6 +27,7 @@ import org.springframework.test.web.reactive.server.WebTestClient.ListBodySpec
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.*
 import javax.crypto.SecretKey
 
@@ -88,7 +91,7 @@ class OrdersTests {
             "R2D2",
             2,
             1,
-            LocalDate.now(),
+            ZonedDateTime.now(),
             "1"
         )
     )
@@ -156,7 +159,7 @@ class OrdersTests {
             "R2D2",
             2,
             2,
-            LocalDate.now(),
+            ZonedDateTime.now(),
             "1"
         )
 
@@ -330,8 +333,31 @@ class OrdersTests {
             .hasSize(addedOrders.size)
             .consumeWith<ListBodySpec<TicketOrder>> {
                 val body = it.responseBody!!
-                body.forEach { item -> Assertions.assertEquals(item,addedOrders[addedOrders.indexOf(item)]) }
+                body.forEach { item -> Assertions.assertEquals(addedOrders[0],item) }
             }
+    }
+
+    @Test
+    fun shopTickets() {
+        val exp : LocalDate = LocalDate.now().plusYears(2)
+        val paymentInfo = PaymentInfo(
+            "1234-4567-8901-2345",
+            exp,
+            "322",
+            "BigBoss"
+            )
+
+        val zonedDateTime = ZonedDateTime.now()
+        val newBuyTicket = BuyTicketDTO(3,paymentInfo,zonedDateTime,"1")
+
+        /* Unauthorized user */
+        webTestClient.post()
+            .uri("shop/${addedTickets.first().id}/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .bodyValue(newBuyTicket)
+            .exchange()
+            .expectStatus().isUnauthorized
     }
 
     fun generateJwtToken(
