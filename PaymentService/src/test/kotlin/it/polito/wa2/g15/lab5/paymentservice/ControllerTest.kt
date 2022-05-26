@@ -94,8 +94,9 @@ class ControllerTest {
     var t1 = Transaction(null, "BigBoss", 100.0, "7992-7398-713", "Roberto Boss", 1L)
     var t2 = Transaction(null, "BigBoss", 200.0, "7992-7398-713", "Roberto Boss", 2L)
     var t3 = Transaction(null, "Giovanni", 300.0, "7992-7398-713", "Giovannino Panevino", 3L)
-    val userTransactions : MutableList<TransactionDTO> = mutableListOf()
-    val allTransactions : MutableList<TransactionDTO> = mutableListOf()
+    val userTransactions1: MutableList<TransactionDTO> = mutableListOf()
+    val userTransactions2: MutableList<TransactionDTO> = mutableListOf()
+    val allTransactions: MutableList<TransactionDTO> = mutableListOf()
     
     @BeforeEach
     fun initDb() {
@@ -105,10 +106,13 @@ class ControllerTest {
             logger.info("Saved: $t1")
             t2 = transactionRepository.save(t2)
             logger.info("Saved: $t2")
+            userTransactions2.add(t1.toDTO())
+            userTransactions2.add(t2.toDTO())
+            
             t3 = transactionRepository.save(t3)
             logger.info("Saved: $t3")
-            userTransactions.add(t1.toDTO())
-            userTransactions.add(t2.toDTO())
+            userTransactions1.add(t3.toDTO())
+            
             allTransactions.add(t1.toDTO())
             allTransactions.add(t2.toDTO())
             allTransactions.add(t3.toDTO())
@@ -120,24 +124,51 @@ class ControllerTest {
     @Test
     fun getUserTransactions() {
         runBlocking {
-            val validAdminToken = generateJwtToken("BigBoss", setOf("ADMIN"))
-            val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-            requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
+            val requestHeader1 = securityConfig.generateCsrfHeader(csrfTokenRepository)
+            val requestHeader2 = securityConfig.generateCsrfHeader(csrfTokenRepository)
+            /* Unauthorized user */
+            client.get()
+                .uri("/transactions/")
+                .headers { httpHeaders ->
+                    httpHeaders.addAll(requestHeader1)
+                }
+                .exchange()
+                .expectStatus().isUnauthorized
             
-            val response : MutableList<TransactionDTO> = mutableListOf()
+            /* User with 1 transaction */
+            val validCustomerToken = generateJwtToken("Giovanni", setOf("CUSTOMER"))
+            requestHeader1.add(jwtSecurityHeader, "$jwtTokenPrefix $validCustomerToken")
             
             client.get()
                 .uri("/transactions/")
                 .headers { httpHeaders ->
-                    httpHeaders.addAll(requestHeader)
+                    httpHeaders.addAll(requestHeader1)
                 }
                 .exchange()
                 .expectStatus().isOk
                 .expectHeader().valueEquals("Content-Type", "application/x-ndjson")
                 .expectBodyList(TransactionDTO::class.java)
-                .consumeWith<WebTestClient.ListBodySpec<TransactionDTO>>{
+                .consumeWith<WebTestClient.ListBodySpec<TransactionDTO>> {
                     //println(it.responseBody)
-                    Assertions.assertEquals(userTransactions,it.responseBody,"Wrong transactions found")
+                    Assertions.assertEquals(userTransactions1, it.responseBody, "Wrong transactions found")
+                }
+            
+            /* User with 2 transactions */
+            val validAdminToken = generateJwtToken("BigBoss", setOf("ADMIN"))
+            requestHeader2.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
+            
+            client.get()
+                .uri("/transactions/")
+                .headers { httpHeaders ->
+                    httpHeaders.addAll(requestHeader2)
+                }
+                .exchange()
+                .expectStatus().isOk
+                .expectHeader().valueEquals("Content-Type", "application/x-ndjson")
+                .expectBodyList(TransactionDTO::class.java)
+                .consumeWith<WebTestClient.ListBodySpec<TransactionDTO>> {
+                    //println(it.responseBody)
+                    Assertions.assertEquals(userTransactions2, it.responseBody, "Wrong transactions found")
                 }
             
             //.expectBody().jsonPath("field").isEqualTo("value");
@@ -154,11 +185,23 @@ class ControllerTest {
     @Test
     fun getAllTransactions() {
         runBlocking {
-            val validAdminToken = generateJwtToken("BigBoss", setOf("ADMIN"))
             val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+            
+            /* Unauthorized user */
+            
+            client.get()
+                .uri("/admin/transactions/")
+                .headers { httpHeaders ->
+                    httpHeaders.addAll(requestHeader)
+                }
+                .exchange()
+                .expectStatus().isUnauthorized
+            
+            /* 3 total transactions */
+            val validAdminToken = generateJwtToken("BigBoss", setOf("ADMIN"))
             requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
             
-            val response : MutableList<TransactionDTO> = mutableListOf()
+            val response: MutableList<TransactionDTO> = mutableListOf()
             
             client.get()
                 .uri("/admin/transactions/")
@@ -169,21 +212,21 @@ class ControllerTest {
                 .expectStatus().isOk
                 .expectHeader().valueEquals("Content-Type", "application/x-ndjson")
                 .expectBodyList(TransactionDTO::class.java)
-                .consumeWith<WebTestClient.ListBodySpec<TransactionDTO>>{
+                .consumeWith<WebTestClient.ListBodySpec<TransactionDTO>> {
                     println(it.responseBody)
-                    Assertions.assertEquals(allTransactions,it.responseBody,"Wrong transactions found")
+                    Assertions.assertEquals(allTransactions, it.responseBody, "Wrong transactions found")
                 }
         }
     }
-
+    
     @Test
     fun `non admin cannot obtain all transactions`() {
         runBlocking {
-            val validAdminToken = generateJwtToken("Alberto", setOf("CUSTOMER"))
+            val validCustomerToken = generateJwtToken("Alberto", setOf("CUSTOMER"))
             val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-            requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
+            requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validCustomerToken")
             
-            val response : MutableList<TransactionDTO> = mutableListOf()
+            val response: MutableList<TransactionDTO> = mutableListOf()
             
             client.get()
                 .uri("/admin/transactions/")

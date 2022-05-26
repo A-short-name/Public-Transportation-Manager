@@ -20,43 +20,46 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.validation.ObjectError
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.bind.support.WebExchangeBindException
 import reactor.core.publisher.Mono
 import java.util.stream.Collectors
+import javax.validation.Valid
+import javax.validation.constraints.Min
 import javax.validation.constraints.Positive
 
 @RestController
+@Validated
 class Controller {
     @Autowired
     private lateinit var ticketCatalogService: TicketCatalogService
-
+    
     @Autowired
     private lateinit var ticketOrderService: TicketOrderService
-
+    
     private val logger = KotlinLogging.logger {}
-
+    
     private val principal = ReactiveSecurityContextHolder.getContext()
-        .map { obj: SecurityContext -> obj.authentication.principal}
+        .map { obj: SecurityContext -> obj.authentication.principal }
         .cast(UserDetailsDTO::class.java)
-
-
+    
     @GetMapping(path = ["/whoami"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
     suspend fun getName(): String? {
         return principal.map { p -> p.sub }.awaitSingle()
     }
-
+    
     /**
      * Returns a JSON representation of all available tickets. Those tickets
      * are represented as a JSON object consisting of price, ticketId, type ( ordinal or type
      * of pass).
      */
     @GetMapping("tickets/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
-    fun availableTickets() : Flow<TicketItemDTO> {
+    fun availableTickets(): Flow<TicketItemDTO> {
         return ticketCatalogService.getAllTicketItems().map { item -> item.toDTO() }
     }
-
+    
     /**
      * It accepts a json containing the number of tickets, ticketId,
      * and payment information (credit card number, expiration date, cvv, card holder). Only
@@ -74,13 +77,13 @@ class Controller {
     @PostMapping("/shop/{ticket-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
     suspend fun buyTickets(
-        @PathVariable("ticket-id") @Positive ticketId: Long,
+        @PathVariable("ticket-id") ticketId: Long,
         @RequestBody buyTicketBody: BuyTicketDTO,
         response: ServerHttpResponse
     ): Long? {
-
+        
         val userName = principal.map { p -> p.sub }.awaitSingle()
-
+        
         val res: Long? = try {
             response.statusCode = HttpStatus.ACCEPTED
             ticketCatalogService.buyTicket(buyTicketBody, ticketId, userName)
@@ -90,34 +93,37 @@ class Controller {
         }
         return res
     }
-
+    
     /**
      * Get the orders of the user
      */
     @GetMapping("orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun orders(response: ServerHttpResponse) : Flow<TicketOrder> {
+    suspend fun orders(response: ServerHttpResponse): Flow<TicketOrder> {
         val userName = principal.map { p -> p.sub }
         return ticketOrderService.getUserTicketOrders(userName.awaitSingle()).onEmpty {
-            response.statusCode=HttpStatus.NOT_FOUND
+            response.statusCode = HttpStatus.NOT_FOUND
         }
     }
-
+    
     /**
      * Get a specific order. This endpoint can be used by the client
      * to check the order status after a purchase.
      */
     @GetMapping("orders/{order-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun getSpecificOrder(@PathVariable("order-id") @Positive orderId: Long, response: ServerHttpResponse) :
-            TicketOrder? {
-        val result= ticketOrderService.getTicketOrderById(orderId, principal.map { it.sub }.awaitSingle())
-        if(result==null) {
+    suspend fun getSpecificOrder(
+        @PathVariable("order-id") orderId: Long,
+        response: ServerHttpResponse
+    ): TicketOrder? {
+        println("PathVariable orderId=$orderId")
+        val result = ticketOrderService.getTicketOrderById(orderId, principal.map { it.sub }.awaitSingle())
+        if (result == null) {
             response.statusCode = HttpStatus.NOT_FOUND
         }
         return result
     }
-
+    
     /**
      * Admin users can add to catalog new available tickets to purchase.
      */
@@ -125,40 +131,41 @@ class Controller {
     @PreAuthorize("hasAuthority('ADMIN')")
     suspend fun addNewAvailableTicketToCatalog(
         @RequestBody newTicketItemDTO: Mono<NewTicketItemDTO>,
-        response: ServerHttpResponse) {
-
+        response: ServerHttpResponse
+    ) {
+        
         val ticket = newTicketItemDTO
             .doOnError { response.statusCode = HttpStatus.BAD_REQUEST }
             .awaitSingle()
-
+        
         try {
             ticketCatalogService.addNewTicketType(ticket)
             response.statusCode = HttpStatus.OK
-        }catch(e: Exception) {
+        } catch (e: Exception) {
             response.statusCode = HttpStatus.BAD_REQUEST
         }
     }
-
+    
     /**
      * This endpoint retrieves a list of all orders made by all users
      */
     @GetMapping("admin/orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
-    suspend fun getAllOrder() :Flow<TicketOrder>{
+    suspend fun getAllOrder(): Flow<TicketOrder> {
         return ticketOrderService.getAllTicketOrders()
     }
-
+    
     /**
      * Get orders of a specific user
      */
     @GetMapping("admin/orders/{user-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String) : Flow<TicketOrder> {
+    fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String): Flow<TicketOrder> {
         return ticketOrderService.getUserTicketOrders(userId)
     }
-
+    
     /*Endpoint to test kafka communication with the payment service*/
-
+    
     /*
     This Doesn't work anymore because the listener of the topic in payment now does other things
     @Value("\${kafka.topics.produce}")
@@ -186,18 +193,4 @@ class Controller {
             response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
         }
     }*/
-}
-
-@ControllerAdvice
-class ValidationHandler {
-    @ExceptionHandler(WebExchangeBindException::class)
-    fun handleException(e: WebExchangeBindException): ResponseEntity<Unit> {
-        val errors = e.bindingResult
-            .allErrors
-            .stream()
-            .map { obj: ObjectError -> obj.defaultMessage }
-            .collect(Collectors.toList())
-        //logger.error(errors)
-        return ResponseEntity(HttpStatus.BAD_REQUEST)
-    }
 }
