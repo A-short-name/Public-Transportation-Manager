@@ -1,6 +1,7 @@
 package it.polito.wa2.g15.lab5.dtos
 
 import it.polito.wa2.g15.lab5.entities.TicketItem
+import java.time.Duration
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Positive
@@ -33,5 +34,7 @@ data class NewTicketItemDTO(
     @field:Positive
     val minAge: Int?,
     @field:Positive
-    val maxAge: Int?
-)
+    val maxAge: Int?,
+    @field:Positive
+    val duration: Long = -1
+    )

@@ -81,7 +81,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
   "zid": "123"
 }
 ###Inserisci l'order l'id restituito dalla post precedente per vederlo pending per 10 secondi
-GET http://localhost:8082/orders/20/
+GET http://localhost:8082/orders/6/
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
 
 ###Contatta il payment per vedere che la transazione sia stata inserita

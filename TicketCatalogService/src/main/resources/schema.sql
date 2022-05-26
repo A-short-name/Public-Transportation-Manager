@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS ticket_items (
     ticket_type VARCHAR ( 255 ) NOT NULL,
     price DOUBLE PRECISION,
     min_age INT,
-    max_age INT
+    max_age INT,
+    duration BIGINT
 );
 CREATE TABLE IF NOT EXISTS ticket_orders (
     order_id serial PRIMARY KEY,
@@ -13,5 +14,7 @@ CREATE TABLE IF NOT EXISTS ticket_orders (
     total_price DOUBLE PRECISION,
     quantity DOUBLE PRECISION,
     ticket_id DOUBLE PRECISION,
-    username VARCHAR ( 255 ) NOT NULL
+    username VARCHAR ( 255 ) NOT NULL,
+    valid_from DATE,
+    zid VARCHAR ( 255 ) NOT NULL
 );

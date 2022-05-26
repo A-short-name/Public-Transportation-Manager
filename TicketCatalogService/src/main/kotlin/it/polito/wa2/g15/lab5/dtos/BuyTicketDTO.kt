@@ -20,7 +20,8 @@ data class BuyTicketDTO (
     *   con tipologia abbonamento (qualunque). Altrimenti verrà cancellato l'acquisto o verrà
     *   scelta la data corrente come startingDate
     * */
-    val validFrom: LocalDate? = null,
+    @field:NotNull
+    val validFrom: LocalDate,
     /* Possibili scelte implementative:
     *  -L'utente seleziona un certo item da catalogo (es. biglietto ordinario)
     *   Nel body inserisce le informazioni sulle zone per cui deve essere valevole il biglietto.
@@ -28,6 +29,7 @@ data class BuyTicketDTO (
     *  -Zone diverse rappresentano item diversi nel catalogo. Il price sarà diverso,
     *   l'utente dovrà specificare solo l'id del ticket
     * */
+    @field:NotBlank
     val zid: String
     )
 
@@ -37,6 +39,7 @@ data class PaymentInfo(
     @field:NotBlank
     val creditCardNumber: String,
 
+    @field:NotNull
     val exp: LocalDate,
 
     @field:NotBlank
@@ -48,16 +51,13 @@ data class PaymentInfo(
     )
 
 data class TicketForTravelerDTO (
-        @field:NotNull
         @field:Positive
-        val ticketItemId: Long,
-
+        val duration: Long,
         @field:NotBlank(message = "Type can't be empty or null")
-        val type: String? = null,
-
-        //Present only for subscriptions
-        val validFrom: LocalDate? = null,
-
-        //Present only for standard ticket
-        val zid: String? = null
+        val type: String,
+        @field:NotNull
+        val validFrom: LocalDate,
+        @field:NotBlank
+        val zid: String,
+        val quantity: Int
 )

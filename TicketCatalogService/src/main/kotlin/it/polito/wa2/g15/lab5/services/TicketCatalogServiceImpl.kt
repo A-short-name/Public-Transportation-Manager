@@ -30,6 +30,7 @@ import org.springframework.web.reactive.function.client.awaitEntity
 import org.springframework.web.reactive.function.client.awaitExchange
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import reactor.util.function.Tuple2
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -70,7 +71,8 @@ class TicketCatalogServiceImpl : TicketCatalogService {
                 ticketType = newTicketItemDTO.type,
                 price = newTicketItemDTO.price,
                 minAge = newTicketItemDTO.minAge,
-                maxAge = newTicketItemDTO.maxAge
+                maxAge = newTicketItemDTO.maxAge,
+                duration = newTicketItemDTO.duration
         )
 
         try {
@@ -94,6 +96,16 @@ class TicketCatalogServiceImpl : TicketCatalogService {
                     logger.info("ctx:  ${this.coroutineContext.job} \t searching ticket info")
                     ticketItemRepository.findById(ticketId) ?: throw InvalidTicketOrderException("Ticket Not Found")
                 }
+
+/*        if(ticketRequested.ticketType != "ORDINAL")
+            buyTicketDTO.validFrom
+
+        when(ticketRequested.ticketType){
+            "WEEKLY-PASS" ->
+            "MONTHLY-PASS" -> exp =
+        }*/
+
+        //val finalPrice = ticketRequested.price * buyTicketDTO.zid.length
 
         if (ticketHasRestriction(ticketRequested)) {
             val travelerAge =
@@ -121,7 +133,9 @@ class TicketCatalogServiceImpl : TicketCatalogService {
                     totalPrice = totalPrice,
                     username = userName,
                     ticketId = ticketId,
-                    quantity = buyTicketDTO.numOfTickets
+                    quantity = buyTicketDTO.numOfTickets,
+                    validFrom = buyTicketDTO.validFrom,
+                    zid = buyTicketDTO.zid
             )
         }
         logger.info("order $order set pending")

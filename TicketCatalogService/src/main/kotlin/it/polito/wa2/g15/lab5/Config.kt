@@ -16,16 +16,17 @@ class Config {
 
     @Bean
     fun generateClient(): WebClient {
-
         return WebClient.builder()
-                .baseUrl("http://localhost:8080")
-                //.defaultCookie("cookieKey", "cookieValue")
+                .baseUrl("http://localhost:8081")
+                //.defaultCookie("Cookie", "cookieValue")
                 .defaultHeaders { headers ->
-                    headers.contentType = MediaType.APPLICATION_JSON
-                    headers.setBearerAuth(jwtUtils.generateJwtToken())
-                    headers.set(HttpHeaders.ACCEPT_ENCODING, MediaType.APPLICATION_JSON_VALUE)
+                        headers.contentType = MediaType.APPLICATION_JSON
+                        headers.setBearerAuth(jwtUtils.generateJwtToken())
+                        headers.set(HttpHeaders.ACCEPT_ENCODING, MediaType.APPLICATION_JSON_VALUE)
+                        headers.set("Cookie", "XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
+                        headers.set("X-XSRF-TOKEN", "224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
                 }
-                .defaultUriVariables(Collections.singletonMap("url", "http://localhost:8080"))
+                .defaultUriVariables(Collections.singletonMap("url", "http://localhost:8081"))
                 .build()
     }
 
