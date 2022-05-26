@@ -1,5 +1,6 @@
 package it.polito.wa2.g15.lab4.entities
 
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -8,19 +9,25 @@ import javax.persistence.*
 class TicketPurchased(
     
     // issuedAt, a timestamp
-    @Temporal(TemporalType.TIMESTAMP)
+        @Temporal(TemporalType.TIMESTAMP)
     val iat: Date,
     
     // Expiry timestamp
-    @Temporal(TemporalType.TIMESTAMP)
+        @Temporal(TemporalType.TIMESTAMP)
     val exp: Date,
     
     // zoneID, the set of transport zones it gives access to
-    val zid: String,
+        val zid: String,
     
     // The encoding of the previous information as a signed JWT
-    var jws: String,
-    
-    @ManyToOne
-    var user: UserDetails
+        var jws: String,
+
+        @ManyToOne
+    var user: UserDetails,
+
+        var type: String,
+
+        var validFrom: LocalDate,
+
+        var duration: Long
 ) : EntityBase<Int>()

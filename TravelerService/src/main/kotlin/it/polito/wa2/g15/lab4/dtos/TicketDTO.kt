@@ -21,7 +21,14 @@ data class TicketDTO(
     val zid: String,
 
     // The encoding of the previous information as a signed JWT
-    val jws: String
+    val jws: String,
+
+    val type: String,
+
+    val validFrom: LocalDate,
+
+    val duration: Long
+
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -49,7 +56,7 @@ data class TicketDTO(
 }
 
 fun TicketPurchased.toDTO() : TicketDTO {
-    return TicketDTO(getId()!!,iat,exp,zid,jws)
+    return TicketDTO(getId()!!,iat,exp,zid,jws,type,validFrom,duration)
 }
 
 data class ExecuteCommandOnTicketsDTO(

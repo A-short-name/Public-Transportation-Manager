@@ -69,7 +69,7 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
     }
 
 
-    override fun buyTickets(executeCommandOnTicketsDTO: ExecuteCommandOnTicketsDTO, username: String) : Set<TicketDTO> {
+    override fun generateTickets(ticketFromCatalog: TicketFromCatalogDTO, username: String)  {
         val result = mutableSetOf<TicketDTO>()
 
         val userDetails = userDetailsRepository.findByUsername(username)
@@ -86,13 +86,14 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
             userDetails.get()
         }
 
-        for(i in 0 until executeCommandOnTicketsDTO.quantity) {
+        for(i in 0 until ticketFromCatalog.quantity) {
             val iat = Date()
-            val exp = Date(Date().time+jwtExpirationMs.toLong())
-            val zones = executeCommandOnTicketsDTO.zones
+            val exp = calculateExp(ticketFromCatalog)
+            //val exp = Date(Date().time+jwtExpirationMs.toLong())
+            val (duration, type, validFrom, zones, _) = ticketFromCatalog
 
             // Prepare ticket without jws
-            val ticket = TicketPurchased(iat,exp,zones,"",userBuyer)
+            val ticket = TicketPurchased(iat,exp,zones,"",userBuyer, type, validFrom, duration)
 
             val ticketdb : TicketPurchased
 
@@ -104,8 +105,9 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
 
             // Generate jws and save again with jws
             val sub = ticketdb.getId()!!
-            ticket.jws = jwtUtils.generateTicketJwt(sub, iat, exp, zones)
-
+            ticket.jws = jwtUtils.generateTicketJwt(sub, iat, exp, zones, type, validFrom, duration)
+            //Va aggiunta questa?
+            //ticket.setId(sub)
             try {
                 ticketPurchasedRepository.save(ticket)
             }catch(ex: Exception) {
@@ -118,7 +120,10 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
             result.add(ticketDTO)
         }
 
-        return result
+        logger.info { "Generated ticked: $result" }
+    }
+    private fun calculateExp(ticketFromCatalog: TicketFromCatalogDTO): Date{
+        TODO()
     }
 
     override fun getListOfUsername():List<String>{

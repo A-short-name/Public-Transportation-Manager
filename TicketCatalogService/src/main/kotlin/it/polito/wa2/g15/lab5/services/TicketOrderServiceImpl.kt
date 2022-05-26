@@ -88,10 +88,11 @@ class TicketOrderServiceImpl : TicketOrderService {
         if(pendingTicketOrder == null)
             throw InvalidTicketOrderException("No ticket order with such id")
         if(message.accepted) pendingTicketOrder.orderState = "COMPLETED" else pendingTicketOrder.orderState = "CANCELLED"
-        //Senza il codice di sotto non l'ha aggiornato... vuol dire che non funziona come jpa
+
         try {
             ticketOrderRepository.save(pendingTicketOrder)
-            postTicketInfo(pendingTicketOrder)
+            if(pendingTicketOrder.orderState=="COMPLETED")
+                postTicketInfo(pendingTicketOrder)
         } catch (e: Exception){
             throw InvalidTicketOrderException("Error updating ticketOrder status: ${e.message}")
         }

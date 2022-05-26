@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 import java.util.*
 import javax.crypto.SecretKey
 import kotlin.collections.ArrayList
@@ -41,12 +42,15 @@ class JwtUtils {
     }
 
     
-    fun generateTicketJwt(sub: Int, iat: Date, exp: Date, zid: String): String {
+    fun generateTicketJwt(sub: Int, iat: Date, exp: Date, zid: String, type: String, validFrom: LocalDate, duration: Long): String {
         return Jwts.builder()
                 .setSubject(sub.toString())
                 .setIssuedAt(iat)
                 .setExpiration(exp)
                 .claim("zid", zid)
+                .claim("type", type)
+                .claim("validFrom", validFrom)
+                .claim("duration", duration)
                 .signWith(generateJwtKey)
                 .compact()
     }
