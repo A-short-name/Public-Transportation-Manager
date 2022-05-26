@@ -57,15 +57,15 @@ class PaymentServiceImpl : PaymentService {
         val errorDuringPayment = "Error during payment processing, transaction not created"
         val successfulPayment = "Payment successful, transaction created"
 
-        if(!Random.nextBoolean()){
+/*        if(!Random.nextBoolean()){
             sendMessageForPayment(declinedPayment, false, -1, message.orderId)
             return
-        }
+        }*/
 
         val transaction: Transaction
         try {
-            val (creditCardNumber, exp, csv, cardHolder)= message.billingInfo
-            transaction = transactionRepository.save(Transaction(username = message.username, creditCardNumber = creditCardNumber, exp = exp, csv = csv, cardHolder = cardHolder, totalCost = message.totalCost, orderId = message.orderId))
+            val (creditCardNumber, cardHolder)= message.billingInfo
+            transaction = transactionRepository.save(Transaction(username = message.username, creditCardNumber = creditCardNumber, cardHolder = cardHolder, totalCost = message.totalCost, orderId = message.orderId))
         } catch (e: Exception) {
             sendMessageForPayment(errorDuringPayment, false, -1, message.orderId)
             throw Exception("Failed saving transaction info: ${e.message}")

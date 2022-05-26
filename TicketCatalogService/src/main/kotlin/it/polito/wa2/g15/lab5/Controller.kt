@@ -3,7 +3,6 @@ package it.polito.wa2.g15.lab5
 import it.polito.wa2.g15.lab5.dtos.*
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
-import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
 import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import it.polito.wa2.g15.lab5.services.TicketOrderService
 import kotlinx.coroutines.flow.Flow
@@ -11,22 +10,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.support.DefaultMessageSourceResolvable
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.http.server.reactive.ServerHttpResponse
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.support.KafkaHeaders
-import org.springframework.messaging.Message
-import org.springframework.messaging.support.MessageBuilder
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
-import org.springframework.validation.annotation.Validated
+import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.support.WebExchangeBindException
 import reactor.core.publisher.Mono
+import java.util.stream.Collectors
+import javax.validation.constraints.Positive
 
 @RestController
 class Controller {
@@ -97,9 +95,11 @@ class Controller {
      */
     @GetMapping("orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun orders() : Flow<TicketOrder> {
+    suspend fun orders(response: ServerHttpResponse) : Flow<TicketOrder> {
         val userName = principal.map { p -> p.sub }
-        return ticketOrderService.getUserTicketOrders(userName.awaitSingle())
+        return ticketOrderService.getUserTicketOrders(userName.awaitSingle()).onEmpty {
+            response.statusCode=HttpStatus.NOT_FOUND
+        }
     }
 
     /**
@@ -108,8 +108,13 @@ class Controller {
      */
     @GetMapping("orders/{order-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
-    suspend fun getSpecificOrder(@PathVariable("order-id") orderId: String) : TicketOrder {
-        return ticketOrderService.getTicketOrderById(orderId.toLong())
+    suspend fun getSpecificOrder(@PathVariable("order-id") @Positive orderId: Long, response: ServerHttpResponse) :
+            TicketOrder? {
+        val result= ticketOrderService.getTicketOrderById(orderId, principal.map { it.sub }.awaitSingle())
+        if(result==null) {
+            response.statusCode = HttpStatus.NOT_FOUND
+        }
+        return result
     }
 
     /**
@@ -180,6 +185,18 @@ class Controller {
             response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
         }
     }*/
+}
 
-
+@ControllerAdvice
+class ValidationHandler {
+    @ExceptionHandler(WebExchangeBindException::class)
+    fun handleException(e: WebExchangeBindException): ResponseEntity<Unit> {
+        val errors = e.bindingResult
+            .allErrors
+            .stream()
+            .map { obj: ObjectError -> obj.defaultMessage }
+            .collect(Collectors.toList())
+        //logger.error(errors)
+        return ResponseEntity(HttpStatus.BAD_REQUEST)
+    }
 }

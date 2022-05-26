@@ -30,8 +30,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
   "numOfTickets": 10,
   "paymentInfo": {
     "creditCardNumber": "1234-4567-8901-2345",
-    "exp": "2030-01-01",
-    "csv": "123"
+    "cardHolder": "Gabriele SM"
   }
 }
 
@@ -77,8 +76,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
   "numOfTickets": 1,
   "paymentInfo": {
     "creditCardNumber": "1234-4567-8901-2345",
-    "exp": "2030-01-01",
-    "csv": "123",
     "cardHolder": "Gabriele SM"
   },
   "validFrom":"2022-05-28T12:40:00Z[UTC]",
@@ -87,6 +84,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
 ###Inserisci l'order l'id restituito dalla post precedente per vederlo pending per 10 secondi
 GET http://localhost:8082/orders/2/
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
+###Inserisci l'order l'id restituito dalla post precedente per vederlo pending per 10 secondi
+GET http://localhost:8082/orders/9000/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
+###Inserisci l'order l'id restituito dalla post precedente per vederlo pending per 10 secondi
+GET http://localhost:8082/orders/AAAAA/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
+
 
 ###Contatta il payment per vedere che la transazione sia stata inserita
 GET http://localhost:8083/transactions/

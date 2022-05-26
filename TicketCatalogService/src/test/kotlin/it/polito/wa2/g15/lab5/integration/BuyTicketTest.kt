@@ -4,11 +4,10 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.lab5.MyPostgresSQLContainer
-import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.toDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
+import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
+import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
 import kotlinx.coroutines.runBlocking
 import org.apache.http.HttpHeaders
 import org.junit.jupiter.api.AfterEach
@@ -17,20 +16,21 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.time.LocalDate
 import java.util.*
 import javax.crypto.SecretKey
 
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class CatalogTests {
+class BuyTicketTest {
 
     companion object {
         @Container
@@ -53,97 +53,64 @@ class CatalogTests {
     private lateinit var jwtExpirationMs: String
     @Value("\${security.privateKey.common}")
     private lateinit var validateJwtStringKey: String
+    @Value("\${security.token.prefix}")
+    lateinit var jwtTokenPrefix: String
+    @Value("\${security.header}")
+    lateinit var jwtSecurityHeader: String
 
     @Autowired
-    lateinit var ticketItemRepo: TicketItemRepository
-
+    lateinit var ticketItemRepo : TicketItemRepository
     @Autowired
-    lateinit var client: WebTestClient
+    lateinit var ticketOrderRepository: TicketOrderRepository
+    @Autowired
+    lateinit var webTestClient: WebTestClient
 
-    val tickets = listOf(
-        TicketItem(
-            null,
-            "ORDINAL",
-            20.0,
-            0,
-            200,
-            2000L,
-        )
-    )
-
-    val addedTickets = mutableListOf<TicketItem>()
 
     @BeforeEach
     fun initDb() = runBlocking {
         println("start init db ...")
-        tickets.forEach{ addedTickets.add(ticketItemRepo.save(it)) }
+
+        ticketItemRepo.save(TicketItem(
+            null,
+            "ORDINAL",
+            1.5,
+            0,
+            200,
+            120*60
+            )
+        )
+        ticketItemRepo.save(TicketItem(
+            null,
+            "WEEKEND-PASS",
+            5.0,
+            0,
+            27,
+            14*24*60*60
+            )
+        )
+
+        ticketOrderRepository.save(
+            TicketOrder(
+            null,
+                "PENDING",
+                5.0,
+                "R2D2",
+                2,
+                1,
+                LocalDate.now(),
+                "1"
+            )
+        )
 
         println("... init db finished")
     }
 
-
     @AfterEach
-    fun tearDownDb() = runBlocking {
+    fun tearDownDB() = runBlocking{
         println("start tear down db...")
         ticketItemRepo.deleteAll()
-        addedTickets.clear()
+        ticketOrderRepository.deleteAll()
         println("...end tear down db")
-    }
-
-
-    @Test
-    fun validAdminTicketsAPI() {
-        val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000)
-        client.post()
-            .uri("admin/tickets/")
-            .bodyValue(newTicket)
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("BigBoss", setOf("ADMIN","CUSTOMER")))
-            .exchange()
-            .expectStatus().isOk
-    }
-
-    @Test
-    fun invalidAdminTicketsAPI() {
-        val invalidBody = mapOf("type" to "Settimanale", "price" to "Error")
-//        {
-//            "type": "Settimanale",
-//            "price": Error
-//        }
-        client.post()
-            .uri("admin/tickets/")
-            .bodyValue(invalidBody)
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("BigBoss", setOf("ADMIN","CUSTOMER")))
-            .exchange()
-            .expectStatus().isBadRequest
-    }
-
-    @Test
-    fun forbiddenAdminTicketsAPI() {
-        val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000)
-        client.post()
-            .uri("admin/tickets/")
-            .bodyValue(newTicket)
-            .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer InvalidToken")
-            .exchange()
-            .expectStatus().isUnauthorized
-    }
-
-    @Test
-    fun getAvailableTicketsAPI() {
-        client.get()
-            .uri("tickets/")
-            .accept(MediaType.APPLICATION_NDJSON)
-            .exchange()
-            .expectStatus().isOk
-            .expectBody(TicketItemDTO::class.java)
-            .consumeWith {
-                val body = it.responseBody!!
-                //Assertions.assertNotEquals(body,TicketItem(2,"ORR",25.0,30,30,-1).toDTO())
-                Assertions.assertEquals(body,addedTickets[0].toDTO())
-            }
     }
 
     fun generateJwtToken(
@@ -165,4 +132,5 @@ class CatalogTests {
             .signWith(validateJwtKey)
             .compact()
     }
+
 }
