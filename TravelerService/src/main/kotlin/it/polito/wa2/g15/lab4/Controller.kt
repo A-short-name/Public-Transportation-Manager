@@ -128,11 +128,12 @@ class Controller {
             // If the json contained in the post body does not satisfy our validation annotations, return 400
             //Can be used for debugging, to extract the exact errors
             logBindingResultErrors(bindingResult)
+            logger.info { "Bad campi" }
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
-        val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
-        val username = principal.sub
+        //val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
+        //val username = principal.sub
 
         return try {
             val result = travelerService.buyTickets(executeCommandOnTicketsDTO, username)
