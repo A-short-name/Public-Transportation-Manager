@@ -93,7 +93,7 @@ class CatalogTests {
             .uri("admin/tickets/")
             .bodyValue(newTicket)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
+            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("BigBoss", setOf("ADMIN","CUSTOMER")))
             .exchange()
             .expectStatus().isOk
     }
@@ -109,7 +109,7 @@ class CatalogTests {
             .uri("admin/tickets/")
             .bodyValue(invalidBody)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A")
+            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("BigBoss", setOf("ADMIN","CUSTOMER")))
             .exchange()
             .expectStatus().isBadRequest
     }
