@@ -160,7 +160,7 @@ class OrdersTests {
             "R2D2",
             2,
             2,
-            ZonedDateTime.now(),
+            ZonedDateTime.now(ZoneId.of("UTC")),
             "1"
         )
 

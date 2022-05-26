@@ -36,7 +36,7 @@ data class TicketOrder (
                 if (username != other.username) return false
                 if (ticketId != other.ticketId) return false
                 if (quantity != other.quantity) return false
-                if (validFrom != other.validFrom) return false
+                if (validFrom.toLocalDateTime().withNano(0) != other.validFrom.toLocalDateTime().withNano(0)) return false
                 if (zid != other.zid) return false
 
                 return true
@@ -49,7 +49,7 @@ data class TicketOrder (
                 result = 31 * result + username.hashCode()
                 result = 31 * result + ticketId.hashCode()
                 result = 31 * result + quantity
-                result = 31 * result + validFrom.hashCode()
+                result = 31 * result + validFrom.toLocalDateTime().withNano(0).hashCode()
                 result = 31 * result + zid.hashCode()
                 return result
         }
