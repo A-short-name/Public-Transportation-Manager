@@ -202,6 +202,90 @@ class OrdersTests {
             .hasSize(0)
     }
 
+    @Test
+    fun getTicketOrdersByOrderId() {
+        /* Unauthorized user */
+        webTestClient.get()
+            .uri("orders/${addedOrders.first().orderId}/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .exchange()
+            .expectStatus().isUnauthorized
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
+
+        /* Authorized a User with an order created by him */
+        webTestClient.get()
+            .uri("orders/${addedOrders.first().orderId}/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R2D2",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(1)
+            .consumeWith<ListBodySpec<TicketOrder>> {
+                val body = it.responseBody!!
+                Assertions.assertEquals(body.first(), addedOrders[0])
+            }
+
+        /* Authorized User with an order NOT created by him */
+        webTestClient.get()
+            .uri("orders/${addedOrders.first().orderId}/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R3D3",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isNotFound
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
+
+        /* Authorized User with an invalid Long id order */
+        webTestClient.get()
+            .uri("orders/-1/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R2D2",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isNotFound
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
+
+        /* Authorized User with an invalid "NOT Long" id order */
+        webTestClient.get()
+            .uri("orders/INVALID/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R2D2",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isNotFound
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
+    }
+
     fun generateJwtToken(
         username: String,
         roles: Set<String>,
