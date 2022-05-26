@@ -51,9 +51,6 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, OrderInformationMessage>
 
-    @Autowired
-    lateinit var jwtUtils: JwtUtils
-
     private val logger = KotlinLogging.logger {}
 
     //Defined in config class
@@ -83,7 +80,9 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     }
 
     private fun checkRestriction(userAge: Int, ticketRequested: TicketItem): Boolean {
-        TODO("Not yet implemented")
+        if(userAge>ticketRequested.minAge!! && userAge<ticketRequested.maxAge!!)
+            return true
+        return false
     }
 
     override suspend fun buyTicket(buyTicketDTO: BuyTicketDTO, ticketId: Long, userName: String): Long = coroutineScope()
@@ -96,16 +95,6 @@ class TicketCatalogServiceImpl : TicketCatalogService {
                     logger.info("ctx:  ${this.coroutineContext.job} \t searching ticket info")
                     ticketItemRepository.findById(ticketId) ?: throw InvalidTicketOrderException("Ticket Not Found")
                 }
-
-/*        if(ticketRequested.ticketType != "ORDINAL")
-            buyTicketDTO.validFrom
-
-        when(ticketRequested.ticketType){
-            "WEEKLY-PASS" ->
-            "MONTHLY-PASS" -> exp =
-        }*/
-
-        //val finalPrice = ticketRequested.price * buyTicketDTO.zid.length
 
         if (ticketHasRestriction(ticketRequested)) {
             val travelerAge =
@@ -120,7 +109,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
         }
 
-        val ticketPrice = ticketRequested.price
+        val ticketPrice = ticketRequested.price * buyTicketDTO.zid.length
         val totalPrice = buyTicketDTO.numOfTickets * ticketPrice
 
         logger.info("ctx: ${this.coroutineContext.job}\t order request received from user $userName for ${buyTicketDTO.numOfTickets} ticket $ticketId" +

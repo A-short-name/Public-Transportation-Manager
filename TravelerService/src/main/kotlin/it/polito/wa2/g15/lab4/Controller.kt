@@ -103,6 +103,8 @@ class Controller {
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
+    /*
+        No more valid, since generating tickets function is available only by the catalogService
 
     /**
      * Accepts a JSON payload like the following {cmd: “buy_tickets”,
@@ -140,6 +142,7 @@ class Controller {
             ResponseEntity(HttpStatus.BAD_REQUEST)
         }
     }
+    */
 
     /* ADMIN ONLY endpoints */
 
@@ -239,25 +242,18 @@ class Controller {
             bindingResult: BindingResult) : ResponseEntity<Set<TicketDTO>> {
         logger.info { "Mi hanno chiesto di generare per $username :$ticketDTO" }
 
-        // bindingResult is automatically populated by Spring and Hibernate-validate, trying to parse a userRequestDTO which
-        // respects the validation annotations in UserRequestDTO. These errors can be detected before trying to insert into
-        // the db
+
         if (bindingResult.hasErrors()) {
-            // If the json contained in the post body does not satisfy our validation annotations, return 400
-            //Can be used for debugging, to extract the exact errors
             logBindingResultErrors(bindingResult)
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
-        val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
-        val username = principal.sub
-
         return try {
-            //val result = travelerService.buyTickets(ticketsDTO, username)
+            travelerService.generateTickets(ticketDTO, username)
             //ResponseEntity(result,HttpStatus.OK)
             ResponseEntity(HttpStatus.ACCEPTED)
         } catch (ex: Exception) {
-            logger.error { "\tProfile not valid: ${ex.message}" }
+            logger.error { "\tCannot generate tickets: ${ex.message}" }
             ResponseEntity(HttpStatus.BAD_REQUEST)
         }
     }
