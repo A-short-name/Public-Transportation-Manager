@@ -8,35 +8,23 @@ import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketRestrictionException
 import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
-import it.polito.wa2.g15.lab5.security.JwtUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.MessageBuilder
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitEntity
 import org.springframework.web.reactive.function.client.awaitExchange
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
-import reactor.util.function.Tuple2
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.*
-import java.util.function.Consumer
-import kotlin.coroutines.CoroutineContext
-
 
 @Service
 class TicketCatalogServiceImpl : TicketCatalogService {
@@ -89,8 +77,6 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     override suspend fun buyTicket(buyTicketDTO: BuyTicketDTO, ticketId: Long, userName: String): Long = coroutineScope()
     {
-        val ctx: CoroutineContext = Dispatchers.IO
-
         logger.info("ctx: ${this.coroutineContext.job} \t start buying info ")
         val ticketRequested =
                 withContext(Dispatchers.IO + CoroutineName("find ticket")) {

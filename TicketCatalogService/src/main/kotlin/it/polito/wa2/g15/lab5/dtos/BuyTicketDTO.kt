@@ -1,7 +1,6 @@
 package it.polito.wa2.g15.lab5.dtos
 
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull

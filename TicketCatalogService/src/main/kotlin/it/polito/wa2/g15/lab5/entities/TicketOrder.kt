@@ -2,8 +2,6 @@ package it.polito.wa2.g15.lab5.entities
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull

@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.reactor.awaitSingle
-import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -32,8 +31,6 @@ class Controller {
     
     @Autowired
     private lateinit var ticketOrderService: TicketOrderService
-    
-    private val logger = KotlinLogging.logger {}
     
     private val principal = ReactiveSecurityContextHolder.getContext()
         .map { obj: SecurityContext -> obj.authentication.principal }

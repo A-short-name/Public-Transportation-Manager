@@ -8,7 +8,6 @@ import it.polito.wa2.g15.lab5.dtos.UserDetailsDTO
 import it.polito.wa2.g15.lab5.exceptions.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
