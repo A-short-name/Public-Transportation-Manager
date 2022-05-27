@@ -33,7 +33,6 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     @Autowired
     lateinit var ticketItemRepository: TicketItemRepository
 
-    @Autowired
     lateinit var ticketItemsCache : MutableList<TicketItem>
 
     @Autowired
@@ -86,8 +85,10 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
         try {
             ticketItem=ticketItemRepository.save(ticketItem)
-            if(isCacheEnabled())
+            if(isCacheEnabled()) {
+                logger.info { "Updating cache..." }
                 ticketItemsCache.add(ticketItem)
+            }
         } catch (e: Exception) {
             throw Exception("Failed saving ticketItem: ${e.message}")
         }

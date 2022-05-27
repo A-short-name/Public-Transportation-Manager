@@ -9,6 +9,7 @@ import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
 import it.polito.wa2.g15.lab5.dtos.toDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
+import it.polito.wa2.g15.lab5.services.TicketCatalogService
 import kotlinx.coroutines.runBlocking
 import org.apache.http.HttpHeaders
 import org.junit.jupiter.api.AfterEach
@@ -55,6 +56,9 @@ class CatalogTests {
     private lateinit var validateJwtStringKey: String
 
     @Autowired
+    lateinit var ticketCatalogService: TicketCatalogService
+
+    @Autowired
     lateinit var ticketItemRepo: TicketItemRepository
 
     @Autowired
@@ -76,7 +80,9 @@ class CatalogTests {
     @BeforeEach
     fun initDb() = runBlocking {
         println("start init db ...")
+
         tickets.forEach{ addedTickets.add(ticketItemRepo.save(it)) }
+        ticketCatalogService.initTicketCatalogCache()
 
         println("... init db finished")
     }
