@@ -105,13 +105,19 @@ class UserFlowExampleTest {
     final val t1exp = Date(t1expLocalDateTime.toEpochSecond(ZoneOffset.ofHours(0)))
     final val fakeJws = "fakeJws"
     final val t1Zid = "ABC"
+    final val t1Type = "ORDINAL"
+    final val t1ValidFrom = ZonedDateTime.now(ZoneId.of("UTC"))
+    final val t1Duration = 300*60*1000L
     
     val t1Expired = TicketPurchased(
         t1iat,
         t1exp,
         t1Zid,
         fakeJws,
-        c3poUser
+        c3poUser,
+        t1Type,
+        t1ValidFrom,
+        t1Duration
     )
     
     @BeforeEach

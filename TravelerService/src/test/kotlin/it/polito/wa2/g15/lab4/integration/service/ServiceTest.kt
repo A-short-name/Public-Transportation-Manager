@@ -18,10 +18,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Month
-import java.time.ZoneOffset
+import java.time.*
 import java.util.*
 
 
@@ -78,13 +75,19 @@ class ServiceTest {
     final val t1exp = Date(t1expLocalDateTime.toEpochSecond(ZoneOffset.ofHours(0)))
     final val fakeJws = "fakeJws"
     final val t1Zid = "ABC"
+    final val t1Type = "ORDINAL"
+    final val t1ValidFrom = ZonedDateTime.now(ZoneId.of("UTC"))
+    final val t1Duration = 300*60*1000L
 
     val t1Expired = TicketPurchased(
         t1iat,
         t1exp,
         t1Zid,
         fakeJws,
-        c3poUser
+        c3poUser,
+        t1Type,
+        t1ValidFrom,
+        t1Duration
     )
 
     @BeforeEach
