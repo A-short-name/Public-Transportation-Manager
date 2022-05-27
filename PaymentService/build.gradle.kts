@@ -7,11 +7,9 @@ plugins {
     kotlin("plugin.spring")
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_17
-
 dependencies {
     testImplementation("org.testcontainers:r2dbc:1.17.2")
-    testImplementation ("org.testcontainers:junit-jupiter:1.16.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.16.3")
     testImplementation("org.testcontainers:postgresql:1.16.3")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -33,7 +31,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
-    testImplementation ("org.testcontainers:junit-jupiter:1.16.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.16.3")
     testImplementation("org.testcontainers:postgresql:1.16.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test:5.6.3")

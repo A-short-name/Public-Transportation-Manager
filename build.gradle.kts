@@ -1,5 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+java.sourceCompatibility = JavaVersion.VERSION_11
+
 buildscript{
     repositories{mavenCentral()}
 }
