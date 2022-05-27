@@ -148,7 +148,7 @@ class Controller {
      */
     @GetMapping("admin/orders/{user-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String): Flow<TicketOrder> {
+    suspend fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String): Flow<TicketOrder> {
         return ticketOrderService.getUserTicketOrders(userId)
     }
     

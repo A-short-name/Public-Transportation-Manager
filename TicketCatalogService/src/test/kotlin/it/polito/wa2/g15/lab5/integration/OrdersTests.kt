@@ -337,7 +337,69 @@ class OrdersTests {
                 body.forEach { item -> Assertions.assertEquals(addedOrders[0],item) }
             }
     }
+    @Test
+    fun getAllOrdersFromSpecificUserAsAdmin() {
+        /* Unauthorized user */
+        webTestClient.get()
+            .uri("admin/orders/R2D2/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .exchange()
+            .expectStatus().isUnauthorized
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
 
+        /* Customer tries to access admin API */
+        webTestClient.get()
+            .uri("admin/orders/R2D2/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "R2D2",
+                        setOf("CUSTOMER")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isForbidden
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(0)
+
+        val newOrder = TicketOrder(
+            null,
+            "PENDING",
+            10.0,
+            "Giovanni",
+            2,
+            2,
+            ZonedDateTime.now(ZoneId.of("UTC")),
+            "1"
+        )
+
+        runBlocking { addedOrders.add(ticketOrderRepository.save(newOrder)) }
+        /* 1 order of Giovanni and 1 order of r2d2 */
+        
+        /* Valid request: only gets r2d2 order */
+        webTestClient.get()
+            .uri("admin/orders/R2D2/")
+            .accept(MediaType.APPLICATION_NDJSON)
+            .header(
+                HttpHeaders.AUTHORIZATION, "Bearer ${
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("CUSTOMER","ADMIN")
+                    )
+                }"
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList(TicketOrder::class.java)
+            .hasSize(1)
+            .consumeWith<ListBodySpec<TicketOrder>> {
+                val body = it.responseBody!!
+                body.forEach { item -> Assertions.assertEquals(addedOrders[0],item) }
+            }
+    }
     @Test
     fun shopTickets() {
         val exp : LocalDate = LocalDate.now().plusYears(2)
