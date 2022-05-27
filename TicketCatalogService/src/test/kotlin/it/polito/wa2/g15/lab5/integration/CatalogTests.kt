@@ -109,21 +109,6 @@ class CatalogTests {
 
     @Test
     fun invalidAdminTicketsAPI() {
-        //val invalidBody = mapOf("type" to "Settimanale","price" to -1)
-        //data class NewTicketItemDTO(
-        //    @field:NotNull
-        //    @field:Positive
-        //    val price: Double,
-        //
-        //    @field:NotBlank(message = "Type can't be empty or null")
-        //    val type: String,
-        //    @field:PositiveOrZero
-        //    val minAge: Int?,
-        //    @field:PositiveOrZero
-        //    val maxAge: Int?,
-        //    @field:Positive
-        //    val duration: Long = -1
-        //)
         val invalidTickets = listOf(
             mapOf("price" to null,"type" to "ORDINAL","minAge" to 0, "maxAge" to 200,"duration" to 2000L),
             mapOf("price" to 0,"type" to "ORDINAL","minAge" to 0, "maxAge" to 200,"duration" to 2000L),

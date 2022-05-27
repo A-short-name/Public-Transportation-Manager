@@ -10,7 +10,6 @@ import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
-import it.polito.wa2.g15.lab5.security.JwtUtils
 import kotlinx.coroutines.runBlocking
 import org.apache.http.HttpHeaders
 import org.junit.jupiter.api.*
@@ -28,10 +27,8 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitExchange
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import reactor.netty.http.client.HttpClient
 import java.time.*
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.crypto.SecretKey
 
 
@@ -55,9 +52,6 @@ class OrdersTests {
             registry.add("spring.r2dbc.password") { postgres.password }
         }
     }
-
-    @Autowired
-    private lateinit var jwtUtils: JwtUtils
 
     @Value("\${security.jwtExpirationMs}")
     private lateinit var jwtExpirationMs: String

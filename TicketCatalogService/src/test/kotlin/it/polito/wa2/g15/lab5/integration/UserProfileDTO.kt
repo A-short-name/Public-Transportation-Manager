@@ -15,11 +15,3 @@ data class UserProfileDTO(
     @field:NotBlank(message = "Telephone number can't be empty or null")
     val telephoneNumber: String
 )
-
-data class UserProfileAdminViewDTO(
-    val name: String,
-    val username: String,
-    val address: String,
-    val dateOfBirth: LocalDate,
-    val telephoneNumber: String,
-)
