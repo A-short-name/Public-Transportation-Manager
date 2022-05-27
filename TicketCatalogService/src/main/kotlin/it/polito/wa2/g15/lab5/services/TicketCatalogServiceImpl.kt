@@ -41,7 +41,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     @Value("\${kafka.topics.produce}")
     lateinit var topic: String
 
-    @Value("\${ticket.catalog.cache")
+    @Value("\${ticket.catalog.cache}")
     lateinit var ticketCatalogCacheStatus :String
 
     @Autowired
