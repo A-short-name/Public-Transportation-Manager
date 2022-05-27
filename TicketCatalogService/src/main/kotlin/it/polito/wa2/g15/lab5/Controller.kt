@@ -70,7 +70,7 @@ class Controller {
     @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
     suspend fun buyTickets(
         @PathVariable("ticket-id") ticketId: Long,
-        @RequestBody buyTicketBody: BuyTicketDTO,
+        @Valid @RequestBody buyTicketBody: BuyTicketDTO,
         response: ServerHttpResponse
     ): Long? {
         
