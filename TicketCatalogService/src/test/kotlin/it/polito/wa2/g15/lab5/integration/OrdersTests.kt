@@ -476,6 +476,10 @@ class OrdersTests {
         /* Authorized user with valid input */
         // WARNING !!!! IT DOES NOT PASS IF THE USER IS NOT IN TRAVELER DATABASE
         var createdOrderId : Long? = null
+        //mockare catalogService.getTravelerAge in modo che non venga chiamata
+        //e che restituisca l'età dell'utente
+        //In un test sarà un'età compatibile, facendo andare avanti il metodo
+        //In un test sarà un'età incompatibile con il biglietto -> eccezione -> bad request
         webTestClient.post()
             .uri("shop/${addedTickets.first().id}/")
             .accept(MediaType.APPLICATION_NDJSON)
