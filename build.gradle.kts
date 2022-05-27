@@ -2,9 +2,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 java.sourceCompatibility = JavaVersion.VERSION_11
 
-buildscript{
-    repositories{mavenCentral()}
-}
 plugins{
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.springframework.boot") version "2.7.0"
@@ -17,6 +14,11 @@ plugins{
 allprojects{
     group = "it.polito.wa2.g15"
     version = "0.0.1-SNAPSHOT"
+
+    repositories {
+        mavenCentral()
+    }
+
     tasks.withType<KotlinCompile>{
         kotlinOptions{
             freeCompilerArgs = listOf("-Xjsr305=strict")

@@ -21,7 +21,7 @@ import java.util.*
 
 class UserServiceRegisterTest {
 
-    private var userRepo: UserRepository = mockk()
+
     private var roleRepo: RoleRepository = mockk()
     private var activationRepo: ActivationRepository = mockk()
     private var emailService: EmailService = mockk()
