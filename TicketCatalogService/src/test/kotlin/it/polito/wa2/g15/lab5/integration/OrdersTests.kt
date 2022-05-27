@@ -474,7 +474,7 @@ class OrdersTests {
             .expectStatus().isBadRequest
 
         /* Authorized user with valid input */
-        // WARNING !!!! IT DOES NOT PASS IF THE USER IS NOT IN TRAVELER DATABASE
+
         var createdOrderId : Long? = null
         //mockare catalogService.getTravelerAge in modo che non venga chiamata
         //e che restituisca l'età dell'utente

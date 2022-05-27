@@ -38,6 +38,6 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.testcontainers:junit-jupiter:1.16.3")
     testImplementation("org.testcontainers:postgresql:1.16.3")
-    
+    testImplementation("io.mockk:mockk:1.10.4")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 }
