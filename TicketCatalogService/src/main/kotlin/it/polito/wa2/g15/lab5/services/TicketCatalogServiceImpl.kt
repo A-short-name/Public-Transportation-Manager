@@ -10,15 +10,16 @@ import it.polito.wa2.g15.lab5.kafka.OrderInformationMessage
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.MessageBuilder
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitExchange
@@ -32,10 +33,17 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     lateinit var ticketItemRepository: TicketItemRepository
 
     @Autowired
+    lateinit var ticketItemsCache : MutableList<TicketItem>
+
+    @Autowired
     lateinit var ticketOrderService: TicketOrderService
 
     @Value("\${kafka.topics.produce}")
     lateinit var topic: String
+
+    @Value("\${ticket.catalog.cache")
+    lateinit var ticketCatalogCacheStatus :String
+
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, OrderInformationMessage>
 
@@ -45,10 +53,15 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     @Autowired
     lateinit var client : WebClient
 
-
+    private fun isCacheEnabled():Boolean{
+        return ticketCatalogCacheStatus=="enabled"
+    }
 
     override fun getAllTicketItems(): Flow<TicketItem> {
-        return ticketItemRepository.findAll()
+        return if(isCacheEnabled())
+            ticketItemsCache.asFlow()
+        else
+            ticketItemRepository.findAll()
     }
 
     override suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) : Long {
@@ -62,6 +75,8 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
         try {
             ticketItem=ticketItemRepository.save(ticketItem)
+            if(isCacheEnabled())
+                ticketItemsCache.add(ticketItem)
         } catch (e: Exception) {
             throw Exception("Failed saving ticketItem: ${e.message}")
         }

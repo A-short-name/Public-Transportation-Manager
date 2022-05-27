@@ -7,8 +7,9 @@ Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkFETUlOIl19.z8RClg7GgpT4e-OjihMJbflIWiDxzrdrYNhL2HteE_A
 
 {
-  "type": "Settimanale",
-  "price": 10
+  "type": "ORDINAL",
+  "price": 15,
+  "duration": 86400
 }
 
 
