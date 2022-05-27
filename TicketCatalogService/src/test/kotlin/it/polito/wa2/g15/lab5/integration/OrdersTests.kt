@@ -12,12 +12,15 @@ import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
 import kotlinx.coroutines.runBlocking
 import org.apache.http.HttpHeaders
+import org.apache.kafka.clients.admin.AdminClient
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.kafka.config.TopicBuilder
+import org.springframework.kafka.core.KafkaAdmin
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -25,9 +28,14 @@ import org.springframework.test.web.reactive.server.WebTestClient.ListBodySpec
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitExchange
+import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.*
+import org.testcontainers.utility.DockerImageName
+import java.time.LocalDate
+import java.time.Month
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 import javax.crypto.SecretKey
 
@@ -42,6 +50,11 @@ class OrdersTests {
             withDatabaseName("payments")
         }
 
+        @Container
+        var kafka: KafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1")).apply {
+            this.start()
+        }
+
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
@@ -50,8 +63,12 @@ class OrdersTests {
             }
             registry.add("spring.r2dbc.username") { postgres.username }
             registry.add("spring.r2dbc.password") { postgres.password }
+            registry.add("spring.kafka.bootstrap-servers",kafka::getBootstrapServers)
         }
     }
+
+    @Autowired
+    private lateinit var admin: KafkaAdmin
 
     @Value("\${security.jwtExpirationMs}")
     private lateinit var jwtExpirationMs: String
@@ -113,6 +130,10 @@ class OrdersTests {
         orders.forEach { addedOrders.add(ticketOrderRepository.save(it)) }
 
         println("... init db finished")
+
+        val topicName = "catalogToPayment"
+        val topic1 = TopicBuilder.name(topicName).build()
+        admin.createOrModifyTopics(topic1)
     }
 
     @AfterEach
@@ -123,6 +144,13 @@ class OrdersTests {
         addedOrders.clear()
         addedTickets.clear()
         println("...end tear down db")
+    }
+
+    @Test
+    fun testCreationOfTopicAtStartup() {
+        val client = AdminClient.create(admin.configurationProperties)
+        val topicList = client.listTopics().listings().get()
+        Assertions.assertNotNull(topicList)
     }
 
     @Test

@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot")
@@ -40,4 +39,5 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:1.16.3")
     testImplementation("io.mockk:mockk:1.10.4")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.testcontainers:kafka:1.17.1")
 }
