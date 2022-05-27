@@ -11,6 +11,7 @@ import it.polito.wa2.g15.lab4.repositories.UserDetailsRepository
 import it.polito.wa2.g15.lab4.security.WebSecurityConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,7 +56,10 @@ class UserFlowExampleTest {
             registry.add("spring.jpa.hibernate.ddl-auto") { "create-drop" }
         }
     }
-    
+
+    @Value("\${ticket.generation}")
+    lateinit var ticketGeneration: String
+
     @Value("\${security.token.prefix}")
     lateinit var jwtTokenPrefix: String
     
@@ -223,6 +227,8 @@ class UserFlowExampleTest {
     
     @Test
     fun `customer without ticket purchases 2 tickets test`() {
+        Assumptions.assumeFalse(ticketGeneration == "disabled","ticket generation is disable, " +
+                "this test will be skipped")
         val validR2D2Token = generateJwtToken("R2D2", setOf("CUSTOMER"))
         
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
@@ -260,6 +266,9 @@ class UserFlowExampleTest {
     
     @Test
     fun `customer with tickets purchases tickets test`() {
+        Assumptions.assumeFalse(ticketGeneration == "disabled","ticket generation is disable, " +
+                "this test will be skipped")
+
         val validC3POToken = generateJwtToken("C3PO", setOf("CUSTOMER"))
         
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
@@ -364,6 +373,9 @@ class UserFlowExampleTest {
     
     @Test
     fun `an admin tries customer api`() {
+        Assumptions.assumeFalse(ticketGeneration == "disabled","ticket generation is disable, " +
+                "this test will be skipped")
+
         val validR2D2Token = generateJwtToken("R2D2", setOf("ADMIN"))
         
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
@@ -391,6 +403,9 @@ class UserFlowExampleTest {
     
     @Test
     fun `an user with customer and admin roles tries customer api`() {
+        Assumptions.assumeFalse(ticketGeneration == "disabled","ticket generation is disable, " +
+                "this test will be skipped")
+
         val validR2D2Token = generateJwtToken("R2D2", setOf("ADMIN", "CUSTOMER"))
         
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
@@ -426,6 +441,9 @@ class UserFlowExampleTest {
     
     @Test
     fun `a user with no details saved on user_details tries buy_tickets`() {
+        Assumptions.assumeFalse(ticketGeneration == "disabled","ticket generation is disable, " +
+                "this test will be skipped")
+
         var xxxxUser = userRepo.findByUsername("xxxx")
         Assertions.assertEquals(false, xxxxUser.isPresent, "User was already present on the db")
         

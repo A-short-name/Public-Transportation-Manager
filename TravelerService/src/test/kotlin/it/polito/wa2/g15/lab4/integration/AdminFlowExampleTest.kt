@@ -11,6 +11,7 @@ import it.polito.wa2.g15.lab4.repositories.UserDetailsRepository
 import it.polito.wa2.g15.lab4.security.WebSecurityConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -266,6 +267,8 @@ class AdminFlowExampleTest {
 
     @Test
     fun `get tickets from userID after a purchase`(){
+        Assumptions.assumeTrue(false,"generation of the ticket in traveler service is disabled")
+
         val r2d2ID = r2d2User.getId()
         Assertions.assertNotNull(r2d2ID)
         Assertions.assertTrue(r2d2ID != 0L)
