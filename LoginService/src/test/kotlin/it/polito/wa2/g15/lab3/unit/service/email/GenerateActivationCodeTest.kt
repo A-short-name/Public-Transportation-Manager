@@ -4,7 +4,7 @@ import it.polito.wa2.g15.lab3.services.EmailServiceImpl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class EmailServiceGenerateActivationCodeTest {
+class GenerateActivationCodeTest {
     val emailService = EmailServiceImpl()
 
     @Test
