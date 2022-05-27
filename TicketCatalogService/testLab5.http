@@ -29,7 +29,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
   "ticketId": 1,
   "numOfTickets": 10,
   "paymentInfo": {
-    "creditCardNumber": "1234-4567-8901-2345",
+    "creditCardNumber": "7992-7398-713",
     "cardHolder": "Gabriele SM"
   }
 }
@@ -45,7 +45,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
 {
   "total_cost": 10,
   "billing_info": {
-    "creditCardNumber": "1234-4567-8901-2345",
+    "creditCardNumber": "7992-7398-713",
     "exp": "2030-01-01",
     "cvv": "123"
   }
@@ -75,7 +75,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCaWdCb3NzIiwiaWF0IjoxNjUyN
 {
   "numOfTickets": 1,
   "paymentInfo": {
-    "creditCardNumber": "1234-4567-8901-2345",
+    "creditCardNumber": "7992-7398-713",
     "cardHolder": "Gabriele SM"
   },
   "validFrom":"2022-05-28T12:40:00Z[UTC]",

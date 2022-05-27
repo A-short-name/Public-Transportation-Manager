@@ -342,7 +342,7 @@ class OrdersTests {
     fun shopTickets() {
         val exp : LocalDate = LocalDate.now().plusYears(2)
         val paymentInfo = PaymentInfo(
-            "1234-4567-8901-2345",
+            "7992-7398-713",
             exp,
             "322",
             "BigBoss"

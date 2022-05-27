@@ -16,6 +16,7 @@ data class OrderInformationMessage(
 
 data class PaymentInfo(
         @field:NotBlank
+        @field:CreditCardNumber(ignoreNonDigitCharacters = true)
         val creditCardNumber: String,
 
         @field:NotBlank
