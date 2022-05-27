@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
 import org.springframework.http.HttpHeaders
@@ -33,6 +34,7 @@ class Config {
     lateinit var ticketItemRepository: TicketItemRepository
     private val logger = KotlinLogging.logger {}
     @Bean
+    @Order(1)
     fun generateClient(): WebClient {
         return WebClient.builder()
                 .baseUrl("http://localhost:8081")
@@ -48,6 +50,7 @@ class Config {
                 .build()
     }
     @Bean
+    @Order(2)
     fun initializer(connectionFactory: ConnectionFactory): ConnectionFactoryInitializer {
         val initializer = ConnectionFactoryInitializer()
         initializer.setConnectionFactory(connectionFactory)
@@ -58,16 +61,19 @@ class Config {
         )
         return initializer
     }
-    @Bean
-    fun initTicketItemCache(): List<TicketItem>{
+    @Bean()
+    @Order(3)
+    fun initTicketItemCache(): MutableList<TicketItem>{
 
-        var res : List<TicketItem>
+        var res : MutableList<TicketItem>
         runBlocking {
-            if(ticketCatalogCacheStatus == "enabled")
-            logger.info { "start initialization ticketItem cache ..." }
-            res = ticketItemRepository.findAll().toList()
-            logger.info { "... initialization ticketItem cache finished" }
-            logger.info { "these are the ticket found in the catalog during the startup:\n $res" }
+            if(ticketCatalogCacheStatus == "enabled") {
+                logger.info { "start initialization ticketItem cache ..." }
+                res = ticketItemRepository.findAll().toList().toMutableList()
+                logger.info { "... initialization ticketItem cache finished" }
+                logger.info { "these are the ticket found in the catalog during the startup:\n $res" }
+            }
+            else res = mutableListOf()
         }
 
         return res
