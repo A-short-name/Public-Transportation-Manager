@@ -1,26 +1,15 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
-task prepareKotlinBuildScriptModel {
-
-}
-
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     kotlin("jvm")
     kotlin("plugin.spring")
-    kotlin("plugin.jpa") version "1.6.10"
-    //kotlin("plugin.allopen") version "1.4.31"
+    kotlin("plugin.jpa")
+    kotlin("plugin.allopen")
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_17
-
-dependencyManagement {
-    imports {
-        mavenBom("org.testcontainers:testcontainers-bom:1.16.3")
-    }
-}
 
 dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

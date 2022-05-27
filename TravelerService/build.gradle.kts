@@ -1,25 +1,15 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-task prepareKotlinBuildScriptModel {
-
-}
-
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     kotlin("jvm")
     kotlin("plugin.spring")
-    kotlin("plugin.jpa") version "1.6.21"
+    kotlin("plugin.jpa")
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_17
 
-
-dependencyManagement {
-    imports {
-        mavenBom("org.testcontainers:testcontainers-bom:1.16.3")
-    }
-}
 
 dependencies {
     implementation( "io.github.microutils:kotlin-logging-jvm:2.0.11")
@@ -44,15 +34,4 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.2")
 
     testImplementation("org.apache.httpcomponents:httpclient:4.5.2")
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
