@@ -11,26 +11,15 @@ import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.support.DefaultMessageSourceResolvable
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
-import org.springframework.validation.ObjectError
-import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.bind.support.WebExchangeBindException
-import reactor.core.publisher.Mono
-import java.util.stream.Collectors
-import javax.validation.Valid
-import javax.validation.constraints.Min
-import javax.validation.constraints.Positive
 
 @RestController
-@Validated
 class Controller {
     @Autowired
     private lateinit var ticketCatalogService: TicketCatalogService
@@ -128,23 +117,22 @@ class Controller {
      * Admin users can add to catalog new available tickets to purchase.
      */
     @PostMapping("admin/tickets/")
-        @PreAuthorize("hasAuthority('ADMIN')")
-        suspend fun addNewAvailableTicketToCatalog(
-            @RequestBody newTicketItemDTO: NewTicketItemDTO,
-            response: ServerHttpResponse): Long? {
-            
-            val userName = principal.map { p -> p.sub }.awaitSingle()
+    @PreAuthorize("hasAuthority('ADMIN')")
+    suspend fun addNewAvailableTicketToCatalog(
+        @RequestBody newTicketItemDTO: NewTicketItemDTO,
+        response: ServerHttpResponse
+    ): Long? {
         
-            val res: Long? = try {
-                response.statusCode = HttpStatus.ACCEPTED
-                ticketCatalogService.addNewTicketType(newTicketItemDTO)
-            } catch (e: InvalidTicketRestrictionException) {
-                response.statusCode = HttpStatus.BAD_REQUEST
-                null
-            }
-            return res
-            
+        val res: Long? = try {
+            response.statusCode = HttpStatus.ACCEPTED
+            ticketCatalogService.addNewTicketType(newTicketItemDTO)
+        } catch (e: InvalidTicketRestrictionException) {
+            response.statusCode = HttpStatus.BAD_REQUEST
+            null
         }
+        return res
+        
+    }
     
     /**
      * This endpoint retrieves a list of all orders made by all users
