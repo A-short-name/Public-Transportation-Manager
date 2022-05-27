@@ -267,8 +267,6 @@ class AdminFlowExampleTest {
 
     @Test
     fun `get tickets from userID after a purchase`(){
-        Assumptions.assumeTrue(false,"generation of the ticket in traveler service is disabled")
-
         val r2d2ID = r2d2User.getId()
         Assertions.assertNotNull(r2d2ID)
         Assertions.assertTrue(r2d2ID != 0L)
@@ -276,18 +274,22 @@ class AdminFlowExampleTest {
         val validAdminToken = generateJwtToken("BigBoss",setOf("ADMIN"))
 
         /*  Purchase a bunch of ticket */
-        val validC3POToken = generateJwtToken("C3PO",setOf("CUSTOMER"))
+        val validC3POToken = generateJwtToken("C3PO",setOf("SERVICE"))
 
         val requestHeader1 = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader1.add(jwtSecurityHeader, "$jwtTokenPrefix $validC3POToken")
-        val zid = "ABC"
-        val request1 = HttpEntity( ExecuteCommandOnTicketsDTO("buy_tickets",15,zid),requestHeader1)
+        val zid = "123"
+        val quantity = 5
+        val validFrom = ZonedDateTime.now(ZoneId.of("UTC"))
+
+        val request1 = HttpEntity(
+            TicketFromCatalogDTO(-1,"ORDINAL", validFrom,zid,quantity),requestHeader1)
 
         val response1 : ResponseEntity<Set<TicketDTO>> = restTemplate.postForEntity(
-                "http://localhost:$port/my/tickets/",
+                "http://localhost:$port/services/user/${r2d2User.username}/tickets/add/",
                 request1
         )
-        Assertions.assertEquals(HttpStatus.OK,response1.statusCode,"status code not ok")
+        Assertions.assertEquals(HttpStatus.ACCEPTED,response1.statusCode,"status code not accepted")
 
         val requestHeader2 = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader2.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
@@ -300,8 +302,7 @@ class AdminFlowExampleTest {
                 request2
         )
         Assertions.assertEquals(HttpStatus.OK,response2.statusCode,"response status code not expected")
-        Assertions.assertEquals(r2d2User.ticketPurchased.map { it.toDTO() }.toSet(), response2.body)
-        Assertions.assertEquals(r2d2User.ticketPurchased.count(), response2.body!!.size)
+        Assertions.assertEquals(quantity, response2.body!!.count())
     }
 
 

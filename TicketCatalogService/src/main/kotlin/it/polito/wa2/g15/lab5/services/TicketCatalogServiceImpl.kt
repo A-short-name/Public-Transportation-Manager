@@ -140,7 +140,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     private suspend fun getTravelerAge(userName: String): Int {
         val age = client.get()
-                .uri("/services/user/$userName/profile/")
+                .uri("/services/user/$userName/birthdate/")
                 .awaitExchange {
                     if (it.statusCode() != HttpStatus.OK)
                         throw InvalidTicketRestrictionException("User info not found")
