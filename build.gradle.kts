@@ -32,9 +32,3 @@ subprojects{
         mavenCentral()
     }
 }
-
-dependencyManagement {
-    imports {
-        mavenBom("org.testcontainers:testcontainers-bom:1.16.3")
-    }
-}

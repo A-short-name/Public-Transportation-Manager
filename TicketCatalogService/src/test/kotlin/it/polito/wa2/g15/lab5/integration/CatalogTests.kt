@@ -93,7 +93,7 @@ class CatalogTests {
 
     @Test
     fun validAdminTicketsAPI() {
-        val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000)
+        val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000L)
         client.post()
             .uri("admin/tickets/")
             .bodyValue(newTicket)
@@ -109,7 +109,7 @@ class CatalogTests {
 
     @Test
     fun invalidAdminTicketsAPI() {
-        val invalidBody = mapOf("type" to "Settimanale", "price" to "Error")
+        val invalidBody = mapOf("type" to "Settimanale", "price" to -1)
 //        {
 //            "type": "Settimanale",
 //            "price": Error
@@ -124,7 +124,7 @@ class CatalogTests {
     }
 
     @Test
-    fun forbiddenAdminTicketsAPI() {
+    fun unauthorizedAdminTicketsAPI() {
         val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000)
         client.post()
             .uri("admin/tickets/")
@@ -136,13 +136,25 @@ class CatalogTests {
     }
 
     @Test
+    fun forbiddenAdminTicketsAPI() {
+        val newTicket = NewTicketItemDTO(25.0,"ORDINAL",0,200,2000)
+        client.post()
+                .uri("admin/tickets/")
+                .bodyValue(newTicket)
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                .header(HttpHeaders.AUTHORIZATION,"Bearer "+generateJwtToken("Giovanni", setOf("CUSTOMER")))
+                .exchange()
+                .expectStatus().isForbidden
+    }
+
+    @Test
     fun getAvailableTicketsAPI() {
         // TODO fix this
         client.get()
             .uri("tickets/")
             .accept(MediaType.APPLICATION_NDJSON)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
-            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("Giovanni", setOf("CUSTOMER")))
+            //.header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("Giovanni", setOf("CUSTOMER")))
             .exchange()
             .expectStatus().isOk
             .expectBody(TicketItemDTO::class.java)

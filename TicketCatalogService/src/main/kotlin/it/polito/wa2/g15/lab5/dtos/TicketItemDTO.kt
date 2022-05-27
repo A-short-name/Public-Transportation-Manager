@@ -4,6 +4,7 @@ import it.polito.wa2.g15.lab5.entities.TicketItem
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Positive
+import javax.validation.constraints.PositiveOrZero
 
 
 data class TicketItemDTO(
@@ -50,9 +51,9 @@ data class NewTicketItemDTO(
 
     @field:NotBlank(message = "Type can't be empty or null")
     val type: String,
-    @field:Positive
+    @field:PositiveOrZero
     val minAge: Int?,
-    @field:Positive
+    @field:PositiveOrZero
     val maxAge: Int?,
     @field:Positive
     val duration: Long = -1

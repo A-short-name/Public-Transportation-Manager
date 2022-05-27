@@ -13,11 +13,17 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContext
+import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.support.WebExchangeBindException
+import java.util.stream.Collectors
+import javax.validation.Valid
+
 
 @RestController
 class Controller {
@@ -119,8 +125,8 @@ class Controller {
     @PostMapping("admin/tickets/")
     @PreAuthorize("hasAuthority('ADMIN')")
     suspend fun addNewAvailableTicketToCatalog(
-        @RequestBody newTicketItemDTO: NewTicketItemDTO,
-        response: ServerHttpResponse
+            @Valid @RequestBody newTicketItemDTO: NewTicketItemDTO,
+            response: ServerHttpResponse
     ): Long? {
         
         val res: Long? = try {
@@ -181,4 +187,17 @@ class Controller {
             response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
         }
     }*/
+}
+
+@ControllerAdvice
+class ValidationHandler {
+    @ExceptionHandler(WebExchangeBindException::class)
+    fun handleException(e: WebExchangeBindException): ResponseEntity<List<String?>> {
+        val errors = e.bindingResult
+                .allErrors
+                .stream()
+                .map { obj: ObjectError -> obj.defaultMessage }
+                .collect(Collectors.toList())
+        return ResponseEntity.badRequest().body(errors)
+    }
 }
