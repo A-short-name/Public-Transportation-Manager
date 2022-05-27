@@ -1,6 +1,7 @@
 package it.polito.wa2.g15.lab5.paymentservice.kafka
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.hibernate.validator.constraints.CreditCardNumber
 import java.time.LocalDate
 import javax.validation.constraints.NotBlank
 

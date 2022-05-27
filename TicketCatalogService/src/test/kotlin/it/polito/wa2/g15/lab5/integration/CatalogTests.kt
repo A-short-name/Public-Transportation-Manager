@@ -100,7 +100,11 @@ class CatalogTests {
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("BigBoss", setOf("ADMIN","CUSTOMER")))
             .exchange()
-            .expectStatus().isOk
+            .expectStatus().isAccepted
+            .expectBody(Long::class.java)
+            .consumeWith {
+                Assertions.assertEquals(2L,it.responseBody!!)
+            }
     }
 
     @Test
@@ -133,9 +137,12 @@ class CatalogTests {
 
     @Test
     fun getAvailableTicketsAPI() {
+        // TODO fix this
         client.get()
             .uri("tickets/")
             .accept(MediaType.APPLICATION_NDJSON)
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.AUTHORIZATION,"Bearer " + generateJwtToken("Giovanni", setOf("CUSTOMER")))
             .exchange()
             .expectStatus().isOk
             .expectBody(TicketItemDTO::class.java)

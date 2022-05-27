@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono
 interface TicketCatalogService {
     fun getAllTicketItems() : Flow<TicketItem>
 
-    suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO)
+    suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) : Long
 
     /**
      * - Check if the ticket has some restrictions on user age,

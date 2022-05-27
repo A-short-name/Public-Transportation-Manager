@@ -128,23 +128,23 @@ class Controller {
      * Admin users can add to catalog new available tickets to purchase.
      */
     @PostMapping("admin/tickets/")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    suspend fun addNewAvailableTicketToCatalog(
-        @RequestBody newTicketItemDTO: Mono<NewTicketItemDTO>,
-        response: ServerHttpResponse
-    ) {
+        @PreAuthorize("hasAuthority('ADMIN')")
+        suspend fun addNewAvailableTicketToCatalog(
+            @RequestBody newTicketItemDTO: NewTicketItemDTO,
+            response: ServerHttpResponse): Long? {
+            
+            val userName = principal.map { p -> p.sub }.awaitSingle()
         
-        val ticket = newTicketItemDTO
-            .doOnError { response.statusCode = HttpStatus.BAD_REQUEST }
-            .awaitSingle()
-        
-        try {
-            ticketCatalogService.addNewTicketType(ticket)
-            response.statusCode = HttpStatus.OK
-        } catch (e: Exception) {
-            response.statusCode = HttpStatus.BAD_REQUEST
+            val res: Long? = try {
+                response.statusCode = HttpStatus.ACCEPTED
+                ticketCatalogService.addNewTicketType(newTicketItemDTO)
+            } catch (e: InvalidTicketRestrictionException) {
+                response.statusCode = HttpStatus.BAD_REQUEST
+                null
+            }
+            return res
+            
         }
-    }
     
     /**
      * This endpoint retrieves a list of all orders made by all users

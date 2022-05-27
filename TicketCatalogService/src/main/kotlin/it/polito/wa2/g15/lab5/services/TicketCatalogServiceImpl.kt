@@ -63,8 +63,8 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         return ticketItemRepository.findAll()
     }
 
-    override suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) {
-        val ticketItem = TicketItem(
+    override suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) : Long {
+        var ticketItem = TicketItem(
                 ticketType = newTicketItemDTO.type,
                 price = newTicketItemDTO.price,
                 minAge = newTicketItemDTO.minAge,
@@ -73,10 +73,12 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         )
 
         try {
-            ticketItemRepository.save(ticketItem)
+            ticketItem=ticketItemRepository.save(ticketItem)
         } catch (e: Exception) {
             throw Exception("Failed saving ticketItem: ${e.message}")
         }
+        
+        return ticketItem.id ?: throw InvalidTicketOrderException("order id not saved correctly in the db")
     }
 
     private fun checkRestriction(userAge: Int, ticketRequested: TicketItem): Boolean {
