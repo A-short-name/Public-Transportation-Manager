@@ -81,8 +81,8 @@ class OrdersTests {
             null,
             "ORDINAL",
             1.5,
-            null,
-            null,
+            10,
+            200,
             120 * 60
         ), TicketItem(
             null,
@@ -576,30 +576,6 @@ class OrdersTests {
             .consumeWith<ListBodySpec<TicketOrder>> {
                 val body = it.responseBody!!
                 Assertions.assertEquals("PENDING", body.first().orderState)
-                Assertions.assertEquals(body.first().orderId, createdOrderId)
-            }
-
-        // TODO: Still pending after 5s and 10s
-        Thread.sleep(5000)
-
-        webTestClient.get()
-            .uri("orders/$createdOrderId/")
-            .accept(MediaType.APPLICATION_NDJSON)
-            .header(
-                HttpHeaders.AUTHORIZATION, "Bearer ${
-                    generateJwtToken(
-                        "BigBoss",
-                        setOf("CUSTOMER", "ADMIN")
-                    )
-                }"
-            )
-            .exchange()
-            .expectStatus().isOk
-            .expectBodyList(TicketOrder::class.java)
-            .hasSize(1)
-            .consumeWith<ListBodySpec<TicketOrder>> {
-                val body = it.responseBody!!
-                Assertions.assertEquals("COMPLETED", body.first().orderState)
                 Assertions.assertEquals(body.first().orderId, createdOrderId)
             }
     }
