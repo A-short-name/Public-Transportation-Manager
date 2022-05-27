@@ -10,26 +10,28 @@ import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import it.polito.wa2.g15.lab5.repositories.TicketOrderRepository
+import it.polito.wa2.g15.lab5.security.JwtUtils
 import kotlinx.coroutines.runBlocking
 import org.apache.http.HttpHeaders
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.WebTestClient.ListBodySpec
+import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.awaitExchange
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import reactor.netty.http.client.HttpClient
+import java.time.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.crypto.SecretKey
 
 
@@ -54,25 +56,33 @@ class OrdersTests {
         }
     }
 
+    @Autowired
+    private lateinit var jwtUtils: JwtUtils
+
     @Value("\${security.jwtExpirationMs}")
     private lateinit var jwtExpirationMs: String
+
     @Value("\${security.privateKey.common}")
     private lateinit var validateJwtStringKey: String
 
     @Autowired
-    lateinit var ticketItemRepo : TicketItemRepository
+    lateinit var ticketItemRepo: TicketItemRepository
+
     @Autowired
     lateinit var ticketOrderRepository: TicketOrderRepository
+
     @Autowired
     lateinit var webTestClient: WebTestClient
+
+    lateinit var webTravelerClient: WebClient
 
     val tickets = listOf(
         TicketItem(
             null,
             "ORDINAL",
             1.5,
-            0,
-            200,
+            null,
+            null,
             120 * 60
         ), TicketItem(
             null,
@@ -97,8 +107,8 @@ class OrdersTests {
         )
     )
 
-    val addedTickets : MutableList<TicketItem> = mutableListOf()
-    val addedOrders : MutableList<TicketOrder> = mutableListOf()
+    val addedTickets: MutableList<TicketItem> = mutableListOf()
+    val addedOrders: MutableList<TicketOrder> = mutableListOf()
 
     @BeforeEach
     fun initDb() = runBlocking {
@@ -112,7 +122,7 @@ class OrdersTests {
     }
 
     @AfterEach
-    fun tearDownDB() = runBlocking{
+    fun tearDownDB() = runBlocking {
         println("start tear down db...")
         ticketItemRepo.deleteAll()
         ticketOrderRepository.deleteAll()
@@ -238,7 +248,7 @@ class OrdersTests {
                 Assertions.assertEquals(body.first(), addedOrders[0])
             }
 
-         /*Authorized User with an order NOT created by him */
+        /*Authorized User with an order NOT created by him */
         webTestClient.get()
             .uri("orders/${addedOrders.first().orderId}/")
             .accept(MediaType.APPLICATION_NDJSON)
@@ -324,7 +334,7 @@ class OrdersTests {
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )
@@ -334,9 +344,10 @@ class OrdersTests {
             .hasSize(addedOrders.size)
             .consumeWith<ListBodySpec<TicketOrder>> {
                 val body = it.responseBody!!
-                body.forEach { item -> Assertions.assertEquals(addedOrders[0],item) }
+                body.forEach { item -> Assertions.assertEquals(addedOrders[0], item) }
             }
     }
+
     @Test
     fun getAllOrdersFromSpecificUserAsAdmin() {
         /* Unauthorized user */
@@ -378,7 +389,7 @@ class OrdersTests {
 
         runBlocking { addedOrders.add(ticketOrderRepository.save(newOrder)) }
         /* 1 order of Giovanni and 1 order of r2d2 */
-        
+
         /* Valid request: only gets r2d2 order */
         webTestClient.get()
             .uri("admin/orders/R2D2/")
@@ -387,7 +398,7 @@ class OrdersTests {
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )
@@ -397,28 +408,30 @@ class OrdersTests {
             .hasSize(1)
             .consumeWith<ListBodySpec<TicketOrder>> {
                 val body = it.responseBody!!
-                body.forEach { item -> Assertions.assertEquals(addedOrders[0],item) }
+                body.forEach { item -> Assertions.assertEquals(addedOrders[0], item) }
             }
     }
+
     @Test
     fun shopTickets() {
-        val exp : LocalDate = LocalDate.now().plusYears(2)
+        val exp: LocalDate = LocalDate.now().plusYears(2)
         val paymentInfo = PaymentInfo(
             "7992-7398-713",
             exp,
             "322",
             "BigBoss"
-            )
+        )
 
         val zonedDateTime = ZonedDateTime.now()
-        val newBuyTicket = BuyTicketDTO(3,paymentInfo,zonedDateTime,"1")
-        val wrongBuyTicket = mapOf("numOfTickets" to "ERROR","paymentInfo" to paymentInfo,"zonedDateTime" to zonedDateTime,"zid" to 3)
+        val newBuyTicket = BuyTicketDTO(3, paymentInfo, zonedDateTime, "1")
+        val wrongBuyTicket =
+            mapOf("numOfTickets" to "ERROR", "paymentInfo" to paymentInfo, "zonedDateTime" to zonedDateTime, "zid" to 3)
 
         /* Unauthorized user */
         webTestClient.post()
             .uri("shop/${addedTickets.first().id}/")
             .accept(MediaType.APPLICATION_NDJSON)
-            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .bodyValue(newBuyTicket)
             .exchange()
             .expectStatus().isUnauthorized
@@ -427,13 +440,13 @@ class OrdersTests {
         webTestClient.post()
             .uri("shop/${addedTickets.first().id}/")
             .accept(MediaType.APPLICATION_NDJSON)
-            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .bodyValue(wrongBuyTicket)
             .header(
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )
@@ -444,13 +457,13 @@ class OrdersTests {
         webTestClient.post()
             .uri("shop/-1/")
             .accept(MediaType.APPLICATION_NDJSON)
-            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .bodyValue(newBuyTicket)
             .header(
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )
@@ -460,22 +473,65 @@ class OrdersTests {
         webTestClient.post()
             .uri("shop/ERROR/")
             .accept(MediaType.APPLICATION_NDJSON)
-            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .bodyValue(newBuyTicket)
             .header(
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )
             .exchange()
             .expectStatus().isBadRequest
 
+        webTravelerClient = WebClient
+            .builder()
+            .baseUrl("http://localhost:8081")
+            .defaultHeaders { headers ->
+                headers.contentType = MediaType.APPLICATION_JSON
+                headers.setBearerAuth(
+                    generateJwtToken(
+                        "BigBoss",
+                        setOf("ADMIN")
+                    )
+                )
+                headers.set(org.springframework.http.HttpHeaders.ACCEPT_ENCODING, MediaType.APPLICATION_JSON_VALUE)
+                headers.set("Cookie", "XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
+                headers.set("X-XSRF-TOKEN", "224159f4-d4ed-41ff-b726-c6d7a2ad71d6")
+            }
+            .defaultUriVariables(Collections.singletonMap("url", "http://localhost:8081"))
+            .build()
+
+        val userBigBoss = UserProfileDTO(
+            "BigBoss",
+            "via 123",
+            LocalDate.of(1980, Month.NOVEMBER, 10),
+            "333232323"
+        )
+        val userIsInserted = runBlocking {
+            try {
+                var tmpOK = true
+                webTravelerClient.put()
+                    .uri("/my/profile/")
+                    .body(BodyInserters.fromValue(userBigBoss))
+                    .awaitExchange {
+                        println("insert new user in traveler service and got : ${it.statusCode()}")
+                        if (it.statusCode() != HttpStatus.OK) {
+                            println("could not insert new user in traveler service : ${it.statusCode()}")
+                             tmpOK = false
+                        }
+                    }
+                tmpOK
+            }catch(e: Exception){
+                false
+            }
+        }
+        Assumptions.assumeTrue(userIsInserted,"user not inserted in traveler service")
         /* Authorized user with valid input */
 
-        var createdOrderId : Long? = null
+        var createdOrderId: Long? = null
         //mockare catalogService.getTravelerAge in modo che non venga chiamata
         //e che restituisca l'età dell'utente
         //In un test sarà un'età compatibile, facendo andare avanti il metodo
@@ -483,13 +539,13 @@ class OrdersTests {
         webTestClient.post()
             .uri("shop/${addedTickets.first().id}/")
             .accept(MediaType.APPLICATION_NDJSON)
-            .header(HttpHeaders.CONTENT_TYPE,"application/json")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .bodyValue(newBuyTicket)
             .header(
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )
@@ -509,7 +565,7 @@ class OrdersTests {
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )
@@ -519,7 +575,7 @@ class OrdersTests {
             .hasSize(1)
             .consumeWith<ListBodySpec<TicketOrder>> {
                 val body = it.responseBody!!
-                Assertions.assertEquals("PENDING",body.first().orderState)
+                Assertions.assertEquals("PENDING", body.first().orderState)
                 Assertions.assertEquals(body.first().orderId, createdOrderId)
             }
 
@@ -533,7 +589,7 @@ class OrdersTests {
                 HttpHeaders.AUTHORIZATION, "Bearer ${
                     generateJwtToken(
                         "BigBoss",
-                        setOf("CUSTOMER","ADMIN")
+                        setOf("CUSTOMER", "ADMIN")
                     )
                 }"
             )

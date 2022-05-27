@@ -51,7 +51,7 @@ class Controller {
      * @param BindingResult result of validation
      */
     @PutMapping("/my/profile/")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMIN') ")
     fun updateCurrentUserProfile(
         @Valid @RequestBody userRequestDTO: UserProfileDTO,
         bindingResult: BindingResult
