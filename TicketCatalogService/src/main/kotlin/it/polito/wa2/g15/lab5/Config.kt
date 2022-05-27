@@ -61,7 +61,7 @@ class Config {
         )
         return initializer
     }
-    @Bean()
+    @Bean
     @Order(3)
     fun initTicketItemCache(): MutableList<TicketItem>{
 
@@ -75,7 +75,6 @@ class Config {
             }
             else res = mutableListOf()
         }
-
         return res
     }
 

@@ -11,6 +11,7 @@ import it.polito.wa2.g15.lab5.repositories.TicketItemRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,6 +58,16 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         return ticketCatalogCacheStatus=="enabled"
     }
 
+    override suspend fun initTicketCatalogCache() {
+        runBlocking {
+            if (ticketCatalogCacheStatus == "enabled") {
+                logger.info { "start initialization ticketItem cache ..." }
+                ticketItemsCache = ticketItemRepository.findAll().toList().toMutableList()
+                logger.info { "... initialization ticketItem cache finished" }
+                logger.info { "these are the ticket found in the catalog during the startup:\n $ticketItemsCache" }
+            } else ticketItemsCache = mutableListOf()
+        }
+    }
     override fun getAllTicketItems(): Flow<TicketItem> {
         return if(isCacheEnabled())
             ticketItemsCache.asFlow()

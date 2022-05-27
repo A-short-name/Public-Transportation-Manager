@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 interface TicketCatalogService {
     fun getAllTicketItems() : Flow<TicketItem>
 
+    suspend fun initTicketCatalogCache()
     suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) : Long
 
     /**
