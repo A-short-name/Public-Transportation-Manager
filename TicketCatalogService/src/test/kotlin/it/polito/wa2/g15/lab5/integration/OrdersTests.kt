@@ -379,7 +379,6 @@ class OrdersTests {
             .expectStatus().isBadRequest
 
         /* Authorized user with wrong ID */
-        // TODO: Does not pass
         webTestClient.post()
             .uri("shop/-1/")
             .accept(MediaType.APPLICATION_NDJSON)
@@ -396,7 +395,6 @@ class OrdersTests {
             .exchange()
             .expectStatus().isBadRequest
 
-        // TODO: Does not pass
         webTestClient.post()
             .uri("shop/ERROR/")
             .accept(MediaType.APPLICATION_NDJSON)

@@ -76,7 +76,7 @@ class Controller {
         val res: Long? = try {
             response.statusCode = HttpStatus.ACCEPTED
             ticketCatalogService.buyTicket(buyTicketBody, ticketId, userName)
-        } catch (e: InvalidTicketRestrictionException) {
+        } catch (e: Exception) {
             response.statusCode = HttpStatus.BAD_REQUEST
             null
         }
