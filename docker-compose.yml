@@ -1,5 +1,10 @@
 version: '2'
+
+volumes:
+  postgresdata:
+
 services:
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
@@ -20,3 +25,14 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_MULTIPLE_DATABASES: traveler,ticketCatalog,payments,
+    ports:
+      - 5432:5432
+    volumes:
+      - ./pg-init-scripts:/docker-entrypoint-initdb.d
+      - postgresdata:/var/lib/postgresql/data
