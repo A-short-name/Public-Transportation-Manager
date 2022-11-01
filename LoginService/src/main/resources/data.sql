@@ -2,3 +2,4 @@
 
 INSERT INTO roles(id,name) VALUES(1,'ADMIN'); /* avoid throwing exception is role already present */
 INSERT INTO roles(id,name) VALUES(2,'CUSTOMER'); /* avoid throwing exception is role already present */
+INSERT INTO roles(id,name) VALUES(3,'EMBEDDED'); /* avoid throwing exception is role already present */
