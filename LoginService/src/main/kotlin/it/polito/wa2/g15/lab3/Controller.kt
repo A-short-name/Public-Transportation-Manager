@@ -86,7 +86,7 @@ class Controller {
     @PostMapping("/admin/create")
     @PreAuthorize("hasAuthority('SUPERADMIN')")
     fun createAdmin(@Valid @RequestBody adminRequestDTO: AdminRequestDTO, bindingResult: BindingResult) :
-            ResponseEntity<HttpStatus> {
+            ResponseEntity<Unit> {
         if (bindingResult.hasErrors()) {
             // If the json contained in the post body does not satisfy our validation annotations, return 400
             logBindingResultErrors(bindingResult)
@@ -100,7 +100,7 @@ class Controller {
                     adminRequestDTO.email,
                     adminRequestDTO.enrolling_capabilities
             )
-            return ResponseEntity<HttpStatus>(HttpStatus.CREATED)
+            return ResponseEntity(HttpStatus.CREATED)
         } catch (ex: Exception) {
             logger.error {"\t Failed adding admin: ${ex.message}"}
             return ResponseEntity(HttpStatus.NOT_FOUND)

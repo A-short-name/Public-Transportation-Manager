@@ -3,6 +3,7 @@ package it.polito.wa2.g15.lab3.dtos
 import it.polito.wa2.g15.lab3.entities.User
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotBlank
+import javax.validation.constraints.NotNull
 import javax.validation.constraints.Pattern
 
 data class UserRequestDTO(
@@ -81,6 +82,6 @@ data class AdminRequestDTO(
         )
         val password: String,
 
-        @field:NotBlank(message = "Enrolling_capabilities must be either true or false")
+        @field:NotNull(message = "Enrolling_capabilities must be either true or false")
         val enrolling_capabilities: Boolean
 )

@@ -31,3 +31,25 @@ Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
   "nickname": "CustomerAdminx99Xx",
   "password": "CustomerAdminPasswordVeryHard!1!1"
 }
+
+###
+
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "nickname": "superadmin",
+  "password": "superadmin"
+}
+
+###
+
+POST http://localhost:8080/admin/create
+Content-Type: application/json
+
+{
+  "nickname": "newadmin",
+  "password": "Secret!Password1",
+  "email": "newadmin@email.com",
+  "enrolling_capabilities": false
+}
