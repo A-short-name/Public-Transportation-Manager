@@ -12,8 +12,7 @@ In order to open this project you need:
 
 If you want to run the project in a local environment you have to
 - execute the docker-compose infrastructure using `docker-compose up -d`, in this way kafka and postgres containers will be up and running.
-- create the db associated to that service
-  - in some services you have to create the database and tables associated to the specific service. Check the resources folder of that service to find the .sql file
+  - postrges databases will be created using the env variable `POSTGRES_MULTIPLE_DATABASES` that is used by the script `pg-init-scripts` for the initialization and creation of the databases
   
 ## Checks
 
