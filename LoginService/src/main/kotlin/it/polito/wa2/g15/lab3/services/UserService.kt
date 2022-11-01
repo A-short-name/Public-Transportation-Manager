@@ -18,5 +18,9 @@ interface UserService {
      * Searches the User repository for the activation code and updates the corresponding User object, setting it as verified
      */
     fun verify(uuid: UUID, activationCode: String) : UserResponseDTO
-    
+
+    /**
+     * Function that creates an admin
+     */
+    fun createAdmin(nickname: String, password: String, email: String, enrollingCapabilities: Boolean)
 }

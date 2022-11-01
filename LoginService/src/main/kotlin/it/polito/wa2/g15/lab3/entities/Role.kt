@@ -3,7 +3,7 @@ package it.polito.wa2.g15.lab3.entities
 import javax.persistence.*
 
 enum class ERole {
-    CUSTOMER, ADMIN
+    ADMIN, SUPERADMIN, CUSTOMER, EMBEDDED
 }
 
 @Entity

@@ -167,5 +167,31 @@ class UserServiceImpl(
         }
         activationRepo.deleteActivationByActivationDeadlineBefore(time)
     }
-    
+
+    override fun createAdmin(nickname: String, password: String, email: String, enrollingCapabilities: Boolean) {
+        // Create user DTO (password is already encoded)
+        val userDTO = User().apply {
+            this.nickname = nickname
+            this.password = password
+            this.email = email
+        }
+
+        try {
+            if(enrollingCapabilities)
+                userDTO.addCustomerRole(roleRepo.findByName(ERole.SUPERADMIN).get())
+            else
+                userDTO.addCustomerRole(roleRepo.findByName(ERole.ADMIN).get())
+        } catch (ex: Exception) {
+            throw RegistrationException("No Admin/SuperAdmin Role found")
+        }
+
+        // Store user on db
+        try {
+            userRepo.save(userDTO)
+        } catch (ex: PersistenceException) {
+            throw RegistrationException("Db Persistence exception while saving a user")
+        } catch (ex: DataIntegrityViolationException) {
+            throw RegistrationException("Nickname/Email already present on the db")
+        }
+    }
 }
