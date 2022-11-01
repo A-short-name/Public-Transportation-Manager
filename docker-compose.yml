@@ -30,7 +30,7 @@ services:
     image: postgres:latest
     environment:
       POSTGRES_PASSWORD: postgres
-      POSTGRES_MULTIPLE_DATABASES: traveler,ticketCatalog,payments,
+      POSTGRES_MULTIPLE_DATABASES: login,traveler,ticket_catalog,payments,
     ports:
       - 5432:5432
     volumes:
