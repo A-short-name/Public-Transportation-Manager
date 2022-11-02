@@ -1,6 +1,7 @@
 package it.polito.wa2.g15.validatorservice.dtos
 
-data class StatisticDto (
-        val validatorId: String,
-        val validations: Int
-        )
+import it.polito.wa2.g15.validatorservice.entities.TicketValidation
+
+data class StatisticDto(
+    val validations: List<TicketValidation>
+)

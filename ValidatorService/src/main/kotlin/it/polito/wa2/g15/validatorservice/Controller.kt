@@ -23,7 +23,7 @@ class Controller {
     @GetMapping("/get/stats")
     fun getValidatorStats(@Valid @RequestBody filters: FilterDto): ResponseEntity<StatisticDto> {
         val res = validationService.getStats(filters)
-        return ResponseEntity<StatisticDto>(res, HttpStatus.ACCEPTED)
+        return ResponseEntity<StatisticDto>(StatisticDto(validations = res), HttpStatus.ACCEPTED)
     }
 
     /**
@@ -31,13 +31,13 @@ class Controller {
      * @param userID the user associated to that ticket (for the statistics purposes)
      * @param ticket
      */
-    @PutMapping("/{userID}/validate")
+    @PutMapping("/{nickname}/validate")
     fun validateTicket(
-        @PathVariable("userID") userID: Long,
+        @PathVariable("nickname") nickname: String,
         @Valid @RequestBody ticket: TicketDTO
     ): ResponseEntity<Boolean> {
         return try {
-            validationService.validate(userID, ticket)
+            validationService.validate(nickname, ticket)
             ResponseEntity(HttpStatus.ACCEPTED)
         } catch (ex: Exception) {
             ResponseEntity(HttpStatus.NOT_ACCEPTABLE)

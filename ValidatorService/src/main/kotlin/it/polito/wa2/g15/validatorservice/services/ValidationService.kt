@@ -1,14 +1,15 @@
 package it.polito.wa2.g15.validatorservice.services
 
 import it.polito.wa2.g15.validatorservice.dtos.FilterDto
-import it.polito.wa2.g15.validatorservice.dtos.StatisticDto
 import it.polito.wa2.g15.validatorservice.dtos.TicketDTO
+import it.polito.wa2.g15.validatorservice.entities.TicketValidation
 import it.polito.wa2.g15.validatorservice.exceptions.InvalidZoneException
 import it.polito.wa2.g15.validatorservice.exceptions.TimeTicketException
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 @Service
@@ -26,13 +27,36 @@ class ValidationService {
      * @param filter the filters are applied only if the field of the filter object aren't null,
      * otherwise that specific filter will be ignored
      */
-    fun getStats(filter: FilterDto): StatisticDto {
-        TODO("Not yet implemented")
+    fun getStats(filter: FilterDto): List<TicketValidation> {
+        if (!filter.nickname.isNullOrBlank())
+            return if (filter.timeEnd != null && filter.timeStart != null)
+                ticketValidationRepository.findTicketValidationsByUsernameAndValidationTimeIsBetween(
+                    username = filter.nickname,
+                    timeStart = filter.timeStart,
+                    timeEnd = filter.timeEnd
+                )
+            else
+                ticketValidationRepository.findTicketValidationsByUsername(
+                    filter.nickname
+                )
+        else
+            return if (filter.timeEnd != null && filter.timeStart != null)
+                ticketValidationRepository.findTicketValidationsByValidationTimeIsBetween(
+                    timeEnd = filter.timeEnd, timeStart = filter.timeStart
+                )
+            else
+                ticketValidationRepository.findAll().toList()
     }
 
-    fun validate(userID: Long, ticket: TicketDTO) {
+    fun validate(nickname: String, ticket: TicketDTO) {
         isTicketValid(ticket)
-
+        ticketValidationRepository.save(
+            TicketValidation(
+                username = nickname,
+                validationTime = LocalDateTime.now(),
+                ticketId = ticket.sub
+            )
+        )
     }
 
     private fun isTicketValid(ticket: TicketDTO) {
