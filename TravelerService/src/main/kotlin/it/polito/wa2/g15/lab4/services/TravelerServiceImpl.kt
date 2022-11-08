@@ -11,12 +11,11 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.*
-import java.time.temporal.ChronoField
-import java.time.temporal.IsoFields
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZonedDateTime
 import java.time.temporal.TemporalAdjusters
 import java.util.*
-
 
 @Service
 @Transactional
@@ -36,22 +35,40 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
 
         return userDetails.get().toDTO()
     }
-
-
-
+    
     override fun getPurchasedTicketsByUsername(username: String): Set<TicketDTO> {
         val user = userDetailsRepository.findByUsername(username)
-
+        
         if (user.isEmpty) throw TravelerException("No user found.")
-
+        
         val ticketPurchased = user.get().ticketPurchased
-
-        return ticketPurchased.map{ it.toDTO() }.toSet()
+        
+        return ticketPurchased.map { it.toDTO() }.toSet()
     }
-
+    
+    override fun getPurchasedTicketByUsernameAndId(username: String, sub: Int): TicketDTO {
+        val user = userDetailsRepository.findByUsername(username)
+        
+        if (user.isEmpty) throw TravelerException("No user found.")
+        
+        //val ticketPurchased = user.get().ticketPurchased
+        //return ticketPurchased.map{ it.toDTO() }.toSet()
+        
+        val ticketPurchased = ticketPurchasedRepository.findById(sub)
+        if (ticketPurchased.isEmpty) throw TravelerException("No ticket with given id found.")
+        
+        if (ticketPurchased.get().user != user.get()) throw TravelerException(
+            "Ticket " + sub + " does not belong to " +
+                    "user " + username
+        )
+        
+        return ticketPurchased.get().toDTO()
+        
+    }
+    
     override fun updateUserProfile(userProfileDTO: UserProfileDTO, username: String) {
         val userProfile = userDetailsRepository.findByUsername(username)
-
+        
         userProfile.ifPresent {
             logger.info("Got user from database: ${userProfile.get()}")
         }

@@ -94,18 +94,42 @@ class Controller {
     fun purchasedTicketsByCurrentUser() : ResponseEntity<Set<TicketDTO>> {
         val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
         val username = principal.sub
-
+    
         return try {
             val result = travelerService.getPurchasedTicketsByUsername(username)
+            logger.info { "tickets = $result" }
+        
             ResponseEntity<Set<TicketDTO>>(result, HttpStatus.OK)
         } catch (ex: Exception) {
             logger.error { "\tError retrieving purchased tickets: ${ex.message}" }
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
-
+    
+    /**
+     * Returns a png image of a QR code encoding of the JWT of the ticket with a certain sub (ticket-id). [Note that
+     * this JWT will be used for providing physical access to the train area and will be signed by a key that has
+     * nothing to do with the key used by the LoginService]
+     * @return a png image of a QR code encoding of the JWT of the ticket with a certain sub (ticket-id)
+     */
+    @GetMapping("/my/tickets/{ticket-sub}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun purchasedTicketByCurrentUserQR(@PathVariable("ticket-sub") ticketSub: Int): ResponseEntity<TicketDTO> {
+        val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
+        val username = principal.sub
+        
+        return try {
+            val result = travelerService.getPurchasedTicketByUsernameAndId(username, ticketSub)
+            logger.info { "ticket = $result" }
+            
+            ResponseEntity<TicketDTO>(result, HttpStatus.OK)
+        } catch (ex: Exception) {
+            logger.error { "\tError retrieving purchase ticket: ${ex.message}" }
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
     /* ADMIN ONLY endpoints */
-
+    
     /**
      * Returns a JSON list of usernames for which there exists any
      * information (either in terms of user profile or issued tickets). THIS ENDPOINT is only
@@ -113,7 +137,7 @@ class Controller {
      */
     @GetMapping("/admin/travelers/")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getAllTravelers() :ResponseEntity<List<String>>{
+    fun getAllTravelers(): ResponseEntity<List<String>> {
         return try {
             SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
 

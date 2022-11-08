@@ -3,11 +3,15 @@ package it.polito.wa2.g15.lab4.integration
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import it.polito.wa2.g15.lab4.dtos.*
+import it.polito.wa2.g15.lab4.dtos.TicketDTO
+import it.polito.wa2.g15.lab4.dtos.TicketFromCatalogDTO
+import it.polito.wa2.g15.lab4.dtos.UserProfileDTO
+import it.polito.wa2.g15.lab4.dtos.toDTO
 import it.polito.wa2.g15.lab4.entities.TicketPurchased
 import it.polito.wa2.g15.lab4.entities.UserDetails
 import it.polito.wa2.g15.lab4.repositories.TicketPurchasedRepository
 import it.polito.wa2.g15.lab4.repositories.UserDetailsRepository
+import it.polito.wa2.g15.lab4.security.JwtUtils
 import it.polito.wa2.g15.lab4.security.WebSecurityConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -19,7 +23,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.client.exchange
-import org.springframework.boot.test.web.client.getForEntity
 import org.springframework.boot.test.web.client.postForEntity
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
@@ -56,10 +59,10 @@ class UserFlowExampleTest {
             registry.add("spring.jpa.hibernate.ddl-auto") { "create-drop" }
         }
     }
-
+    
     @Value("\${ticket.generation}")
     lateinit var ticketGeneration: String
-
+    
     @Value("\${security.token.prefix}")
     lateinit var jwtTokenPrefix: String
     
@@ -83,9 +86,12 @@ class UserFlowExampleTest {
     
     @Autowired
     lateinit var csrfTokenRepository: CsrfTokenRepository
-
+    
+    @Autowired
+    lateinit var jwtTicketUtils: JwtUtils
+    
     private final val localBirthDateOfDroids: LocalDate = LocalDate.of(1980, Month.NOVEMBER, 10)
-
+    
     private final val c3poUser = UserDetails(
         "C3PO",
         "C3PO",
@@ -102,7 +108,7 @@ class UserFlowExampleTest {
         "3314593945",
         mutableSetOf()
     )
-
+    
     private final val t1iatLocalDateTime: LocalDateTime = LocalDateTime.of(2000, Month.DECEMBER, 25, 0, 0)
     private final val t1expLocalDateTime: LocalDateTime = LocalDateTime.of(2000, Month.DECEMBER, 31, 0, 0)
     private final val t1iat = Date(t1iatLocalDateTime.toEpochSecond(ZoneOffset.ofHours(0)))
@@ -111,7 +117,7 @@ class UserFlowExampleTest {
     private final val t1Zid = "ABC"
     private final val t1Type = "ORDINAL"
     private final val t1ValidFrom = ZonedDateTime.now(ZoneId.of("UTC"))
-    private final val t1Duration = 300*60*1000L
+    private final val t1Duration = 300 * 60 * 1000L
     
     val t1Expired = TicketPurchased(
         t1iat,
@@ -123,7 +129,7 @@ class UserFlowExampleTest {
         t1ValidFrom,
         t1Duration
     )
-
+    
     @BeforeEach
     fun initDb() {
         
@@ -132,6 +138,7 @@ class UserFlowExampleTest {
             userRepo.save(r2d2User)
             userRepo.save(c3poUser)
             ticketPurchasedRepository.save(t1Expired)
+            print(ticketPurchasedRepository.findAll())
             Assertions.assertEquals(1, ticketPurchasedRepository.count(), "ticket not saved in db")
             Assertions.assertEquals(2, userRepo.count(), "user not saved in db")
         }
@@ -170,21 +177,23 @@ class UserFlowExampleTest {
         )
         Assertions.assertEquals(0, response2.body!!.size, "wrong num of tickets")
     }
-
+    
     @Test
-    fun `put a new user details`(){
+    fun `put a new user details`() {
         val validC3POToken = generateJwtToken("NewUser", setOf("CUSTOMER"))
-
+        
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validC3POToken")
-
-        val request = HttpEntity(UserProfileDTO(
-            "NewUser",
-            "Nuovo mondo",
-            LocalDate.of(1990,10,10),
-            "33333333"
-        ), requestHeader)
-
+        
+        val request = HttpEntity(
+            UserProfileDTO(
+                "NewUser",
+                "Nuovo mondo",
+                LocalDate.of(1990, 10, 10),
+                "33333333"
+            ), requestHeader
+        )
+        
         val response: ResponseEntity<Unit> = restTemplate.exchange(
             "http://localhost:$port/my/profile/",
             HttpMethod.PUT,
@@ -192,9 +201,9 @@ class UserFlowExampleTest {
         )
         Assertions.assertEquals(HttpStatus.OK, response.statusCode, "response status code not expected")
         val users = userRepo.findAll()
-        Assertions.assertEquals(3,users.count(),"user not aved correctly")
+        Assertions.assertEquals(3, users.count(), "user not aved correctly")
     }
-
+    
     @Test
     fun `customer with tickets test`() {
         val validC3POToken = generateJwtToken("C3PO", setOf("CUSTOMER"))
@@ -226,19 +235,87 @@ class UserFlowExampleTest {
     }
     
     @Test
-    fun `customer tries to purchase tickets`() {
-
+    fun `customer with ticket`() {
+        val realJws =
+            jwtTicketUtils.generateTicketJwt(1, t1iat, t1exp, t1Zid, t1Type, t1ValidFrom.toEpochSecond())
+        val t2Expired = TicketPurchased(
+            t1iat,
+            t1exp,
+            t1Zid,
+            realJws,
+            r2d2User,
+            t1Type,
+            t1ValidFrom,
+            t1Duration
+        )
+        r2d2User.addTicketPurchased(t2Expired)
+        ticketPurchasedRepository.save(t2Expired)
+        print(ticketPurchasedRepository.findAll())
+        Assertions.assertEquals(2, ticketPurchasedRepository.count(), "ticket t2 not saved in db")
+        
         val validR2D2Token = generateJwtToken("R2D2", setOf("CUSTOMER"))
         
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
-
+        
+        val request = HttpEntity("", requestHeader)
+        
+        val response: ResponseEntity<UserProfileDTO> = restTemplate.exchange(
+            "http://localhost:$port/my/profile/",
+            HttpMethod.GET,
+            request
+        )
+        Assertions.assertEquals(HttpStatus.OK, response.statusCode, "response status code not expected")
+        
+        Assertions.assertEquals(r2d2User.toDTO(), response.body, "user details are wrong")
+        
+        //try retrieving ticket with non-existing id
+        val response2: ResponseEntity<TicketDTO> = restTemplate.exchange(
+            "http://localhost:$port/my/tickets/999",
+            HttpMethod.GET,
+            request
+        )
+        print(response2)
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response2.statusCode, "found not existing ticket")
+        
+        //correct request
+        val response3: ResponseEntity<TicketDTO> = restTemplate.exchange(
+            "http://localhost:$port/my/tickets/3",
+            HttpMethod.GET,
+            request
+        )
+        print(response3)
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response3.statusCode, "retrieved ticket owned by different user")
+        
+        //correct request
+        val response4: ResponseEntity<TicketDTO> = restTemplate.exchange(
+            "http://localhost:$port/my/tickets/4",
+            HttpMethod.GET,
+            request
+        )
+        print(response4)
+        Assertions.assertEquals(HttpStatus.OK, response4.statusCode, "didn't retrieve ticket")
+        
+        val ticketDto = response4.body!!
+        Assertions.assertEquals(t2Expired.toDTO(), ticketDto, "wrong ticket retrieved")
+        
+    }
+    
+    @Test
+    fun `customer tries to purchase tickets`() {
+        
+        val validR2D2Token = generateJwtToken("R2D2", setOf("CUSTOMER"))
+        
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
+        
         val zid = "123"
         val quantity = 5
         val validFrom = ZonedDateTime.now(ZoneId.of("UTC"))
-
+        
         val request1 = HttpEntity(
-            TicketFromCatalogDTO(-1,"ORDINAL", validFrom,zid,quantity),requestHeader)
+            TicketFromCatalogDTO(-1, "ORDINAL", validFrom, zid, quantity), requestHeader
+        )
         
         val response1 = restTemplate.postForEntity<Set<TicketDTO>>(
             "http://localhost:$port/services/user/${r2d2User.username}/tickets/add/",
@@ -312,10 +389,11 @@ class UserFlowExampleTest {
         requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
         val quantity = 5
         val validFrom = ZonedDateTime.now(ZoneId.of("UTC"))
-
+    
         val zid = "123"
         val request1 = HttpEntity(
-            TicketFromCatalogDTO(-1,"ORDINAL", validFrom,zid,quantity),requestHeader)
+            TicketFromCatalogDTO(-1, "ORDINAL", validFrom, zid, quantity), requestHeader
+        )
         
         val response1 = restTemplate.postForEntity<Set<TicketDTO>>(
             "http://localhost:$port/services/user/${r2d2User.username}/tickets/add/",
@@ -352,43 +430,41 @@ class UserFlowExampleTest {
         Assertions.assertEquals(HttpStatus.FORBIDDEN, response2.statusCode, "response status code not expected")
         
     }
-
+    
     @Test
-    fun `customer tries to get user birth date`(){
-        val validC3POToken = generateJwtToken("R2D2",setOf("CUSTOMER"))
-
+    fun `customer tries to get user birth date`() {
+        val validC3POToken = generateJwtToken("R2D2", setOf("CUSTOMER"))
+        
         val requestHeader1 = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader1.add(jwtSecurityHeader, "$jwtTokenPrefix $validC3POToken")
-
-
-        val request1 = HttpEntity(null,requestHeader1)
-
-        val response1 : ResponseEntity<Unit> = restTemplate.exchange(
+        
+        val request1 = HttpEntity(null, requestHeader1)
+        
+        val response1: ResponseEntity<Unit> = restTemplate.exchange(
             "http://localhost:$port/services/user/${c3poUser.username}/birthdate/",
             HttpMethod.GET,
             request1
         )
-
+        
         Assertions.assertEquals(HttpStatus.FORBIDDEN, response1.statusCode, "status code ok")
     }
-
+    
     @Test
-    fun `service tries to get user birth date`(){
-        val validC3POToken = generateJwtToken("C3PO",setOf("SERVICE"))
-
+    fun `service tries to get user birth date`() {
+        val validC3POToken = generateJwtToken("C3PO", setOf("SERVICE"))
+        
         val requestHeader1 = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader1.add(jwtSecurityHeader, "$jwtTokenPrefix $validC3POToken")
-
-
-        val request1 = HttpEntity(null,requestHeader1)
-
-        val response1 : ResponseEntity<LocalDate> = restTemplate.exchange(
+        
+        val request1 = HttpEntity(null, requestHeader1)
+        
+        val response1: ResponseEntity<LocalDate> = restTemplate.exchange(
             "http://localhost:$port/services/user/${c3poUser.username}/birthdate/",
             HttpMethod.GET,
             request1
         )
         Assertions.assertEquals(HttpStatus.OK, response1.statusCode, "status code not found")
-        Assertions.assertEquals(c3poUser.dateOfBirth,response1.body)
+        Assertions.assertEquals(c3poUser.dateOfBirth, response1.body)
     }
     
     @Value("\${security.privateKey.common}")
