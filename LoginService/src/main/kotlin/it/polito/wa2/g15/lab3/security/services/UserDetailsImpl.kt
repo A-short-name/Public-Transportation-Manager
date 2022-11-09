@@ -72,3 +72,8 @@ class UserDetailsImpl(
         return username
     }
 }
+
+data class UserDetailsDTO(
+    val sub: String,
+    val roles: Set<GrantedAuthority>
+)

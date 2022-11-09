@@ -1,19 +1,15 @@
 package it.polito.wa2.g15.lab3.integration.controller
 
-import io.jsonwebtoken.Jwts
 import it.polito.wa2.g15.lab3.SecurityConfiguration
 import it.polito.wa2.g15.lab3.dtos.AdminRequestDTO
 import it.polito.wa2.g15.lab3.dtos.UserLoginRequestDTO
 import it.polito.wa2.g15.lab3.dtos.UserLoginResponseDTO
-import it.polito.wa2.g15.lab3.entities.Activation
 import it.polito.wa2.g15.lab3.entities.ERole
 import it.polito.wa2.g15.lab3.entities.Role
 import it.polito.wa2.g15.lab3.entities.User
-import it.polito.wa2.g15.lab3.repositories.ActivationRepository
 import it.polito.wa2.g15.lab3.repositories.RoleRepository
 import it.polito.wa2.g15.lab3.repositories.UserRepository
 import it.polito.wa2.g15.lab3.security.jwt.JwtUtils
-import org.junit.Before
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -29,15 +25,12 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.csrf.CsrfTokenRepository
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.util.*
 
 @Testcontainers
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -117,7 +110,7 @@ class ControllerRegisterAdminTest {
                 this.email = "normaladmin@mail.com"
                 this.active = true
             }
-            userC3PO.addCustomerRole(roleRepository.findByName(ERole.ADMIN).get())
+            normalAdmin.addCustomerRole(roleRepository.findByName(ERole.ADMIN).get())
             userRepository.save(normalAdmin)
 
 
@@ -210,7 +203,7 @@ class ControllerRegisterAdminTest {
                 createRequest
         )
 
-        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, createResponse.statusCode, "user creation successfull. Should not happen")
+        Assertions.assertEquals(HttpStatus.FORBIDDEN, createResponse.statusCode, "Wrong answer from server.")
     }
 
     @Test
@@ -230,7 +223,7 @@ class ControllerRegisterAdminTest {
         requestHeader.add("Authorization", "Bearer ${response.body!!.token}")
 
         val createRequest = HttpEntity(
-                AdminRequestDTO("newsuperadmin","test@example.com","NewSuper!Admin22",false),
+                AdminRequestDTO("newsuperadmin","test@example.com","NewSuper!Admin22",true),
                 requestHeader
         )
         val createResponse : ResponseEntity<Unit> = restTemplate.exchange(
@@ -239,6 +232,6 @@ class ControllerRegisterAdminTest {
                 createRequest
         )
 
-        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, createResponse.statusCode, "user creation successfull. Should not happen")
+        Assertions.assertEquals(HttpStatus.FORBIDDEN, createResponse.statusCode, "Wrong answer from server.")
     }
 }
