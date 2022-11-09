@@ -46,24 +46,20 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
         return ticketPurchased.map { it.toDTO() }.toSet()
     }
     
-    override fun getPurchasedTicketByUsernameAndId(username: String, sub: Int): TicketDTO {
+    override fun getJwtPurchasedTicketByUsernameAndId(username: String, sub: Int): String {
         val user = userDetailsRepository.findByUsername(username)
-        
+    
         if (user.isEmpty) throw TravelerException("No user found.")
-        
-        //val ticketPurchased = user.get().ticketPurchased
-        //return ticketPurchased.map{ it.toDTO() }.toSet()
-        
+    
         val ticketPurchased = ticketPurchasedRepository.findById(sub)
         if (ticketPurchased.isEmpty) throw TravelerException("No ticket with given id found.")
-        
+    
         if (ticketPurchased.get().user != user.get()) throw TravelerException(
-            "Ticket " + sub + " does not belong to " +
-                    "user " + username
+            "Ticket $sub does not belong to user $username"
         )
-        
-        return ticketPurchased.get().toDTO()
-        
+    
+        return ticketPurchased.get().jws
+    
     }
     
     override fun updateUserProfile(userProfileDTO: UserProfileDTO, username: String) {

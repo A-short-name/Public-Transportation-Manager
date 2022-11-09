@@ -1,10 +1,17 @@
 package it.polito.wa2.g15.lab4
 
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.WriterException
+import com.google.zxing.client.j2se.MatrixToImageWriter
+import com.google.zxing.qrcode.QRCodeWriter
 import it.polito.wa2.g15.lab4.dtos.*
 import it.polito.wa2.g15.lab4.services.TravelerService
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType.IMAGE_PNG_VALUE
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
@@ -12,17 +19,18 @@ import org.springframework.validation.BindingResult
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.time.LocalDate
 import javax.validation.Valid
 
 @RestController
 class Controller {
     @Autowired
-    private lateinit var travelerService : TravelerService
-
+    private lateinit var travelerService: TravelerService
+    
     private val logger = KotlinLogging.logger {}
-
-
+    
     /**
      * Returns a JSON representation of the current user’s profile
      * (name, address, date_of_birth, telephone_number) as stored in the service DB.
@@ -34,16 +42,16 @@ class Controller {
         return try {
             val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
             val username = principal.sub
-
+    
             val result: UserProfileDTO = travelerService.getUserDetails(username)
-
+    
             ResponseEntity<UserProfileDTO>(result, HttpStatus.OK)
         } catch (ex: Exception) {
             logger.error { "\tProfile not valid: ${ex.message}" }
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
-
+    
     /**
      * Accepts a JSON representation of the current user’s profile and
      * updates the corresponding record in the service DB.
@@ -55,7 +63,7 @@ class Controller {
     fun updateCurrentUserProfile(
         @Valid @RequestBody userRequestDTO: UserProfileDTO,
         bindingResult: BindingResult
-    ) : ResponseEntity<Unit> {
+    ): ResponseEntity<Unit> {
         // bindingResult is automatically populated by Spring and Hibernate-validate, trying to parse a userRequestDTO which
         // respects the validation annotations in UserRequestDTO. These errors can be detected before trying to insert into
         // the db
@@ -65,20 +73,20 @@ class Controller {
             logBindingResultErrors(bindingResult)
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
-
+        
         val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
         val username = principal.sub
-
+        
         try {
             travelerService.updateUserProfile(userRequestDTO, username)
         } catch (ex: Exception) {
             logger.error { "\tProfile not valid: ${ex.message}" }
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
-
+        
         return ResponseEntity(HttpStatus.OK)
     }
-
+    
     /**
      * Returns a JSON list of all the tickets purchased by the current
      * user. A ticket is represented as a JSON object consisting of the fields “sub” (the
@@ -91,14 +99,14 @@ class Controller {
      */
     @GetMapping("/my/tickets/")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun purchasedTicketsByCurrentUser() : ResponseEntity<Set<TicketDTO>> {
+    fun purchasedTicketsByCurrentUser(): ResponseEntity<Set<TicketDTO>> {
         val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
         val username = principal.sub
-    
+        
         return try {
             val result = travelerService.getPurchasedTicketsByUsername(username)
             logger.info { "tickets = $result" }
-        
+            
             ResponseEntity<Set<TicketDTO>>(result, HttpStatus.OK)
         } catch (ex: Exception) {
             logger.error { "\tError retrieving purchased tickets: ${ex.message}" }
@@ -114,19 +122,33 @@ class Controller {
      */
     @GetMapping("/my/tickets/{ticket-sub}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun purchasedTicketByCurrentUserQR(@PathVariable("ticket-sub") ticketSub: Int): ResponseEntity<TicketDTO> {
+    fun purchasedTicketByCurrentUserQR(@PathVariable("ticket-sub") ticketSub: Int): ResponseEntity<ByteArrayResource> {
         val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
         val username = principal.sub
         
-        return try {
-            val result = travelerService.getPurchasedTicketByUsernameAndId(username, ticketSub)
-            logger.info { "ticket = $result" }
-            
-            ResponseEntity<TicketDTO>(result, HttpStatus.OK)
+        val jwt = try {
+            travelerService.getJwtPurchasedTicketByUsernameAndId(username, ticketSub)
         } catch (ex: Exception) {
             logger.error { "\tError retrieving purchase ticket: ${ex.message}" }
-            ResponseEntity(HttpStatus.NOT_FOUND)
+            return ResponseEntity(HttpStatus.NOT_FOUND)
         }
+        logger.debug { "found jwt of ticket with id $ticketSub: $jwt" }
+        val result = try {
+            val qr = encodeQR(jwt, 64, 64)
+            ByteArrayResource(qr, IMAGE_PNG_VALUE)
+        } catch (ex: Exception) {
+            logger.error { "\tError generating the QR code for the purchased ticket: ${ex.message}" }
+            return ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+        
+        logger.debug { "qr of the jws of the ticket with id $ticketSub: $result" }
+        
+        val responseHeaders = HttpHeaders()
+        responseHeaders.set(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"ticket.png\""
+        )
+        return ResponseEntity<ByteArrayResource>(result, responseHeaders, HttpStatus.OK)
     }
     /* ADMIN ONLY endpoints */
     
@@ -140,16 +162,16 @@ class Controller {
     fun getAllTravelers(): ResponseEntity<List<String>> {
         return try {
             SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
-
+    
             val result: List<String> = travelerService.getListOfUsername()
-
+    
             ResponseEntity<List<String>>(result, HttpStatus.OK)
         } catch (ex: Exception) {
             logger.error { "\tError finding all users: ${ex.message}" }
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
-
+    
     /**
      * Returns the profile corresponding to userID.
      * THIS ENDPOINT is only available for users having the Admin role.
@@ -157,19 +179,19 @@ class Controller {
      */
     @GetMapping("/admin/traveler/{userID}/profile/")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getProfileFromUserID(@PathVariable("userID") userID: Long) : ResponseEntity<UserProfileAdminViewDTO> {
+    fun getProfileFromUserID(@PathVariable("userID") userID: Long): ResponseEntity<UserProfileAdminViewDTO> {
         return try {
             SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
-
+            
             val result: UserProfileAdminViewDTO = travelerService.getUserById(userID)
-
+            
             ResponseEntity<UserProfileAdminViewDTO>(result, HttpStatus.OK)
         } catch (ex: Exception) {
             logger.error { "\tError finding the user with the given id: ${ex.message}" }
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
-
+    
     /**
      * Returns the tickets owned by userID. THIS
      * ENDPOINT is only available for users having the Admin role.
@@ -177,12 +199,12 @@ class Controller {
      */
     @GetMapping("/admin/traveler/{userID}/tickets/")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getTicketsFromUserID(@PathVariable("userID") userID: Long) : ResponseEntity<Set<TicketDTO>> {
+    fun getTicketsFromUserID(@PathVariable("userID") userID: Long): ResponseEntity<Set<TicketDTO>> {
         return try {
             SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
-
+            
             val result: Set<TicketDTO> = travelerService.getPurchasedTicketsByUserId(userID)
-
+            
             ResponseEntity<Set<TicketDTO>>(result, HttpStatus.OK)
         } catch (ex: Exception) {
             logger.error { "\tError finding the user with the given id: ${ex.message}" }
@@ -190,7 +212,7 @@ class Controller {
         }
     }
     /* END OF ADMIN ONLY endpoints */
-
+    
     /* SERVICES ONLY endpoints */
     /**
      * Returns the birth date of the selected user’s profile
@@ -209,7 +231,7 @@ class Controller {
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
-
+    
     /**
      * Accepts a JSON payload like the following {cmd: “buy_tickets”,
      * quantity: 2, zones: “ABC”} and generates a corresponding number of tickets, issued
@@ -221,17 +243,19 @@ class Controller {
      */
     @PostMapping("/services/user/{username}/tickets/add/")
     @PreAuthorize("hasAuthority('SERVICE')")
-    fun generateTicketsForSelectedUser(@PathVariable("username") username: String,
-            @Valid @RequestBody ticketDTO: TicketFromCatalogDTO,
-            bindingResult: BindingResult) : ResponseEntity<Unit> {
+    fun generateTicketsForSelectedUser(
+        @PathVariable("username") username: String,
+        @Valid @RequestBody ticketDTO: TicketFromCatalogDTO,
+        bindingResult: BindingResult
+    ): ResponseEntity<Unit> {
         logger.info { "Mi hanno chiesto di generare per $username :$ticketDTO" }
-
-
+        
+        
         if (bindingResult.hasErrors()) {
             logBindingResultErrors(bindingResult)
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
-
+        
         return try {
             travelerService.generateTickets(ticketDTO, username)
             //ResponseEntity(result,HttpStatus.OK)
@@ -242,7 +266,6 @@ class Controller {
         }
     }
     /* END OF SERVICES ONLY endpoints */
-
     
     fun logBindingResultErrors(bindingResult: BindingResult) {
         val errors: MutableMap<String, String?> = HashMap()
@@ -252,5 +275,14 @@ class Controller {
             errors[fieldName] = errorMessage
         }
         logger.debug { errors }
+    }
+    
+    @Throws(WriterException::class, IOException::class)
+    fun encodeQR(text: String, width: Int, height: Int): ByteArray {
+        val qrCodeWriter = QRCodeWriter()
+        val bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, width, height)
+        val pngOutputStream = ByteArrayOutputStream()
+        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream)
+        return pngOutputStream.toByteArray()
     }
 }

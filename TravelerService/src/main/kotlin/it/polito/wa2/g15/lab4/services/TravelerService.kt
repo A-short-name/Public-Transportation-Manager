@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 interface TravelerService {
     fun getUserDetails(username: String) : UserProfileDTO
     fun getPurchasedTicketsByUsername(username: String): Set<TicketDTO>
-    fun getPurchasedTicketByUsernameAndId(username: String, sub: Int): TicketDTO
+    fun getJwtPurchasedTicketByUsernameAndId(username: String, sub: Int): String
     fun updateUserProfile(userProfileDTO: UserProfileDTO, username: String)
     fun generateTickets(ticketFromCatalog: TicketFromCatalogDTO, username: String)
     @PreAuthorize("hasAuthority('ADMIN')")
