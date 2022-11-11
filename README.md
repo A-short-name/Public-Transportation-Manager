@@ -11,7 +11,7 @@ In order to open this project you need:
 
 To run the project in a local environment it is needed to:
 - Execute the docker-compose.yml file in the main directory (using `docker-compose up -d`). In this way all the needed containers (kafka, postgres) will be up and running.
-- Postrges databases will be created using the env variable `POSTGRES_MULTIPLE_DATABASES` that is used by the script `pg-init-scripts` for the initialization and creation of the databases
+- Postgres databases will be created using the env variable `POSTGRES_MULTIPLE_DATABASES` that is used by the script `pg-init-scripts` for the initialization and creation of the databases
   
 ## Checks
 
