@@ -1,5 +1,7 @@
 package it.polito.wa2.g15.validatorservice.services
 
+import io.jsonwebtoken.io.Decoders
+import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.validatorservice.dtos.FilterDto
 import it.polito.wa2.g15.validatorservice.dtos.TicketDTO
 import it.polito.wa2.g15.validatorservice.entities.TicketValidation
@@ -9,8 +11,10 @@ import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepositor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.io.File
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import javax.crypto.SecretKey
 
 @Service
 class ValidationService {
@@ -20,6 +24,15 @@ class ValidationService {
 
     @Value("{validator.zone}")
     lateinit var validZones: String
+
+    @Value("\${security.path.privateKey}")
+    lateinit var keyPath: String
+
+    val key: SecretKey by lazy {
+        val secretString = File(keyPath).bufferedReader().use { it.readLine() }
+        val decodedKey = Decoders.BASE64.decode(secretString)
+        Keys.hmacShaKeyFor(decodedKey)
+    }
 
     /**
      * returns statistics of this validator
@@ -50,6 +63,7 @@ class ValidationService {
 
     fun validate(nickname: String, ticket: TicketDTO) {
         isTicketValid(ticket)
+        //if ticket is not valid an exception is thrown and the save shouldn't be performed
         ticketValidationRepository.save(
             TicketValidation(
                 username = nickname,
