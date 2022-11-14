@@ -1,6 +1,7 @@
 package it.polito.wa2.g15.lab3
 
 import it.polito.wa2.g15.lab3.security.jwt.AuthEntryPointJwt
+import it.polito.wa2.g15.lab3.security.jwt.JWTAuthenticationFilter
 import it.polito.wa2.g15.lab3.security.services.UserDetailsServiceImpl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -23,13 +25,17 @@ import org.springframework.security.web.csrf.CsrfTokenRepository
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     @Autowired
     lateinit var userDetailsService: UserDetailsServiceImpl
 
     @Autowired
     private val unauthorizedHandler: AuthEntryPointJwt? = null
-    
+
+    @Autowired
+    private lateinit var jwtFilter: JWTAuthenticationFilter
+
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder())
     }
@@ -40,8 +46,8 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     override fun authenticationManagerBean(): AuthenticationManager? {
         return super.authenticationManagerBean()
     }
-    
-    
+
+
     @Bean
     fun csrfTokenRepository(): CsrfTokenRepository {
         //A CsrfTokenRepository that persists the CSRF token in a cookie named "XSRF-TOKEN" and reads from the header
@@ -51,36 +57,43 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     }
 
     fun generateCsrfHeader(csrfTokenRepository:CsrfTokenRepository): HttpHeaders {
-        
+
         val headers = HttpHeaders()
         val csrfToken: CsrfToken = csrfTokenRepository.generateToken(null)
-        
+
         headers.add(csrfToken.headerName, csrfToken.token)
         headers.add("Cookie", "XSRF-TOKEN=" + csrfToken.token)
-        
+
         return headers
     }
-    
+
     override fun configure(http: HttpSecurity) {
         http.csrf()
             .csrfTokenRepository(csrfTokenRepository())
-            .and()
-            .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-            .authorizeRequests()
-            .anyRequest()
-            .permitAll()
 
-/*        http.csrf().disable().authorizeRequests()
-                .antMatchers("/forgetPassword").permitAll()
-                .antMatchers("/registerUser").permitAll()
-                .antMatchers("/login").permitAll()
-                .anyRequest().authenticated()
-                .and().exceptionHandling().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .and().formLogin().loginPage("/login").loginProcessingUrl("/login")
-                .defaultSuccessUrl("/index.html").failureUrl("/login?error")
-                .and().logout().logoutUrl("/logout")
+        http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
 
-        http.addFilterBefore(this.jwtFilterRequest, UsernamePasswordAuthenticationFilter::class.java)*/
+        http.sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+        http.authorizeRequests()
+            .antMatchers("/admin/**").authenticated()
+            .antMatchers("/admin/create").hasAuthority("SUPERADMIN")
+            .anyRequest().permitAll()
+
+        http.addFilterAt(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
+
+        /*        http.csrf().disable().authorizeRequests()
+                        .antMatchers("/forgetPassword").permitAll()
+                        .antMatchers("/registerUser").permitAll()
+                        .antMatchers("/login").permitAll()
+                        .anyRequest().authenticated()
+                        .and().exceptionHandling().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .and().formLogin().loginPage("/login").loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/index.html").failureUrl("/login?error")
+                        .and().logout().logoutUrl("/logout")
+
+                http.addFilterBefore(this.jwtFilterRequest, UsernamePasswordAuthenticationFilter::class.java)*/
     }
 
     override fun configure(web: WebSecurity) {

@@ -5,21 +5,20 @@ import it.polito.wa2.g15.lab3.security.jwt.JwtUtils
 import it.polito.wa2.g15.lab3.services.UserService
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.validation.BindingResult
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.function.RequestPredicates.headers
-import java.util.stream.Collectors
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
 
@@ -82,6 +81,30 @@ class Controller {
             return ResponseEntity<UserResponseDTO>(result, HttpStatus.CREATED)
         } catch (ex: Exception) { // Uniqueness exceptions (known only after trying to insert into database)
             logger.error { "\tRegistration not valid: ${ex.message}" }
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    @PostMapping("/admin/create")
+    @PreAuthorize("hasAuthority('SUPERADMIN')")
+    fun createAdmin(@Valid @RequestBody adminRequestDTO: AdminRequestDTO, bindingResult: BindingResult) :
+            ResponseEntity<Unit> {
+        if (bindingResult.hasErrors()) {
+            // If the json contained in the post body does not satisfy our validation annotations, return 400
+            logBindingResultErrors(bindingResult)
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+
+        try {
+            userService.createAdmin(
+                    adminRequestDTO.nickname,
+                    passwordEncoder.encode(adminRequestDTO.password),
+                    adminRequestDTO.email,
+                    adminRequestDTO.enrolling_capabilities
+            )
+            return ResponseEntity(HttpStatus.CREATED)
+        } catch (ex: Exception) {
+            logger.error {"\t Failed adding admin: ${ex.message}"}
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }

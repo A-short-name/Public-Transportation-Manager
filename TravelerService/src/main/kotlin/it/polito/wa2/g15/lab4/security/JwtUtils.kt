@@ -11,11 +11,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 import javax.crypto.SecretKey
-import kotlin.collections.ArrayList
 
 @Component
 class JwtUtils {
@@ -42,18 +39,27 @@ class JwtUtils {
         Keys.hmacShaKeyFor(decodedKey)
     }
 
-    
-    fun generateTicketJwt(sub: Int, iat: Date, exp: Date, zid: String, type: String, validFrom: Long): String {
+
+    fun generateTicketJwt(
+        sub: Int,
+        iat: Date,
+        exp: Date,
+        zid: String,
+        type: String,
+        validFrom: Long,
+        username: String
+    ): String {
         //validFrom is a long, otherwise the date is saved with trailing 0.
         //iat and exp haven't this problem because aren't inserted with claims
         return Jwts.builder()
-                .setSubject(sub.toString())
-                .setIssuedAt(iat)
-                .setExpiration(exp)
-                .claim("zid", zid)
-                .claim("type", type)
-                .claim("validFrom", validFrom)
-                .signWith(generateJwtKey)
+            .setSubject(sub.toString()) //ticket id
+            .setIssuedAt(iat)
+            .setExpiration(exp)
+            .claim("zid", zid)
+            .claim("type", type)
+            .claim("validFrom", validFrom)
+            .claim("username", username) //in order to identify the buyer (user)
+            .signWith(generateJwtKey)
                 .compact()
     }
 
