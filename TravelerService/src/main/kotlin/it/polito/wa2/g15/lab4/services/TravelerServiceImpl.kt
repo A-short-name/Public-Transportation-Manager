@@ -127,7 +127,7 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
 
             // Generate jws and save again with jws
             val sub = ticketdb.getId()!!
-            ticket.jws = jwtUtils.generateTicketJwt(sub, iat, exp, zones, type, validFrom.toEpochSecond())
+            ticket.jws = jwtUtils.generateTicketJwt(sub, iat, exp, zones, type, validFrom.toEpochSecond(), username)
             //TODO Va aggiunta questa?
             //ticket.setId(sub)
             try {

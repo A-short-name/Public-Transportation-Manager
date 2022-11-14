@@ -197,16 +197,24 @@ class UserFlowExampleTest {
         r2d2User.addTicketPurchased(t2valid)
         val ticketdb = ticketPurchasedRepository.save(t2valid)
         val sub = ticketdb.getId()!!
-        val realJws = jwtTicketUtils.generateTicketJwt(sub, t2iat, t2exp, t2Zid, t2Type, t2ValidFrom.toEpochSecond())
+        val realJws = jwtTicketUtils.generateTicketJwt(
+            sub,
+            t2iat,
+            t2exp,
+            t2Zid,
+            t2Type,
+            t2ValidFrom.toEpochSecond(),
+            r2d2User.username
+        )
         t2valid.jws = realJws
         ticketPurchasedRepository.save(t2valid)
-        
+
         //print(ticketPurchasedRepository.findAll())
         Assertions.assertEquals(2, ticketPurchasedRepository.count(), "ticket t2 not saved in db")
-        
+
         // Assert that the user r2d2 can login
         val validR2D2Token = generateJwtToken("R2D2", setOf("CUSTOMER"))
-        
+
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
         
