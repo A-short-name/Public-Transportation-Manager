@@ -7,4 +7,5 @@ object TicketFields {
     const val ISSUED_AT = "iat"
     const val VALID_FROM = "validFrom"
     const val TYPE = "type"
+    const val USERNAME = "userName"
 }

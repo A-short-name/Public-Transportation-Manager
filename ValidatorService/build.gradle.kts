@@ -7,6 +7,8 @@ plugins {
 }
 
 dependencies {
+    implementation("com.google.zxing:core:3.5.0")
+    implementation("com.google.zxing:javase:3.5.0")
     implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")

@@ -6,19 +6,17 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.validatorservice.dtos.FilterDto
-import it.polito.wa2.g15.validatorservice.dtos.TicketDTO
 import it.polito.wa2.g15.validatorservice.entities.TicketFields
 import it.polito.wa2.g15.validatorservice.entities.TicketValidation
-import it.polito.wa2.g15.validatorservice.exceptions.InvalidZoneException
-import it.polito.wa2.g15.validatorservice.exceptions.TimeTicketException
 import it.polito.wa2.g15.validatorservice.exceptions.ValidationException
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
+import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
+import java.time.*
+import java.util.*
 import javax.crypto.SecretKey
 
 @Service
@@ -27,14 +25,10 @@ class ValidationService {
     @Autowired
     lateinit var ticketValidationRepository: TicketValidationRepository
 
-    @Value("{validator.zone}")
-    lateinit var validZones: String
+    private val logger = KotlinLogging.logger {}
 
     @Value("\${security.path.privateKey}")
     lateinit var keyPath: String
-
-    @Value("\${security.path.privateKey}")
-    lateinit var clientZone: String
 
     val key: SecretKey by lazy {
         val secretString = File(keyPath).bufferedReader().use { it.readLine() }
@@ -69,20 +63,7 @@ class ValidationService {
                 ticketValidationRepository.findAll().toList()
     }
 
-    fun validate(nickname: String, ticket: TicketDTO) {
-        isTicketValid(ticket)
-        //TODO: lancia eccezione se il biglietto già è stato validato
-        //if ticket is not valid an exception is thrown and the save shouldn't be performed
-        ticketValidationRepository.save(
-            TicketValidation(
-                username = nickname,
-                validationTime = LocalDateTime.now(),
-                ticketId = ticket.sub
-            )
-        )
-    }
-
-    fun validateTicket(signedJwt: String) {
+    fun validateTicket(signedJwt: String, clientZone: String) {
 
         lateinit var jwt: Jws<Claims>
         try {
@@ -94,31 +75,65 @@ class ValidationService {
             throw ValidationException("Invalid jwt\n\t ${e.message}")
         }
 
-        jwt.body[TicketFields.EXPIRATION] as? Int ?: throw ValidationException("no expiration is found")
+        val ticketValidFromTs =
+            jwt.body[TicketFields.VALID_FROM] as? Long ?: throw ValidationException("no ticket type is found")
 
-        val validityZone = jwt.body[TicketFields.VALID_ZONES] as? String
+        val ticketType = jwt.body[TicketFields.TYPE] as? String ?: throw ValidationException("no ticket type is found")
+
+        //zone time is taken from the system, if you want to manage the different zone times it should managed here
+        // and in the travelerService module (where the ticket is generated)
+        val ticketValidFrom = ZonedDateTime.ofInstant(Instant.ofEpochSecond(ticketValidFromTs), ZoneId.systemDefault())
+        // Comment the next 3 lines to obtain the server version used for the noSubject benchmarks
+
+        val ticketBuyerUsername =
+            jwt.body[TicketFields.USERNAME] as? String ?: throw ValidationException("no ticket username is found")
+
+        val ticketValidZone = jwt.body[TicketFields.VALID_ZONES] as? String
             ?: throw ValidationException("validity zone not found")
 
-        if (clientZone.isEmpty() || !validityZone.contains(clientZone.toRegex()))
+        if (clientZone.isEmpty() || !ticketValidZone.contains(clientZone.toRegex()))
             throw ValidationException("client zone $clientZone not present in valid zones of the ticket")
 
-        // Comment the next 3 lines to obtain the server version used for the noSubject benchmarks
         val ticketId = jwt.body[TicketFields.SUBJECT] as? Int ?: throw ValidationException("no ticket id is found")
-        //TODO: save and update the used tikcets and check it based on ticket type
-//        if(!repository.addTicket(ticketId))
-//            throw ValidationException("ticket $ticketId already used")
 
-        println("\t ticket ${jwt.body[TicketFields.SUBJECT]} is valid")
+        jwt.body[TicketFields.EXPIRATION] as? Date ?: throw ValidationException("no expiration is found")
+
+        if (ticketValidFrom.isAfter(ZonedDateTime.now()))
+            throw ValidationException("ticket is not yet valid, it will be valid from " + ticketValidFrom)
+
+        checkTicketType(ticketType, ticketId)
+
+        //TODO: check if a ticket was used few minutes ago (in order to avoid validation of multiple travelers with the same pass)
+
+        ticketValidationRepository.save(
+            TicketValidation(
+                username = ticketBuyerUsername,
+                validationTime = LocalDateTime.now(),
+                ticketId = ticketId
+            )
+        )
+
+        logger.info("\t ticket ${jwt.body[TicketFields.SUBJECT]} is valid")
     }
 
-    private fun isTicketValid(ticket: TicketDTO) {
-        TODO("Import lab2 validation function")
-        if (!validZones.contains(ticket.zid, ignoreCase = true)) {
-            throw InvalidZoneException("zone " + ticket.zid + " is not valid for this machine")
-        }
-        if (!ticket.validFrom.isBefore(ZonedDateTime.now())) {
-            throw TimeTicketException("ticket is not yet valide, it will be valide from " + ticket.validFrom.toString())
-        }
+    /**
+     *  Managing Travel cards:
+     * (at the moment we only have weekend-pass and ordinal)
+     * here we can manage:
+     *  - PASS: the ticket can be used more than one time
+     *  - WEEKEND: the ticket can be used only during weekend
+     *  - otherwise: ticket can be used only 1 time whenever the traveler wants
+     */
+    private fun checkTicketType(ticketType: String, ticketId: Int) {
+        val isWeekend =
+            DayOfWeek.SUNDAY == ZonedDateTime.now().dayOfWeek || DayOfWeek.SATURDAY == ZonedDateTime.now().dayOfWeek
+        if (ticketType.contains("WEEKEND") && !isWeekend)
+            throw ValidationException("ticket of type $ticketType is valid only during the weekend")
 
+        if (!ticketType.contains("PASS")) {
+            val isTicketUsed = ticketValidationRepository.existsByTicketId(ticketId)
+            if (isTicketUsed)
+                throw ValidationException("ticket is already used, ticket of type $ticketType can not be used multiple times")
+        }
     }
 }

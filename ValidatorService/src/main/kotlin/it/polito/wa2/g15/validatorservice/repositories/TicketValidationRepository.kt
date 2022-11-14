@@ -18,4 +18,7 @@ interface TicketValidationRepository : CrudRepository<TicketValidation, Long> {
         timeStart: LocalDateTime,
         timeEnd: LocalDateTime
     ): List<TicketValidation>
+
+    fun existsByTicketId(ticketId: Int): Boolean
+
 }
