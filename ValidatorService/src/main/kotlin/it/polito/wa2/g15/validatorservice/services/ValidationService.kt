@@ -1,12 +1,17 @@
 package it.polito.wa2.g15.validatorservice.services
 
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.Jws
+import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.validatorservice.dtos.FilterDto
 import it.polito.wa2.g15.validatorservice.dtos.TicketDTO
+import it.polito.wa2.g15.validatorservice.entities.TicketFields
 import it.polito.wa2.g15.validatorservice.entities.TicketValidation
 import it.polito.wa2.g15.validatorservice.exceptions.InvalidZoneException
 import it.polito.wa2.g15.validatorservice.exceptions.TimeTicketException
+import it.polito.wa2.g15.validatorservice.exceptions.ValidationException
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -27,6 +32,9 @@ class ValidationService {
 
     @Value("\${security.path.privateKey}")
     lateinit var keyPath: String
+
+    @Value("\${security.path.privateKey}")
+    lateinit var clientZone: String
 
     val key: SecretKey by lazy {
         val secretString = File(keyPath).bufferedReader().use { it.readLine() }
@@ -63,6 +71,7 @@ class ValidationService {
 
     fun validate(nickname: String, ticket: TicketDTO) {
         isTicketValid(ticket)
+        //TODO: lancia eccezione se il biglietto già è stato validato
         //if ticket is not valid an exception is thrown and the save shouldn't be performed
         ticketValidationRepository.save(
             TicketValidation(
@@ -71,6 +80,35 @@ class ValidationService {
                 ticketId = ticket.sub
             )
         )
+    }
+
+    fun validateTicket(signedJwt: String) {
+
+        lateinit var jwt: Jws<Claims>
+        try {
+            jwt = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(signedJwt)
+        } catch (e: Exception) {
+            // Expiration date is checked automatically by the JWT library:
+            // https://github.com/jwtk/jjwt#standard-claims
+            // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4
+            throw ValidationException("Invalid jwt\n\t ${e.message}")
+        }
+
+        jwt.body[TicketFields.EXPIRATION] as? Int ?: throw ValidationException("no expiration is found")
+
+        val validityZone = jwt.body[TicketFields.VALID_ZONES] as? String
+            ?: throw ValidationException("validity zone not found")
+
+        if (clientZone.isEmpty() || !validityZone.contains(clientZone.toRegex()))
+            throw ValidationException("client zone $clientZone not present in valid zones of the ticket")
+
+        // Comment the next 3 lines to obtain the server version used for the noSubject benchmarks
+        val ticketId = jwt.body[TicketFields.SUBJECT] as? Int ?: throw ValidationException("no ticket id is found")
+        //TODO: save and update the used tikcets and check it based on ticket type
+//        if(!repository.addTicket(ticketId))
+//            throw ValidationException("ticket $ticketId already used")
+
+        println("\t ticket ${jwt.body[TicketFields.SUBJECT]} is valid")
     }
 
     private fun isTicketValid(ticket: TicketDTO) {
