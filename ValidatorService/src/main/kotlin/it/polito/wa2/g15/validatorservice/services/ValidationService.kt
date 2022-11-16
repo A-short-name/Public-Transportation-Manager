@@ -12,11 +12,8 @@ import it.polito.wa2.g15.validatorservice.exceptions.ValidationException
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.io.File
 import java.time.*
-import java.util.*
 import javax.crypto.SecretKey
 
 @Service
@@ -27,13 +24,11 @@ class ValidationService {
 
     private val logger = KotlinLogging.logger {}
 
-    @Value("\${security.path.privateKey}")
-    lateinit var keyPath: String
+    lateinit var key: SecretKey
 
-    val key: SecretKey by lazy {
-        val secretString = File(keyPath).bufferedReader().use { it.readLine() }
-        val decodedKey = Decoders.BASE64.decode(secretString)
-        Keys.hmacShaKeyFor(decodedKey)
+    fun setKey(validateJwtStringKey: String) {
+        val decodedKey = Decoders.BASE64.decode(validateJwtStringKey)
+        key = Keys.hmacShaKeyFor(decodedKey)
     }
 
     /**
@@ -75,8 +70,10 @@ class ValidationService {
             throw ValidationException("Invalid jwt\n\t ${e.message}")
         }
 
-        val ticketValidFromTs =
-            jwt.body[TicketFields.VALID_FROM] as? Long ?: throw ValidationException("no ticket type is found")
+        val ticketValidFromTs = (jwt.body[TicketFields.VALID_FROM] as Int).toLong()
+        //jwt.body.get(TicketFields.VALID_FROM, Long.javaClass)
+//jwt restituisce un intero
+//            jwt.body[TicketFields.VALID_FROM] as? Long ?: throw ValidationException("no valid from is found")
 
         val ticketType = jwt.body[TicketFields.TYPE] as? String ?: throw ValidationException("no ticket type is found")
 
@@ -94,9 +91,9 @@ class ValidationService {
         if (clientZone.isEmpty() || !ticketValidZone.contains(clientZone.toRegex()))
             throw ValidationException("client zone $clientZone not present in valid zones of the ticket")
 
-        val ticketId = jwt.body[TicketFields.SUBJECT] as? Int ?: throw ValidationException("no ticket id is found")
+//        val ticketId = jwt.body[TicketFields.SUBJECT] as? Int ?: throw ValidationException("no ticket id is found")
 
-        jwt.body[TicketFields.EXPIRATION] as? Date ?: throw ValidationException("no expiration is found")
+        val ticketId = jwt.body.subject.toIntOrNull() ?: throw ValidationException("not valid subject")
 
         if (ticketValidFrom.isAfter(ZonedDateTime.now()))
             throw ValidationException("ticket is not yet valid, it will be valid from " + ticketValidFrom)
