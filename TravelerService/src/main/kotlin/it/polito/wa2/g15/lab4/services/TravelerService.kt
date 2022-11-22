@@ -1,9 +1,7 @@
 package it.polito.wa2.g15.lab4.services
 
-import it.polito.wa2.g15.lab4.dtos.TicketDTO
-import it.polito.wa2.g15.lab4.dtos.TicketFromCatalogDTO
-import it.polito.wa2.g15.lab4.dtos.UserProfileAdminViewDTO
-import it.polito.wa2.g15.lab4.dtos.UserProfileDTO
+import it.polito.wa2.g15.lab4.dtos.*
+import it.polito.wa2.g15.lab4.entities.TicketPurchased
 import org.springframework.security.access.prepost.PreAuthorize
 
 interface TravelerService {
@@ -18,4 +16,6 @@ interface TravelerService {
     fun getUserById(userID: Long) : UserProfileAdminViewDTO
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getPurchasedTicketsByUserId(userID: Long) : Set<TicketDTO>
+    @PreAuthorize("hasAuthority('ADMIN')")
+    fun getStats(filter: FilterDto): List<TicketPurchased>
 }

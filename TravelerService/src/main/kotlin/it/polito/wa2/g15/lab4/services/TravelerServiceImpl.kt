@@ -11,6 +11,7 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.sql.Timestamp
 import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.ZonedDateTime
@@ -192,5 +193,33 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
         val ticketPurchased = user.get().ticketPurchased
 
         return ticketPurchased.map{ it.toDTO() }.toSet()
+    }
+
+    /**
+     * returns statistics about purchases
+     *
+     * @param filter the filters are applied only if the field of the filter object aren't null,
+     * otherwise that specific filter will be ignored
+     */
+    override fun getStats(filter: FilterDto): List<TicketPurchased> {
+        if (!filter.nickname.isNullOrBlank())
+            return if (filter.timeEnd != null && filter.timeStart != null)
+                ticketPurchasedRepository.findTicketPurchasedByUserAndPurchaseTimeIsBetween(
+                    user = filter.nickname,
+                    timeStart = Timestamp.valueOf(filter.timeStart),
+                    timeEnd = Timestamp.valueOf(filter.timeEnd)
+                // It uses local time zone for conversion
+                )
+            else
+                ticketPurchasedRepository.findTicketPurchasedByUser(
+                    filter.nickname
+                )
+        else
+            return if (filter.timeEnd != null && filter.timeStart != null)
+                ticketPurchasedRepository.findTicketPurchasedByPurchaseTimeIsBetween(
+                    timeEnd = Timestamp.valueOf(filter.timeEnd), timeStart = Timestamp.valueOf(filter.timeStart)
+                )
+            else
+                ticketPurchasedRepository.findAll().toList()
     }
 }
