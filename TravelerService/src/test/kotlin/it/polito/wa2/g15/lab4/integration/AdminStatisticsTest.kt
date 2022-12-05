@@ -126,7 +126,6 @@ class AdminStatisticsTest {
 
     @BeforeEach
     fun initDb() {
-
         if (userRepo.count() == 0L) {
             c3poUser.addTicketPurchased(t1Expired)
             userRepo.save(r2d2User)
@@ -141,6 +140,38 @@ class AdminStatisticsTest {
     fun tearDownDb() {
         ticketPurchasedRepository.deleteAll()
         userRepo.deleteAll()
+    }
+
+    @Test
+    fun `find stats for all purchased tickets`() {
+        val res = ticketPurchasedRepository.findAll()
+        val noFilter = FilterDto(
+            timeStart = null,
+            timeEnd = null,
+            nickname = null
+        )
+
+        val validAdminToken = generateJwtToken("BigBoss",setOf("ADMIN"))
+
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
+
+        val request = HttpEntity(noFilter,requestHeader)
+        //val request = HttpEntity(noFilter)
+
+        val response : ResponseEntity<StatisticDto> = restTemplate.exchange(
+            "http://localhost:$port/stats/",
+            HttpMethod.GET,
+            request
+        )
+        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "status code must be ok")
+        val actualRes = response.body!!
+
+        Assertions.assertEquals(
+            res.toList().size,
+            actualRes.purchases.size,
+            "it should return all the purchases in the db without filters"
+        )
     }
 
     @Test
@@ -183,37 +214,6 @@ class AdminStatisticsTest {
         )
         Assertions.assertEquals(HttpStatus.OK,response2.statusCode,"response status code not expected")
         Assertions.assertEquals(r2d2User.ticketPurchased.map { it.toDTO() }.toSet(), response2.body!!.purchases)
-    }
-
-    @Test
-    fun `find stats for all purchased tickets`() {
-        val res = ticketPurchasedRepository.findAll()
-        val noFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = null
-        )
-
-        val validAdminToken = generateJwtToken("BigBoss",setOf("ADMIN"))
-
-        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
-
-        val request = HttpEntity(noFilter,requestHeader)
-
-        val response : ResponseEntity<StatisticDto> = restTemplate.exchange(
-            "http://localhost:$port/stats/",
-            HttpMethod.GET,
-            request
-        )
-        val actualRes = response.body!!
-
-        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "status code must be ok")
-        Assertions.assertEquals(
-            res.toList().size,
-            actualRes.purchases.size,
-            "it should return all the purchases in the db without filters"
-        )
     }
 
     @Test

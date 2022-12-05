@@ -206,6 +206,12 @@ class StatisticsTest {
         )
         val globalTRStatsInfo2 = travelerService.getStats(dateFilterBetween2Tickets)
         Assertions.assertEquals(1,globalTRStatsInfo2.count(),"ticket purchased between t1 and t2 not found")
+        Assertions.assertTrue(
+            globalTRStatsInfo2.map { it.iat }.stream()
+                .allMatch { it.before(Date.from(timeBetweent1Andt2.toInstant(ZoneOffset.ofHours(0))))
+                        && it.after(Date.from(timeBeforet1.toInstant(ZoneOffset.ofHours(0)))) },
+            "some dates are out of range"
+        )
     }
 
     @Test
@@ -218,6 +224,12 @@ class StatisticsTest {
         )
         val globalTRStatsInfo2 = travelerService.getStats(dateFilterBetween2Tickets)
         Assertions.assertEquals(1,globalTRStatsInfo2.count(),"ticket purchased between t1 and t2 not found")
+        Assertions.assertTrue(
+            globalTRStatsInfo2.map { it.iat }.stream()
+                .allMatch { it.before(Date.from(timeBetweent1Andt2.toInstant(ZoneOffset.ofHours(0))))
+                        && it.after(Date.from(timeBeforet1.toInstant(ZoneOffset.ofHours(0)))) },
+            "some dates are out of range"
+        )
     }
 
 
