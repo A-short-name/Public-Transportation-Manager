@@ -17,5 +17,5 @@ interface TravelerService {
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getPurchasedTicketsByUserId(userID: Long) : Set<TicketDTO>
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getStats(filter: FilterDto): List<TicketPurchased>
+    fun getStats(filter: FilterDto): Set<TicketDTO>
 }

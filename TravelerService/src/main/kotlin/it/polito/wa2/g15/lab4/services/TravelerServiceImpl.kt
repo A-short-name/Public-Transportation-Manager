@@ -201,25 +201,25 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
      * @param filter the filters are applied only if the field of the filter object aren't null,
      * otherwise that specific filter will be ignored
      */
-    override fun getStats(filter: FilterDto): List<TicketPurchased> {
+    override fun getStats(filter: FilterDto): Set<TicketDTO> {
         if (!filter.nickname.isNullOrBlank())
             return if (filter.timeEnd != null && filter.timeStart != null)
-                ticketPurchasedRepository.findTicketPurchasedByUserAndPurchaseTimeIsBetween(
+                ticketPurchasedRepository.findTicketPurchasedByUserAndIatIsBetween(
                     user = filter.nickname,
                     timeStart = Timestamp.valueOf(filter.timeStart),
                     timeEnd = Timestamp.valueOf(filter.timeEnd)
                 // It uses local time zone for conversion
-                )
+                ).map{ it.toDTO() }.toSet()
             else
                 ticketPurchasedRepository.findTicketPurchasedByUser(
                     filter.nickname
-                )
+                ).map{ it.toDTO() }.toSet()
         else
             return if (filter.timeEnd != null && filter.timeStart != null)
-                ticketPurchasedRepository.findTicketPurchasedByPurchaseTimeIsBetween(
+                ticketPurchasedRepository.findTicketPurchasedByIatIsBetween(
                     timeEnd = Timestamp.valueOf(filter.timeEnd), timeStart = Timestamp.valueOf(filter.timeStart)
-                )
+                ).map{ it.toDTO() }.toSet()
             else
-                ticketPurchasedRepository.findAll().toList()
+                ticketPurchasedRepository.findAll().map{ it.toDTO() }.toSet()
     }
 }
