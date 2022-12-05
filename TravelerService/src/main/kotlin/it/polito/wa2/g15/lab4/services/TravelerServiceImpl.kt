@@ -223,7 +223,8 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
         else
             return if (filter.timeEnd != null && filter.timeStart != null)
                 ticketPurchasedRepository.findTicketPurchasedByIatIsBetween(
-                    timeEnd = Timestamp.valueOf(filter.timeEnd), timeStart = Timestamp.valueOf(filter.timeStart)
+                    timeStart = Timestamp.valueOf(filter.timeStart),
+                    timeEnd = Timestamp.valueOf(filter.timeEnd)
                 ).map{ it.toDTO() }.toSet()
             else
                 ticketPurchasedRepository.findAll().map{ it.toDTO() }.toSet()

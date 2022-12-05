@@ -14,9 +14,21 @@ interface TicketPurchasedRepository : CrudRepository<TicketPurchased, Int>{
         timeEnd: Date
     ): List<TicketPurchased>
 
+
     fun findTicketPurchasedByUserAndIatIsBetween(
         user: UserDetails,
         timeStart: Date,
+        timeEnd: Date
+    ): List<TicketPurchased>
+
+    /**
+     * For the moment the logic doesn't distinguish the absence of one single temporal constraint
+     * i.e. no repo methods findBefore/findAfter are used
+     */
+    fun findTicketPurchasedByIatIsAfter(
+        timeStart: Date
+    ): List<TicketPurchased>
+    fun findTicketPurchasedByIatIsBefore(
         timeEnd: Date
     ): List<TicketPurchased>
     /* These should work similarly
