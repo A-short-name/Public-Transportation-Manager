@@ -216,6 +216,7 @@ class Controller {
      * Decide if stats (so length of these list, or count on the db)
     * */
     @GetMapping("/stats/")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getPurchaseStats(@Valid @RequestBody filters: FilterDto): ResponseEntity<StatisticDto> {
         return try {
             val res = travelerService.getStats(filters)
