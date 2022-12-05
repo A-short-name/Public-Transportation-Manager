@@ -202,18 +202,24 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
      * otherwise that specific filter will be ignored
      */
     override fun getStats(filter: FilterDto): Set<TicketDTO> {
-        if (!filter.nickname.isNullOrBlank())
+        if (!filter.nickname.isNullOrBlank()) {
+            val user = userDetailsRepository.findByUsername(filter.nickname)
+            if (user.isEmpty) throw TravelerException("No user found.")
+
+            val userDetails = user.get()
+
             return if (filter.timeEnd != null && filter.timeStart != null)
                 ticketPurchasedRepository.findTicketPurchasedByUserAndIatIsBetween(
-                    user = filter.nickname,
+                    user = userDetails,
                     timeStart = Timestamp.valueOf(filter.timeStart),
                     timeEnd = Timestamp.valueOf(filter.timeEnd)
-                // It uses local time zone for conversion
-                ).map{ it.toDTO() }.toSet()
+                    // It uses local time zone for conversion
+                ).map { it.toDTO() }.toSet()
             else
                 ticketPurchasedRepository.findTicketPurchasedByUser(
-                    filter.nickname
-                ).map{ it.toDTO() }.toSet()
+                    userDetails
+                ).map { it.toDTO() }.toSet()
+        }
         else
             return if (filter.timeEnd != null && filter.timeStart != null)
                 ticketPurchasedRepository.findTicketPurchasedByIatIsBetween(

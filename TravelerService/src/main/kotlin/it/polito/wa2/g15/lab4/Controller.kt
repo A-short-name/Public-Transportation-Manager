@@ -215,10 +215,15 @@ class Controller {
     * Currently it returns the list of ticket, like in the validatorService.
      * Decide if stats (so length of these list, or count on the db)
     * */
-    @GetMapping("/get/stats/")
+    @GetMapping("/stats/")
     fun getPurchaseStats(@Valid @RequestBody filters: FilterDto): ResponseEntity<StatisticDto> {
-        val res = travelerService.getStats(filters)
-        return ResponseEntity<StatisticDto>(StatisticDto(purchases = res), HttpStatus.ACCEPTED)
+        return try {
+            val res = travelerService.getStats(filters)
+            ResponseEntity<StatisticDto>(StatisticDto(purchases = res), HttpStatus.ACCEPTED)
+        } catch (ex: Exception) {
+            logger.error { "\tError finding the user with the given id: ${ex.message}" }
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
     }
     /* END OF ADMIN ONLY endpoints */
     
