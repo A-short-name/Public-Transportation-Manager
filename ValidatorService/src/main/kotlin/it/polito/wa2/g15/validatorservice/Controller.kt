@@ -13,10 +13,13 @@ import it.polito.wa2.g15.validatorservice.services.ValidationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.IOException
+import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.imageio.ImageIO
 import javax.validation.Valid
 
@@ -26,11 +29,18 @@ class Controller {
     @Autowired
     lateinit var validationService: ValidationService
 
+    @GetMapping("get/stats")
+    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
+    fun getValidatorStats(
+        @RequestParam(name = "timeStart", required = false) timeStart: String?,
+        @RequestParam(name = "timeEnd", required = false) timeEnd: String?,
+        @RequestParam(name = "nickname", required = false) nickname: String?
+    ): ResponseEntity<StatisticDto> {
+        val timeStartLocalDateTime = timeStart?.let { LocalDateTime.parse(it) }
+        val timeEndLocalDateTime = timeEnd?.let { LocalDateTime.parse(it) }
 
+        val res = validationService.getStats(timeStartLocalDateTime, timeEndLocalDateTime, nickname)
 
-    @GetMapping("/get/stats")
-    fun getValidatorStats(@Valid @RequestBody filters: FilterDto): ResponseEntity<StatisticDto> {
-        val res = validationService.getStats(filters)
         return ResponseEntity<StatisticDto>(StatisticDto(validations = res), HttpStatus.ACCEPTED)
     }
 

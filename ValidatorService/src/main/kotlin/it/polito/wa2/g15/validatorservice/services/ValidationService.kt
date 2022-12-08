@@ -34,25 +34,27 @@ class ValidationService {
     /**
      * returns statistics of this validator
      *
-     * @param filter the filters are applied only if the field of the filter object aren't null,
+     * @param timeStart start of the time interval
+     * @param timeEnd end of the time interval
+     * @param nickname nickname of the traveler
      * otherwise that specific filter will be ignored
      */
-    fun getStats(filter: FilterDto): List<TicketValidation> {
-        if (!filter.nickname.isNullOrBlank())
-            return if (filter.timeEnd != null && filter.timeStart != null)
+    fun getStats(timeStart: LocalDateTime?, timeEnd: LocalDateTime?, nickname: String?): List<TicketValidation> {
+        if (!nickname.isNullOrBlank())
+            return if (timeEnd != null && timeStart != null)
                 ticketValidationRepository.findTicketValidationsByUsernameAndValidationTimeIsBetween(
-                    username = filter.nickname,
-                    timeStart = filter.timeStart,
-                    timeEnd = filter.timeEnd
+                    username = nickname,
+                    timeStart = timeStart,
+                    timeEnd = timeEnd
                 )
             else
                 ticketValidationRepository.findTicketValidationsByUsername(
-                    filter.nickname
+                    nickname
                 )
         else
-            return if (filter.timeEnd != null && filter.timeStart != null)
+            return if (timeEnd != null && timeStart != null)
                 ticketValidationRepository.findTicketValidationsByValidationTimeIsBetween(
-                    timeEnd = filter.timeEnd, timeStart = filter.timeStart
+                    timeEnd = timeEnd, timeStart = timeStart
                 )
             else
                 ticketValidationRepository.findAll().toList()

@@ -1,25 +1,37 @@
 package it.polito.wa2.g15.validatorservice.integration
 
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.io.Decoders
+import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.validatorservice.MyPostgresSQLContainer
 import it.polito.wa2.g15.validatorservice.dtos.FilterDto
 import it.polito.wa2.g15.validatorservice.dtos.StatisticDto
 import it.polito.wa2.g15.validatorservice.entities.TicketValidation
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
+import it.polito.wa2.g15.validatorservice.security.WebSecurityConfig
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.boot.test.web.client.exchange
 import org.springframework.boot.test.web.client.postForEntity
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.web.csrf.CsrfTokenRepository
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.web.util.UriComponentsBuilder
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDateTime
 import java.time.Month
+import java.util.*
+import javax.crypto.SecretKey
 
 
 @Testcontainers
@@ -50,9 +62,15 @@ class TicketValidationStatisticsApiTest {
     @Autowired
     lateinit var restTemplate: TestRestTemplate
 
+    @Autowired
+    lateinit var csrfTokenRepository: CsrfTokenRepository
+
+    @Autowired
+    lateinit var securityConfig: WebSecurityConfig
+
     @BeforeEach
     fun initDb() {
-        var time = LocalDateTime.of(
+        val time = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             1,
@@ -67,7 +85,7 @@ class TicketValidationStatisticsApiTest {
             )
         )
 
-        var time2 = LocalDateTime.of(
+        val time2 = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
             20,
@@ -82,7 +100,7 @@ class TicketValidationStatisticsApiTest {
             )
         )
 
-        var time3 = LocalDateTime.of(
+        val time3 = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             30,
@@ -104,37 +122,129 @@ class TicketValidationStatisticsApiTest {
     }
 
     @Test
-    fun unauthorizedAdminTicketsAPI() {
-        var noFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = null
+    fun `try to access admin api without being logged in`() {
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
         )
-        fail("TODO: Test security access")
+        val createResponse : ResponseEntity<Unit> = restTemplate.exchange(
+            "http://localhost:$port/get/stats",
+            HttpMethod.GET,
+            createRequest
+        )
+
+        Assertions.assertEquals(HttpStatus.FORBIDDEN, createResponse.statusCode, "Wrong answer from server.")
+    }
+
+    @Test
+    fun `trying to access admin API as customer`() {
+        val token = generateJwtToken("NormalUser",setOf("CUSTOMER"))
+
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        requestHeader.add("Authorization", "Bearer $token")
+
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
+        )
+        val createResponse : ResponseEntity<Unit> = restTemplate.exchange(
+            "http://localhost:$port/get/stats",
+            HttpMethod.GET,
+            createRequest
+        )
+
+        Assertions.assertEquals(HttpStatus.FORBIDDEN, createResponse.statusCode, "Wrong answer from server.")
+    }
+
+    @Test
+    fun `successfully get statistics as admin`() {
+        val url = "http://localhost:$port/get/stats"
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+
+        requestHeader.add("Authorization", "Bearer $token")
+
+        val startTime = LocalDateTime.of(
+            2020,
+            Month.NOVEMBER.value,
+            30,
+            23,
+            59
+        )
+        val endTime = LocalDateTime.of(
+            2020,
+            Month.DECEMBER.value,
+            31,
+            23,
+            59
+        )
+        val dateUserFilter = FilterDto(
+            timeStart = startTime,
+            timeEnd = endTime,
+            nickname = "R2D2"
+        )
+
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
+        )
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("timeStart", "{timeStart}")
+            .queryParam("timeEnd", "{timeEnd}")
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "timeStart" to startTime,
+            "timeEnd" to endTime,
+            "nickname" to "R2D2"
+        )
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
+            params
+        )
+
+        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "Wrong answer from server.")
     }
 
     @Test
     fun `should find all validated tickets`() {
-        var res = repo.findAll()
-        var noFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = null
-        )
-        //TODO: use security
-//        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-//        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
+        val url = "http://localhost:$port/get/stats"
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
 
-        var request = HttpEntity(
-            noFilter
+        requestHeader.add("Authorization", "Bearer $token")
+
+        val res = repo.findAll()
+
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .encode()
+            .toUriString()
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
         )
+
+        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "Wrong answer from server.")
+
         val actualRes = response.body!!
 
-        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "status code ok")
         Assertions.assertEquals(
             res.toList().size,
             actualRes.validations.size,
@@ -146,24 +256,36 @@ class TicketValidationStatisticsApiTest {
 
     @Test
     fun `should find validated tickets of a specific user`() {
-        var userFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = "R2D2"
-        )
-        //TODO: use security
-//        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-//        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
+        val url = "http://localhost:$port/get/stats"
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
 
-        var request = HttpEntity(
-            userFilter
+        requestHeader.add("Authorization", "Bearer $token")
+
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "nickname" to "R2D2"
         )
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
+            params
+        )
+
         val actualRes = response.body!!.validations
-        Assertions.assertEquals(2, actualRes.size, "it should find ticket validations of C3PO")
+        Assertions.assertEquals(2, actualRes.size, "it should find ticket validations of R2D2")
         Assertions.assertTrue(
             actualRes.stream().map { it.username }.allMatch { it.equals("R2D2") },
             "some validations are from another user: $actualRes"
@@ -172,33 +294,56 @@ class TicketValidationStatisticsApiTest {
 
     @Test
     fun `should find validated tickets in december 2020`() {
-        var startTime = LocalDateTime.of(
+        val url = "http://localhost:$port/get/stats"
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+
+        requestHeader.add("Authorization", "Bearer $token")
+
+        val startTime = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
             30,
             23,
             59
         )
-        var endTime = LocalDateTime.of(
+        val endTime = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             31,
             23,
             59
         )
-        var dateFilter = FilterDto(
+        val dateFilter = FilterDto(
             timeStart = startTime,
             timeEnd = endTime,
             nickname = null
         )
 
-        var request = HttpEntity(
-            dateFilter
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("timeStart", "{timeStart}")
+            .queryParam("timeEnd", "{timeEnd}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "timeStart" to startTime,
+            "timeEnd" to endTime,
         )
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
+            params
+        )
+
         val actualRes = response.body!!.validations
         Assertions.assertEquals(2, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(
@@ -212,33 +357,53 @@ class TicketValidationStatisticsApiTest {
 
     @Test
     fun `should find validated tickets in december 2020 of R2D2`() {
-        var startTime = LocalDateTime.of(
+        val url = "http://localhost:$port/get/stats"
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+
+        requestHeader.add("Authorization", "Bearer $token")
+
+        val startTime = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
             30,
             23,
             59
         )
-        var endTime = LocalDateTime.of(
+        val endTime = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             31,
             23,
             59
         )
-        var dateUserFilter = FilterDto(
-            timeStart = startTime,
-            timeEnd = endTime,
-            nickname = "R2D2"
+
+        val request = HttpEntity(
+            null,
+            requestHeader
         )
 
-        var request = HttpEntity(
-            dateUserFilter
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("timeStart", "{timeStart}")
+            .queryParam("timeEnd", "{timeEnd}")
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "timeStart" to startTime,
+            "timeEnd" to endTime,
+            "nickname" to "R2D2"
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            request,
+            StatisticDto::class.java,
+            params
         )
+
         val actualRes = response.body!!.validations
         Assertions.assertEquals(1, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(
@@ -247,6 +412,26 @@ class TicketValidationStatisticsApiTest {
             },
             "some dates are out of range or user is not R2D2: $actualRes"
         )
+    }
 
+    @Value("\${security.privateKey.common}")
+    private lateinit var validateJwtStringKey: String
+
+    @Value("\${security.jwtExpirationMs}")
+    private lateinit var jwtExpirationMs: String
+    fun generateJwtToken(username: String, roles: Set<String>, expiration: Date = Date(Date().time + jwtExpirationMs.toLong())): String {
+
+        val validateJwtKey: SecretKey by lazy {
+            val decodedKey = Decoders.BASE64.decode(validateJwtStringKey)
+            Keys.hmacShaKeyFor(decodedKey)
+        }
+
+        return Jwts.builder()
+            .setSubject(username)
+            .setIssuedAt(Date())
+            .setExpiration(expiration)
+            .claim("roles", roles)
+            .signWith(validateJwtKey)
+            .compact()
     }
 }
