@@ -30,6 +30,7 @@ class Controller {
     lateinit var validationService: ValidationService
 
     @GetMapping("get/stats")
+    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
     fun getValidatorStats(
         @RequestParam(name = "timeStart", required = false) timeStart: String?,
         @RequestParam(name = "timeEnd", required = false) timeEnd: String?,
@@ -37,7 +38,9 @@ class Controller {
     ): ResponseEntity<StatisticDto> {
         val timeStartLocalDateTime = timeStart?.let { LocalDateTime.parse(it) }
         val timeEndLocalDateTime = timeEnd?.let { LocalDateTime.parse(it) }
+
         val res = validationService.getStats(timeStartLocalDateTime, timeEndLocalDateTime, nickname)
+
         return ResponseEntity<StatisticDto>(StatisticDto(validations = res), HttpStatus.ACCEPTED)
     }
 

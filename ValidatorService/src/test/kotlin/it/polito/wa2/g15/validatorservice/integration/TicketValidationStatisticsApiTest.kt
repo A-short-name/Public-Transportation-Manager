@@ -258,6 +258,9 @@ class TicketValidationStatisticsApiTest {
     fun `should find validated tickets of a specific user`() {
         val url = "http://localhost:$port/get/stats"
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+
+        requestHeader.add("Authorization", "Bearer $token")
 
         val createRequest = HttpEntity(
             null,
@@ -293,6 +296,9 @@ class TicketValidationStatisticsApiTest {
     fun `should find validated tickets in december 2020`() {
         val url = "http://localhost:$port/get/stats"
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+
+        requestHeader.add("Authorization", "Bearer $token")
 
         val startTime = LocalDateTime.of(
             2020,
@@ -322,14 +328,12 @@ class TicketValidationStatisticsApiTest {
         val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
             .queryParam("timeStart", "{timeStart}")
             .queryParam("timeEnd", "{timeEnd}")
-            .queryParam("nickname", "{nickname}")
             .encode()
             .toUriString()
 
         val params = mapOf(
             "timeStart" to startTime,
             "timeEnd" to endTime,
-            "nickname" to "R2D2"
         )
 
         val response = restTemplate.exchange(
@@ -353,6 +357,12 @@ class TicketValidationStatisticsApiTest {
 
     @Test
     fun `should find validated tickets in december 2020 of R2D2`() {
+        val url = "http://localhost:$port/get/stats"
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+
+        requestHeader.add("Authorization", "Bearer $token")
+
         val startTime = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
@@ -367,19 +377,33 @@ class TicketValidationStatisticsApiTest {
             23,
             59
         )
-        val dateUserFilter = FilterDto(
-            timeStart = startTime,
-            timeEnd = endTime,
-            nickname = "R2D2"
-        )
 
         val request = HttpEntity(
-            dateUserFilter
+            null,
+            requestHeader
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("timeStart", "{timeStart}")
+            .queryParam("timeEnd", "{timeEnd}")
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "timeStart" to startTime,
+            "timeEnd" to endTime,
+            "nickname" to "R2D2"
         )
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            request,
+            StatisticDto::class.java,
+            params
+        )
+
         val actualRes = response.body!!.validations
         Assertions.assertEquals(1, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(
