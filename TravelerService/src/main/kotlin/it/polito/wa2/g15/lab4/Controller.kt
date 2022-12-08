@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.validation.Valid
 
 @RestController
@@ -217,9 +218,16 @@ class Controller {
     * */
     @GetMapping("/stats/")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getPurchaseStats(@Valid @RequestBody filters: FilterDto): ResponseEntity<StatisticDto> {
+    fun getPurchaseStats(
+        @RequestParam(name = "timeStart", required = false) timeStart: String?,
+        @RequestParam(name = "timeEnd", required = false) timeEnd: String?,
+        @RequestParam(name = "nickname", required = false) nickname: String?
+    ): ResponseEntity<StatisticDto> {
+        val timeStartLocalDateTime = timeStart?.let { LocalDateTime.parse(it) }
+        val timeEndLocalDateTime = timeEnd?.let { LocalDateTime.parse(it) }
+
         return try {
-            val res = travelerService.getStats(filters)
+            val res = travelerService.getStats(timeStartLocalDateTime, timeEndLocalDateTime, nickname)
             ResponseEntity<StatisticDto>(StatisticDto(purchases = res), HttpStatus.ACCEPTED)
         } catch (ex: Exception) {
             logger.error { "\tError finding the user with the given id: ${ex.message}" }

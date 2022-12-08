@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.sql.Timestamp
 import java.time.DayOfWeek
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.temporal.TemporalAdjusters
@@ -198,21 +199,23 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
     /**
      * returns statistics about purchases
      *
-     * @param filter the filters are applied only if the field of the filter object aren't null,
+     * @param timeStart start of the time interval
+     * @param timeEnd end of the time interval
+     * @param nickname nickname of the traveler
      * otherwise that specific filter will be ignored
      */
-    override fun getStats(filter: FilterDto): List<TicketDTO> {
-        if (!filter.nickname.isNullOrBlank()) {
-            val user = userDetailsRepository.findByUsername(filter.nickname)
+    override fun getStats(timeStart: LocalDateTime?, timeEnd: LocalDateTime?, nickname: String?): List<TicketDTO> {
+        if (!nickname.isNullOrBlank()) {
+            val user = userDetailsRepository.findByUsername(nickname)
             if (user.isEmpty) throw TravelerException("No user found.")
 
             val userDetails = user.get()
 
-            return if (filter.timeEnd != null && filter.timeStart != null)
+            return if (timeEnd != null && timeStart != null)
                 ticketPurchasedRepository.findTicketPurchasedByUserAndIatIsBetween(
                     user = userDetails,
-                    timeStart = Timestamp.valueOf(filter.timeStart),
-                    timeEnd = Timestamp.valueOf(filter.timeEnd)
+                    timeStart = Timestamp.valueOf(timeStart),
+                    timeEnd = Timestamp.valueOf(timeEnd)
                     // It uses local time zone for conversion
                 ).map { it.toDTO() }
             else
@@ -221,10 +224,10 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
                 ).map { it.toDTO() }
         }
         else
-            return if (filter.timeEnd != null && filter.timeStart != null)
+            return if (timeEnd != null && timeStart != null)
                 ticketPurchasedRepository.findTicketPurchasedByIatIsBetween(
-                    timeStart = Timestamp.valueOf(filter.timeStart),
-                    timeEnd = Timestamp.valueOf(filter.timeEnd)
+                    timeStart = Timestamp.valueOf(timeStart),
+                    timeEnd = Timestamp.valueOf(timeEnd)
                 ).map{ it.toDTO() }
             else
                 ticketPurchasedRepository.findAll().map{ it.toDTO() }

@@ -3,6 +3,7 @@ package it.polito.wa2.g15.lab4.services
 import it.polito.wa2.g15.lab4.dtos.*
 import it.polito.wa2.g15.lab4.entities.TicketPurchased
 import org.springframework.security.access.prepost.PreAuthorize
+import java.time.LocalDateTime
 
 interface TravelerService {
     fun getUserDetails(username: String) : UserProfileDTO
@@ -17,5 +18,5 @@ interface TravelerService {
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getPurchasedTicketsByUserId(userID: Long) : Set<TicketDTO>
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun getStats(filter: FilterDto): List<TicketDTO>
+    fun getStats(timeStart: LocalDateTime?, timeEnd: LocalDateTime?, nickname: String?): List<TicketDTO>
 }
