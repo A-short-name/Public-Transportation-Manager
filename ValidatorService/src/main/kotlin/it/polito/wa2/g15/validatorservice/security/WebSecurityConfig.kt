@@ -25,6 +25,8 @@ WebSecurityConfig : WebSecurityConfigurerAdapter() {
     @Autowired
     private lateinit var jwtFilter: JWTAuthenticationFilter
 
+    @Autowired
+    private val unauthorizedHandler: AuthEntryPointJwt? = null
 
     @Bean
     fun csrfTokenRepository(): CsrfTokenRepository {
@@ -47,14 +49,20 @@ WebSecurityConfig : WebSecurityConfigurerAdapter() {
     }
 
     override fun configure(http: HttpSecurity) {
+        http.csrf()
+            .disable()
+            //.csrfTokenRepository(csrfTokenRepository())
 
-        http.csrf().csrfTokenRepository(csrfTokenRepository())
-            .and()
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .sessionManagement()
+        http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+
+        http.sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .authorizeRequests().anyRequest().authenticated()
+
+        http.authorizeRequests()
+            .antMatchers("/get/stats").hasAnyAuthority("SUPERADMIN","ADMIN")
+            .anyRequest().permitAll()
+
+        http.addFilterAt(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
     }
 
 }

@@ -31,22 +31,26 @@ class JWTAuthenticationFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
+        val jwt = parseHeader(request)
+
+        if(jwt == null) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
         try {
-            val jwt = parseHeader(request)
-            if (jwt != null && jwtUtils.validateJwt(jwt)) {
+            if (jwtUtils.validateJwt(jwt)) {
                 val userDetails = jwtUtils.getDetailsJwt(jwt)
                 val authentication = UsernamePasswordAuthenticationToken(userDetails, null, userDetails.roles)
                 authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                 SecurityContextHolder.getContext().authentication = authentication
-            } else {
-                if (jwt == null)
-                    throw Exception("Invalid token: no authorization header")
-                if (!jwtUtils.validateJwt(jwt))
-                    throw Exception("Invalid token: problem parsing jwt")
+            }else{
+                throw Exception("Invalid token: problem parsing jwt")
             }
         } catch (e: Exception) {
             logger.error("Cannot set user authentication: {}", e)
         }
+
         filterChain.doFilter(request, response)
     }
 
