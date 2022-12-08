@@ -12,6 +12,7 @@ import it.polito.wa2.g15.validatorservice.exceptions.ValidationException
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 import java.time.*
 import javax.crypto.SecretKey
@@ -39,6 +40,7 @@ class ValidationService {
      * @param nickname nickname of the traveler
      * otherwise that specific filter will be ignored
      */
+    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
     fun getStats(timeStart: LocalDateTime?, timeEnd: LocalDateTime?, nickname: String?): List<TicketValidation> {
         if (!nickname.isNullOrBlank())
             return if (timeEnd != null && timeStart != null)
