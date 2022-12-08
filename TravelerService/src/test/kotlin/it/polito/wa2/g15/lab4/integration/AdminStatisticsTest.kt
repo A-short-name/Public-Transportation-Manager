@@ -30,6 +30,7 @@ import org.springframework.security.web.csrf.CsrfTokenRepository
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.UriComponentsBuilder
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.*
@@ -144,23 +145,22 @@ class AdminStatisticsTest {
 
     @Test
     fun `find stats for all purchased tickets`() {
+        val url = "http://localhost:$port/stats/"
         val res = ticketPurchasedRepository.findAll()
-        val noFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = null
-        )
 
         val validAdminToken = generateJwtToken("BigBoss",setOf("ADMIN"))
 
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
 
-        val request = HttpEntity(noFilter,requestHeader)
-        //val request = HttpEntity(noFilter)
+        val request = HttpEntity(null,requestHeader)
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .encode()
+            .toUriString()
 
         val response : ResponseEntity<StatisticDto> = restTemplate.exchange(
-            "http://localhost:$port/stats/",
+            urlTemplate,
             HttpMethod.GET,
             request
         )
@@ -176,10 +176,11 @@ class AdminStatisticsTest {
 
     @Test
     fun `find stats for purchased tickets from userID after after adding a ticket`(){
+        val url = "http://localhost:$port/stats/"
         val r2d2nickname = r2d2User.username
         Assertions.assertNotNull(r2d2nickname)
 
-        var userFilter = FilterDto(
+        val userFilter = FilterDto(
             timeStart = null,
             timeEnd = null,
             nickname = r2d2nickname
@@ -190,15 +191,28 @@ class AdminStatisticsTest {
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validAdminToken")
 
-        val request = HttpEntity(userFilter,requestHeader)
+        val request = HttpEntity(null, requestHeader)
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "nickname" to userFilter.nickname
+        )
 
         val response : ResponseEntity<StatisticDto> = restTemplate.exchange(
-            "http://localhost:$port/stats/",
+            urlTemplate,
             HttpMethod.GET,
-            request
+            request,
+            params
         )
-        Assertions.assertEquals(HttpStatus.OK,response.statusCode,"response status code not expected")
-        Assertions.assertEquals(r2d2User.ticketPurchased.map { it.toDTO() }.toSet(), response.body)
+
+        Assertions.assertEquals(HttpStatus.ACCEPTED,response.statusCode,"response status code not expected")
+        // Assert body not null
+        val actualRes = response.body!!
+        Assertions.assertEquals(r2d2User.ticketPurchased.map { it.toDTO() }, response.body!!.purchases)
         Assertions.assertEquals(0, response.body!!.purchases.size)
 
         r2d2User.addTicketPurchased(t1Expired)
@@ -208,16 +222,19 @@ class AdminStatisticsTest {
         Assertions.assertTrue(r2d2User.ticketPurchased.count()==1)
 
         val response2 : ResponseEntity<StatisticDto> = restTemplate.exchange(
-            "http://localhost:$port/stats/",
+            urlTemplate,
             HttpMethod.GET,
-            request
+            request,
+            params
         )
-        Assertions.assertEquals(HttpStatus.OK,response2.statusCode,"response status code not expected")
-        Assertions.assertEquals(r2d2User.ticketPurchased.map { it.toDTO() }.toSet(), response2.body!!.purchases)
+        Assertions.assertEquals(HttpStatus.ACCEPTED,response2.statusCode,"response status code not expected")
+        Assertions.assertEquals(r2d2User.ticketPurchased.map { it.toDTO() }, response2.body!!.purchases)
     }
 
     @Test
     fun `find stats for userID after ticket purchasing`(){
+        val url = "http://localhost:$port/stats/"
+
         val r2d2ID = r2d2User.getId()
         Assertions.assertNotNull(r2d2ID)
         Assertions.assertTrue(r2d2ID != 0L)
@@ -254,14 +271,24 @@ class AdminStatisticsTest {
             nickname = r2d2nickname
         )
 
-        val request2 = HttpEntity(userFilter,requestHeader2)
+        val request2 = HttpEntity(null,requestHeader2)
+
+        val urlTemplate = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "nickname" to userFilter.nickname
+        )
 
         val response2 : ResponseEntity<StatisticDto> = restTemplate.exchange(
-            "http://localhost:$port/stats/",
+            urlTemplate,
             HttpMethod.GET,
-            request2
+            request2,
+            params
         )
-        Assertions.assertEquals(HttpStatus.OK,response2.statusCode,"response status code not expected")
+        Assertions.assertEquals(HttpStatus.ACCEPTED,response2.statusCode,"response status code not expected")
         Assertions.assertEquals(quantity, response2.body!!.purchases.count())
     }
 

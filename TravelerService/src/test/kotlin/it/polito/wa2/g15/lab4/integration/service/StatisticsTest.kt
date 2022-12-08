@@ -124,12 +124,6 @@ class StatisticsTest {
         t2Duration
     )
 
-    val noFilter = FilterDto(
-        timeStart = null,
-        timeEnd = null,
-        nickname = null
-    )
-
     @BeforeEach
     fun initDb() {
 
@@ -163,7 +157,7 @@ class StatisticsTest {
     @Test
     @WithMockUser(username = "JOHN", authorities = ["ADMIN"] )
     fun `admin get global stats`() {
-        val gloabalStatsInfo = travelerService.getStats(noFilter)
+        val gloabalStatsInfo = travelerService.getStats(null, null, null)
         Assertions.assertEquals(2,gloabalStatsInfo.count(),"ticket purchased info not found")
     }
 
@@ -187,8 +181,8 @@ class StatisticsTest {
             nickname = c3ponickname
         )
 
-        val singleUserC3poStatsInfo = travelerService.getStats(userR2d2Filter)
-        val singleUserR2d2StatsInfo = travelerService.getStats(userC3poFilter)
+        val singleUserC3poStatsInfo = travelerService.getStats(userR2d2Filter.timeStart, userR2d2Filter.timeEnd, userR2d2Filter.nickname)
+        val singleUserR2d2StatsInfo = travelerService.getStats(userC3poFilter.timeStart, userC3poFilter.timeEnd, userC3poFilter.nickname)
 
         Assertions.assertEquals(0,singleUserC3poStatsInfo.count(),"ticket purchased info not found")
         Assertions.assertEquals(2,singleUserR2d2StatsInfo.count(),"ticket purchased info not found")
@@ -204,7 +198,7 @@ class StatisticsTest {
             timeEnd = timeBetweent1Andt2,
             nickname = c3ponickname
         )
-        val globalTRStatsInfo2 = travelerService.getStats(dateFilterBetween2Tickets)
+        val globalTRStatsInfo2 = travelerService.getStats(dateFilterBetween2Tickets.timeStart, dateFilterBetween2Tickets.timeEnd, dateFilterBetween2Tickets.nickname)
         Assertions.assertEquals(1,globalTRStatsInfo2.count(),"ticket purchased between t1 and t2 not found")
         Assertions.assertTrue(
             globalTRStatsInfo2.map { it.iat }.stream()
@@ -222,7 +216,7 @@ class StatisticsTest {
             timeEnd = timeBetweent1Andt2,
             nickname = null
         )
-        val globalTRStatsInfo2 = travelerService.getStats(dateFilterBetween2Tickets)
+        val globalTRStatsInfo2 = travelerService.getStats(dateFilterBetween2Tickets.timeStart, dateFilterBetween2Tickets.timeEnd, dateFilterBetween2Tickets.nickname)
         Assertions.assertEquals(1,globalTRStatsInfo2.count(),"ticket purchased between t1 and t2 not found")
         Assertions.assertTrue(
             globalTRStatsInfo2.map { it.iat }.stream()
@@ -246,7 +240,7 @@ class StatisticsTest {
             timeEnd = null,
             nickname = null
         )
-        val globalTRStatsInfo1 = travelerService.getStats(dateFilterBeforeT1)
+        val globalTRStatsInfo1 = travelerService.getStats(dateFilterBeforeT1.timeStart, dateFilterBeforeT1.timeEnd, dateFilterBeforeT1.nickname)
         Assertions.assertEquals(2,globalTRStatsInfo1.count(),"ticket purchased after t1 and unlimited end not found")
 
         val dateFilterAfter2Tickets = FilterDto(
@@ -254,7 +248,7 @@ class StatisticsTest {
             timeEnd = timeAftert2,
             nickname = null
         )
-        val globalTRStatsInfo3 = travelerService.getStats(dateFilterAfter2Tickets)
+        val globalTRStatsInfo3 = travelerService.getStats(dateFilterAfter2Tickets.timeStart, dateFilterAfter2Tickets.timeEnd, dateFilterAfter2Tickets.nickname)
         Assertions.assertEquals(2,globalTRStatsInfo3.count(),"ticket purchased before t2 unlimited begin not found")
     }
 
@@ -268,7 +262,7 @@ class StatisticsTest {
             nickname = "darthMaul"
         )
         Assertions.assertThrows(TravelerException::class.java,
-            { travelerService.getStats(notExistingUserFilter) },
+            { travelerService.getStats(notExistingUserFilter.timeStart,notExistingUserFilter.timeEnd,notExistingUserFilter.nickname) },
             "user not found exception not thrown")
     }
 
@@ -276,10 +270,10 @@ class StatisticsTest {
     @WithMockUser(username = "R2D2", authorities = ["CUSTOMER"] )
     fun `customer try to get stats`() {
         Assertions.assertThrows(org.springframework.security.access.AccessDeniedException::class.java){
-            travelerService.getStats(noFilter)
+            travelerService.getStats(null, null, null)
         }
         Assertions.assertThrows(org.springframework.security.access.AccessDeniedException::class.java){
-            travelerService.getStats(noFilter)
+            travelerService.getStats(null, null, null)
         }
 
     }
