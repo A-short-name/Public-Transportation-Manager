@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.web.csrf.CsrfTokenRepository
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.web.util.UriComponentsBuilder
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDateTime
@@ -123,14 +124,9 @@ class TicketValidationStatisticsApiTest {
     @Test
     fun `try to access admin api without being logged in`() {
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-        val noFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = null
-        )
 
         val createRequest = HttpEntity(
-            noFilter,
+            null,
             requestHeader
         )
         val createResponse : ResponseEntity<Unit> = restTemplate.exchange(
@@ -149,13 +145,8 @@ class TicketValidationStatisticsApiTest {
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
         requestHeader.add("Authorization", "Bearer $token")
 
-        val noFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = null
-        )
         val createRequest = HttpEntity(
-            noFilter,
+            null,
             requestHeader
         )
         val createResponse : ResponseEntity<Unit> = restTemplate.exchange(
@@ -169,11 +160,11 @@ class TicketValidationStatisticsApiTest {
 
     @Test
     fun `successfully get statistics as admin`() {
+        val url = "http://localhost:$port/get/stats"
         val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
-
         val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+
         requestHeader.add("Authorization", "Bearer $token")
-        requestHeader.add("Content-Type", "application/json")
 
         val startTime = LocalDateTime.of(
             2020,
@@ -196,40 +187,64 @@ class TicketValidationStatisticsApiTest {
         )
 
         val createRequest = HttpEntity(
-            dateUserFilter,
+            null,
             requestHeader
         )
-        val createResponse : ResponseEntity<Unit> = restTemplate.exchange(
-            "http://localhost:$port/get/stats",
-            HttpMethod.GET,
-            createRequest
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("timeStart", "{timeStart}")
+            .queryParam("timeEnd", "{timeEnd}")
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "timeStart" to startTime,
+            "timeEnd" to endTime,
+            "nickname" to "R2D2"
         )
 
-        Assertions.assertEquals(HttpStatus.ACCEPTED, createResponse.statusCode, "Wrong answer from server.")
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
+            params
+        )
+
+        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "Wrong answer from server.")
     }
 
     @Test
     fun `should find all validated tickets`() {
-        var res = repo.findAll()
-        var noFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = null
-        )
-        //TODO: use security
-//        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-//        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
+        val url = "http://localhost:$port/get/stats"
+        val token = generateJwtToken("Boss",setOf("SUPERADMIN"))
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
 
-        var request = HttpEntity(
-            noFilter
+        requestHeader.add("Authorization", "Bearer $token")
+
+        val res = repo.findAll()
+
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .encode()
+            .toUriString()
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
         )
+
+        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "Wrong answer from server.")
+
         val actualRes = response.body!!
 
-        Assertions.assertEquals(HttpStatus.ACCEPTED, response.statusCode, "status code ok")
         Assertions.assertEquals(
             res.toList().size,
             actualRes.validations.size,
@@ -241,24 +256,33 @@ class TicketValidationStatisticsApiTest {
 
     @Test
     fun `should find validated tickets of a specific user`() {
-        var userFilter = FilterDto(
-            timeStart = null,
-            timeEnd = null,
-            nickname = "R2D2"
-        )
-        //TODO: use security
-//        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
-//        requestHeader.add(jwtSecurityHeader, "$jwtTokenPrefix $validR2D2Token")
+        val url = "http://localhost:$port/get/stats"
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
 
-        var request = HttpEntity(
-            userFilter
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "nickname" to "R2D2"
         )
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
+            params
+        )
+
         val actualRes = response.body!!.validations
-        Assertions.assertEquals(2, actualRes.size, "it should find ticket validations of C3PO")
+        Assertions.assertEquals(2, actualRes.size, "it should find ticket validations of R2D2")
         Assertions.assertTrue(
             actualRes.stream().map { it.username }.allMatch { it.equals("R2D2") },
             "some validations are from another user: $actualRes"
@@ -267,33 +291,55 @@ class TicketValidationStatisticsApiTest {
 
     @Test
     fun `should find validated tickets in december 2020`() {
-        var startTime = LocalDateTime.of(
+        val url = "http://localhost:$port/get/stats"
+        val requestHeader = securityConfig.generateCsrfHeader(csrfTokenRepository)
+
+        val startTime = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
             30,
             23,
             59
         )
-        var endTime = LocalDateTime.of(
+        val endTime = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             31,
             23,
             59
         )
-        var dateFilter = FilterDto(
+        val dateFilter = FilterDto(
             timeStart = startTime,
             timeEnd = endTime,
             nickname = null
         )
 
-        var request = HttpEntity(
-            dateFilter
+        val createRequest = HttpEntity(
+            null,
+            requestHeader
         )
-        val response = restTemplate.postForEntity<StatisticDto>(
-            "http://localhost:$port/get/stats",
-            request
+
+        val urlTemplate: String = UriComponentsBuilder.fromHttpUrl(url)
+            .queryParam("timeStart", "{timeStart}")
+            .queryParam("timeEnd", "{timeEnd}")
+            .queryParam("nickname", "{nickname}")
+            .encode()
+            .toUriString()
+
+        val params = mapOf(
+            "timeStart" to startTime,
+            "timeEnd" to endTime,
+            "nickname" to "R2D2"
         )
+
+        val response = restTemplate.exchange(
+            urlTemplate,
+            HttpMethod.GET,
+            createRequest,
+            StatisticDto::class.java,
+            params
+        )
+
         val actualRes = response.body!!.validations
         Assertions.assertEquals(2, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(

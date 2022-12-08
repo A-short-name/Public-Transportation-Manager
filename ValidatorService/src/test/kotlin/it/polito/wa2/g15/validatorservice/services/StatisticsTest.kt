@@ -107,7 +107,7 @@ class TicketValidationServiceStatisticsTest {
         )
         Assertions.assertEquals(
             res.toList().size,
-            service.getStats(noFilter).size,
+            service.getStats(noFilter.timeStart, noFilter.timeEnd, noFilter.nickname).size,
             "it should return all the validations in the db without filters"
         )
 
@@ -134,7 +134,7 @@ class TicketValidationServiceStatisticsTest {
             timeEnd = endTime,
             nickname = null
         )
-        var actualRes = service.getStats(dateFilter)
+        var actualRes = service.getStats(dateFilter.timeStart, dateFilter.timeEnd, dateFilter.nickname)
         Assertions.assertEquals(2, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(
             actualRes.stream().map { it.validationTime }.allMatch { it.isBefore(endTime) && it.isAfter(startTime) },
@@ -149,7 +149,7 @@ class TicketValidationServiceStatisticsTest {
             timeEnd = null,
             nickname = "R2D2"
         )
-        var actualRes = service.getStats(userFilter)
+        var actualRes = service.getStats(userFilter.timeStart, userFilter.timeEnd, userFilter.nickname)
         Assertions.assertEquals(2, actualRes.size, "it should find ticket validations of C3PO")
         Assertions.assertTrue(
             actualRes.stream().map { it.username }.allMatch { it.equals("R2D2") },
@@ -178,7 +178,7 @@ class TicketValidationServiceStatisticsTest {
             timeEnd = endTime,
             nickname = "R2D2"
         )
-        var actualRes = service.getStats(dateUserFilter)
+        var actualRes = service.getStats(dateUserFilter.timeStart, dateUserFilter.timeEnd, dateUserFilter.nickname)
         Assertions.assertEquals(1, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(
             actualRes.stream().allMatch {
