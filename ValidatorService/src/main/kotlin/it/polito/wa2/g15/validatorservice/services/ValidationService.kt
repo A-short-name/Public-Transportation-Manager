@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jws
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import it.polito.wa2.g15.validatorservice.dtos.FilterDto
+import io.jsonwebtoken.security.WeakKeyException
 import it.polito.wa2.g15.validatorservice.entities.TicketFields
 import it.polito.wa2.g15.validatorservice.entities.TicketValidation
 import it.polito.wa2.g15.validatorservice.exceptions.ValidationException
@@ -14,6 +14,7 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import java.time.*
 import javax.crypto.SecretKey
 
@@ -23,13 +24,40 @@ class ValidationService {
     @Autowired
     lateinit var ticketValidationRepository: TicketValidationRepository
 
+    @Autowired
+    lateinit var embeddedSystemRestClientService: EmbeddedSystemRestClientService
+
     private val logger = KotlinLogging.logger {}
 
     lateinit var key: SecretKey
+    var isValidationKeyValid = false
+
+
+    fun systemConfig() {
+        // TODO: Contact Traveler Service's API (utilizza il token settato dalla perform login)
+        // Contatta il TravelerService con il ruolo di embedded system e chiede il segreto per
+        // validare i biglietti ad una nuova api /secret/get
+        var key = ""
+        try {
+            key = embeddedSystemRestClientService.getValidationKey()
+            logger.info("secret received: $key")
+        } catch (e: RestClientException) {
+            logger.info("Validation is inactive because it can not retrieve the key used to validate tickets")
+            logger.error("can not connect to other services: ${e.message}")
+        } finally {
+            setKey(key)
+        }
+    }
 
     fun setKey(validateJwtStringKey: String) {
         val decodedKey = Decoders.BASE64.decode(validateJwtStringKey)
-        key = Keys.hmacShaKeyFor(decodedKey)
+        try {
+            key = Keys.hmacShaKeyFor(decodedKey)
+            isValidationKeyValid = true
+        } catch (e: WeakKeyException) {
+            logger.error("Validation Key error: ${e.message}")
+            isValidationKeyValid = false
+        }
     }
 
     /**
@@ -63,7 +91,11 @@ class ValidationService {
     }
 
     fun validateTicket(signedJwt: String, clientZone: String) {
-
+        if (!isValidationKeyValid) {
+            systemConfig()
+            if (!isValidationKeyValid)
+                throw ValidationException("this service is not ready for validation because validation key is not valid")
+        }
         lateinit var jwt: Jws<Claims>
         try {
             jwt = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(signedJwt)
