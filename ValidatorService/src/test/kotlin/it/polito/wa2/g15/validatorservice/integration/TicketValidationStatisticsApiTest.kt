@@ -4,19 +4,21 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import it.polito.wa2.g15.validatorservice.MyPostgresSQLContainer
-import it.polito.wa2.g15.validatorservice.dtos.FilterDto
 import it.polito.wa2.g15.validatorservice.dtos.StatisticDto
 import it.polito.wa2.g15.validatorservice.entities.TicketValidation
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
 import it.polito.wa2.g15.validatorservice.security.WebSecurityConfig
+import it.polito.wa2.g15.validatorservice.services.EmbeddedSystemRestClientService
+import it.polito.wa2.g15.validatorservice.services.ValidationService
 import org.junit.jupiter.api.*
+import org.mockito.Mock
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.client.exchange
-import org.springframework.boot.test.web.client.postForEntity
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
@@ -53,6 +55,7 @@ class TicketValidationStatisticsApiTest {
         }
     }
 
+
     @Autowired
     lateinit var repo: TicketValidationRepository
 
@@ -68,8 +71,19 @@ class TicketValidationStatisticsApiTest {
     @Autowired
     lateinit var securityConfig: WebSecurityConfig
 
+    @Mock
+    lateinit var mockedRestClientSvc: EmbeddedSystemRestClientService
+
+    @Autowired
+    lateinit var validationService: ValidationService
+
+
     @BeforeEach
     fun initDb() {
+
+        Mockito.`when`(mockedRestClientSvc.getValidationKey())
+            .thenReturn("ueCFt3yXHg+6vkRYd4k0aA5q0FV4aPhEMok/2s+JJZI=")
+        validationService.embeddedSystemRestClientService = mockedRestClientSvc
         val time = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
@@ -179,11 +193,6 @@ class TicketValidationStatisticsApiTest {
             31,
             23,
             59
-        )
-        val dateUserFilter = FilterDto(
-            timeStart = startTime,
-            timeEnd = endTime,
-            nickname = "R2D2"
         )
 
         val createRequest = HttpEntity(
@@ -313,11 +322,6 @@ class TicketValidationStatisticsApiTest {
             31,
             23,
             59
-        )
-        val dateFilter = FilterDto(
-            timeStart = startTime,
-            timeEnd = endTime,
-            nickname = null
         )
 
         val createRequest = HttpEntity(
