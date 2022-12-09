@@ -35,7 +35,9 @@ Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
 ###
 
 POST http://localhost:8080/user/login
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
 Content-Type: application/json
+Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
 
 {
   "nickname": "superadmin",
