@@ -30,7 +30,14 @@ class Controller {
     private lateinit var travelerService: TravelerService
     
     private val logger = KotlinLogging.logger {}
-    
+
+
+    @GetMapping("/validation/secret")
+    @PreAuthorize("hasAuthority('EMBEDDED')")
+    fun getValidationSecret(): ResponseEntity<String>{
+        return ResponseEntity<String>(travelerService.getJwtTravelerPrivateKey(),HttpStatus.OK)
+    }
+
     /**
      * Returns a JSON representation of the current user’s profile
      * (name, address, date_of_birth, telephone_number) as stored in the service DB.

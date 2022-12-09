@@ -18,4 +18,7 @@ interface TravelerService {
     fun getUserById(userID: Long) : UserProfileAdminViewDTO
     @PreAuthorize("hasAuthority('ADMIN')")
     fun getPurchasedTicketsByUserId(userID: Long) : Set<TicketDTO>
+    @PreAuthorize("hasAuthority('EMBEDDED')")
+    fun getJwtTravelerPrivateKey(): String
+
 }

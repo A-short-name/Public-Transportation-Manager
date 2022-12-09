@@ -193,4 +193,9 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
 
         return ticketPurchased.map{ it.toDTO() }.toSet()
     }
+
+    override fun getJwtTravelerPrivateKey(): String {
+        return jwtUtils.generateJwtStringKey
+    }
+
 }
