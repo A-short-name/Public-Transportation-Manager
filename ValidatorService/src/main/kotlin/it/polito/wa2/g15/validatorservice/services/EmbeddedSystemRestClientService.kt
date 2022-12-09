@@ -54,26 +54,20 @@ class EmbeddedSystemRestClientService {
 
 
     fun performLogin() {
-        var loginCounter = 0
         var response: ResponseEntity<UserLoginResponseDTO>
-        do {
-            val restTemplate = RestTemplate()
-            val headerBySecConfig = securityConfig.generateCsrfHeader(csrfTokenRepository)
-            headerBySecConfig.contentType = MediaType.APPLICATION_JSON
 
-            val request2 = HttpEntity(
-                UserLoginRequestDTO(nickname = validatorUserName, password = validatorPassword),
-                headerBySecConfig
-            )
+        val restTemplate = RestTemplate()
+        val headerBySecConfig = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        headerBySecConfig.contentType = MediaType.APPLICATION_JSON
 
-            response = restTemplate.postForEntity(
-                loginUri, request2
-            )
+        val request2 = HttpEntity(
+            UserLoginRequestDTO(nickname = validatorUserName, password = validatorPassword),
+            headerBySecConfig
+        )
 
-            loginCounter++
-            Thread.sleep(1_000L * loginCounter)
-        } while (response.statusCode == HttpStatus.NOT_FOUND && loginCounter < 20)
-
+        response = restTemplate.postForEntity(
+            loginUri, request2
+        )
 
         when (response.statusCode) {
             HttpStatus.OK -> loginToken = response.body!!.token
