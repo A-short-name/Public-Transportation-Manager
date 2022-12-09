@@ -34,9 +34,6 @@ class ValidationService {
 
 
     fun systemConfig() {
-        // TODO: Contact Traveler Service's API (utilizza il token settato dalla perform login)
-        // Contatta il TravelerService con il ruolo di embedded system e chiede il segreto per
-        // validare i biglietti ad una nuova api /secret/get
         var key = ""
         try {
             key = embeddedSystemRestClientService.getValidationKey()

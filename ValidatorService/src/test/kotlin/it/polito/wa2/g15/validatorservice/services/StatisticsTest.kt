@@ -8,9 +8,12 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mock
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.junit.jupiter.Container
@@ -44,9 +47,15 @@ class TicketValidationServiceStatisticsTest {
     @Autowired
     lateinit var service: ValidationService
 
+    @Mock
+    lateinit var mockedRestClientSvc: EmbeddedSystemRestClientService
+
     @BeforeEach
     fun initDb() {
-        var time = LocalDateTime.of(
+        Mockito.`when`(mockedRestClientSvc.getValidationKey())
+            .thenReturn("")
+        service.embeddedSystemRestClientService = mockedRestClientSvc
+        val time = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             1,
@@ -61,7 +70,7 @@ class TicketValidationServiceStatisticsTest {
             )
         )
 
-        var time2 = LocalDateTime.of(
+        val time2 = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
             20,
@@ -76,7 +85,7 @@ class TicketValidationServiceStatisticsTest {
             )
         )
 
-        var time3 = LocalDateTime.of(
+        val time3 = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             30,
@@ -97,10 +106,11 @@ class TicketValidationServiceStatisticsTest {
         repo.deleteAll()
     }
 
+    @WithMockUser(authorities = ["ADMIN"])
     @Test
     fun `should find all validated tickets`() {
-        var res = repo.findAll()
-        var noFilter = FilterDto(
+        val res = repo.findAll()
+        val noFilter = FilterDto(
             timeStart = null,
             timeEnd = null,
             nickname = null
@@ -113,28 +123,45 @@ class TicketValidationServiceStatisticsTest {
 
     }
 
+    @WithMockUser(authorities = ["CUSTOMER"])
+    @Test
+    fun `customers should not be able to access statistics`() {
+        val noFilter = FilterDto(
+            timeStart = null,
+            timeEnd = null,
+            nickname = null
+        )
+        Assertions.assertThrows(
+            org.springframework.security.access.AccessDeniedException::class.java,
+            { service.getStats(noFilter.timeStart, noFilter.timeEnd, noFilter.nickname) },
+            "should throw access denied exception because this is not an admin"
+        )
+    }
+
+    @WithMockUser(authorities = ["ADMIN"])
     @Test
     fun `should find validated tickets in december 2020`() {
-        var startTime = LocalDateTime.of(
+        val startTime = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
             30,
             23,
             59
         )
-        var endTime = LocalDateTime.of(
+        val endTime = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             31,
             23,
             59
         )
-        var dateFilter = FilterDto(
+        val dateFilter = FilterDto(
             timeStart = startTime,
             timeEnd = endTime,
             nickname = null
         )
-        var actualRes = service.getStats(dateFilter.timeStart, dateFilter.timeEnd, dateFilter.nickname)
+
+        val actualRes = service.getStats(dateFilter.timeStart, dateFilter.timeEnd, dateFilter.nickname)
         Assertions.assertEquals(2, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(
             actualRes.stream().map { it.validationTime }.allMatch { it.isBefore(endTime) && it.isAfter(startTime) },
@@ -142,14 +169,15 @@ class TicketValidationServiceStatisticsTest {
         )
     }
 
+    @WithMockUser(authorities = ["ADMIN"])
     @Test
     fun `should find validated tickets of a specific user`() {
-        var userFilter = FilterDto(
+        val userFilter = FilterDto(
             timeStart = null,
             timeEnd = null,
             nickname = "R2D2"
         )
-        var actualRes = service.getStats(userFilter.timeStart, userFilter.timeEnd, userFilter.nickname)
+        val actualRes = service.getStats(userFilter.timeStart, userFilter.timeEnd, userFilter.nickname)
         Assertions.assertEquals(2, actualRes.size, "it should find ticket validations of C3PO")
         Assertions.assertTrue(
             actualRes.stream().map { it.username }.allMatch { it.equals("R2D2") },
@@ -157,28 +185,29 @@ class TicketValidationServiceStatisticsTest {
         )
     }
 
+    @WithMockUser(authorities = ["ADMIN"])
     @Test
     fun `should find validated tickets in december 2020 of R2D2`() {
-        var startTime = LocalDateTime.of(
+        val startTime = LocalDateTime.of(
             2020,
             Month.NOVEMBER.value,
             30,
             23,
             59
         )
-        var endTime = LocalDateTime.of(
+        val endTime = LocalDateTime.of(
             2020,
             Month.DECEMBER.value,
             31,
             23,
             59
         )
-        var dateUserFilter = FilterDto(
+        val dateUserFilter = FilterDto(
             timeStart = startTime,
             timeEnd = endTime,
             nickname = "R2D2"
         )
-        var actualRes = service.getStats(dateUserFilter.timeStart, dateUserFilter.timeEnd, dateUserFilter.nickname)
+        val actualRes = service.getStats(dateUserFilter.timeStart, dateUserFilter.timeEnd, dateUserFilter.nickname)
         Assertions.assertEquals(1, actualRes.size, "it should find validations in december")
         Assertions.assertTrue(
             actualRes.stream().allMatch {

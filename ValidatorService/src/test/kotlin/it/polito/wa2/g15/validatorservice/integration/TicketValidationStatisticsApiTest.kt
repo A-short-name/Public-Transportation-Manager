@@ -77,12 +77,11 @@ class TicketValidationStatisticsApiTest {
     @Autowired
     lateinit var validationService: ValidationService
 
-
     @BeforeEach
     fun initDb() {
 
         Mockito.`when`(mockedRestClientSvc.getValidationKey())
-            .thenReturn("ueCFt3yXHg+6vkRYd4k0aA5q0FV4aPhEMok/2s+JJZI=")
+            .thenReturn(validateJwtStringKey)
         validationService.embeddedSystemRestClientService = mockedRestClientSvc
         val time = LocalDateTime.of(
             2020,

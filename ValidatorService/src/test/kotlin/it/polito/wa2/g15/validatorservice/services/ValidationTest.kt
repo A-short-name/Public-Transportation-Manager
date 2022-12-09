@@ -8,6 +8,8 @@ import it.polito.wa2.g15.validatorservice.entities.TicketFields
 import it.polito.wa2.g15.validatorservice.exceptions.ValidationException
 import it.polito.wa2.g15.validatorservice.repositories.TicketValidationRepository
 import org.junit.jupiter.api.*
+import org.mockito.Mock
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
@@ -51,9 +53,20 @@ class ValidationTest {
     @Value("\${security.privateKey.traveler}")
     private lateinit var validateJwtStringKey: String
 
+    @Mock
+    lateinit var mockedRestClientSvc: EmbeddedSystemRestClientService
+
+    @Autowired
+    lateinit var validationService: ValidationService
+
+
     @BeforeEach
     fun initDb() {
-        service.setKey(validateJwtStringKey)
+
+
+        Mockito.`when`(mockedRestClientSvc.getValidationKey())
+            .thenReturn(validateJwtStringKey)
+        validationService.embeddedSystemRestClientService = mockedRestClientSvc
     }
 
     @AfterEach
