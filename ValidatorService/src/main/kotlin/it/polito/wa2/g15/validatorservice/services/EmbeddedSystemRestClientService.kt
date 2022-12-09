@@ -7,13 +7,11 @@ import it.polito.wa2.g15.validatorservice.security.WebSecurityConfig
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import org.springframework.security.web.csrf.CsrfTokenRepository
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.exchange
 import org.springframework.web.client.postForEntity
 
 @Service
@@ -39,6 +37,8 @@ class EmbeddedSystemRestClientService {
     //TODO: manage the uri by spring cloud
     val loginUri: String = "http://localhost:8080/user/login"
 
+    val travelerServiceUri: String = "http://localhost:8081/validation/secret"
+
     fun getValidationKey(): String {
         logger.info("Contacting Login Service to perform authentication...")
         performLogin()
@@ -46,15 +46,36 @@ class EmbeddedSystemRestClientService {
     }
 
     private fun askValidationKeyToTravelerService(): String {
-        // TODO: Contact Traveler Service's API (utilizza il token settato dalla perform login)
-        // Contatta il TravelerService con il ruolo di embedded system e chiede il segreto per
-        // validare i biglietti ad una nuova api /secret/get
-        TODO("Not yet implemented")
+        val restTemplate = RestTemplate()
+        val headerBySecConfig = securityConfig.generateCsrfHeader(csrfTokenRepository)
+        headerBySecConfig.contentType = MediaType.APPLICATION_JSON
+        headerBySecConfig.setBearerAuth(loginToken)
+        val request2 = HttpEntity(
+            "",
+            headerBySecConfig
+        )
+
+        val response: ResponseEntity<String> = restTemplate.exchange(
+            travelerServiceUri,
+            HttpMethod.GET,
+            request2
+        )
+        if (response.statusCode != HttpStatus.OK)
+            throw ValidatorLoginException(
+                "can not retrieve validation key from traveler service at: $loginUri" +
+                        "\ntraveler service response: $response"
+            )
+        if (response.body == null)
+            throw ValidatorLoginException(
+                "can not retrieve validation key from traveler service at: $loginUri" +
+                        "\nbecause the key received is null"
+            )
+
+        return response.body!!
     }
 
 
     fun performLogin() {
-        var response: ResponseEntity<UserLoginResponseDTO>
 
         val restTemplate = RestTemplate()
         val headerBySecConfig = securityConfig.generateCsrfHeader(csrfTokenRepository)
@@ -65,7 +86,7 @@ class EmbeddedSystemRestClientService {
             headerBySecConfig
         )
 
-        response = restTemplate.postForEntity(
+        val response: ResponseEntity<UserLoginResponseDTO> = restTemplate.postForEntity(
             loginUri, request2
         )
 
