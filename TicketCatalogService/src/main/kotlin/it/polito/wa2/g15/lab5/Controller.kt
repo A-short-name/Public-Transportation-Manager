@@ -136,6 +136,26 @@ class Controller {
         return res
         
     }
+    /**
+     * Admin users can delete from catalog tickets to purchase.
+     */
+    @PostMapping("admin/tickets/delete/{ticket-id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    suspend fun removeTicketFromCatalog(
+        @PathVariable("ticket-id") ticketId: Long,
+        response: ServerHttpResponse
+    ): Boolean {
+
+        val res = try {
+            response.statusCode = HttpStatus.ACCEPTED
+            ticketCatalogService.removeTicketType(ticketId)
+        } catch (e: InvalidTicketRestrictionException) {
+            response.statusCode = HttpStatus.BAD_REQUEST
+            false
+        }
+        return res
+
+    }
     
     /**
      * This endpoint retrieves a list of all orders made by all users
