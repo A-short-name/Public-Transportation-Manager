@@ -40,8 +40,11 @@ class EmbeddedSystemRestClientService {
     val travelerServiceUri: String = "http://localhost:8081/validation/secret"
 
     fun getValidationKey(): String {
-        logger.info("Contacting Login Service to perform authentication...")
-        performLogin()
+        if(loginToken==""){
+            logger.info("Contacting Login Service to perform authentication...")
+            performLogin()
+        }
+        logger.info("Contacting Traveler Service to obtain validation key...")
         return askValidationKeyToTravelerService()
     }
 

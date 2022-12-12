@@ -56,9 +56,6 @@ class ValidationTest {
     @Mock
     lateinit var mockedRestClientSvc: EmbeddedSystemRestClientService
 
-    @Autowired
-    lateinit var validationService: ValidationService
-
 
     @BeforeEach
     fun initDb() {
@@ -66,7 +63,7 @@ class ValidationTest {
 
         Mockito.`when`(mockedRestClientSvc.getValidationKey())
             .thenReturn(validateJwtStringKey)
-        validationService.embeddedSystemRestClientService = mockedRestClientSvc
+        service.embeddedSystemRestClientService = mockedRestClientSvc
     }
 
     @AfterEach
