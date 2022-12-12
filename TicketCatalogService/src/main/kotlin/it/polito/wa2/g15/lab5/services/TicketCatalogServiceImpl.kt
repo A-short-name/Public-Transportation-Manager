@@ -97,6 +97,32 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         return ticketItem.id ?: throw InvalidTicketOrderException("order id not saved correctly in the db")
     }
 
+    override suspend fun removeTicketType(ticketId: Long): Boolean {
+        /* Retrieve the old ticket item */
+        val ticketToDelete : TicketItem?
+        try {
+            ticketToDelete = if(isCacheEnabled())
+                ticketItemsCache.find { it.id == ticketId}
+            else
+                ticketItemRepository.findById(ticketId)
+        }catch (e: Exception) {
+            throw Exception("Failed deleting ticketItem: ${e.message}")
+        }
+        if (ticketToDelete == null)
+            throw Exception("Failed deleting ticketItem: no ticket with such id")
+        /* Mark and update the old item type as unavailable to be generated */
+        if(isCacheEnabled()) {
+            logger.info { "Updating cache..." }
+            //Could be useful remove the old one?
+            //To remove after changing 'available' field, I should need a copy of the original item
+            ticketItemsCache.remove(ticketToDelete)
+        }
+        ticketToDelete.available = false
+        ticketItemRepository.save(ticketToDelete)
+        //It's not necessary that this method return something... the controller use the exception as false result
+        return true
+    }
+
     override suspend fun modifyTicketType(ticketId: Long, newTicketItemDTO: NewTicketItemDTO): Long {
         /* Retrieve the old ticket item */
         val ticketToModify : TicketItem?
@@ -113,13 +139,14 @@ class TicketCatalogServiceImpl : TicketCatalogService {
             throw Exception("Failed modifying ticketItem: no ticket with such id")
         /* Create the new ticket item with the provided details */
         val newId = addNewTicketType(newTicketItemDTO)
+        //The addNewTicket add also to the cache
         /* Mark and update the old item type as unavailable to be generated */
-        ticketToModify.available = false
-        ticketItemRepository.save(ticketToModify)
         if(isCacheEnabled()) {
             logger.info { "Updating cache..." }
-            ticketItemsCache.add(ticketToModify)
+            ticketItemsCache.remove(ticketToModify)
         }
+        ticketToModify.available = false
+        ticketItemRepository.save(ticketToModify)   //This update the old entity
         return newId
     }
 
