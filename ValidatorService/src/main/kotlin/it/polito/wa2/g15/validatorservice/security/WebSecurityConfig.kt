@@ -36,7 +36,6 @@ WebSecurityConfig : WebSecurityConfigurerAdapter() {
         return CookieCsrfTokenRepository.withHttpOnlyFalse()
     }
 
-    //Used in test
     fun generateCsrfHeader(csrfTokenRepository: CsrfTokenRepository): HttpHeaders {
 
         val headers = HttpHeaders()

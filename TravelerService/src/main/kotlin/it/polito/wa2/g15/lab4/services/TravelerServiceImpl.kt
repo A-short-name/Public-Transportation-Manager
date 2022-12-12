@@ -232,4 +232,9 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
             else
                 ticketPurchasedRepository.findAll().map{ it.toDTO() }
     }
+
+    override fun getJwtTravelerPrivateKey(): String {
+        return jwtUtils.generateJwtStringKey
+    }
+
 }

@@ -7,7 +7,6 @@ import com.google.zxing.Result
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
-import it.polito.wa2.g15.validatorservice.dtos.FilterDto
 import it.polito.wa2.g15.validatorservice.dtos.StatisticDto
 import it.polito.wa2.g15.validatorservice.services.ValidationService
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.IOException
-import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.imageio.ImageIO
 import javax.validation.Valid
@@ -55,9 +53,11 @@ class Controller {
         @Valid @RequestBody ticketByteArray: ByteArray
     ): ResponseEntity<Boolean> {
         return try {
+
             val ticketQRis = ByteArrayInputStream(ticketByteArray)
             val ticketBI: BufferedImage = ImageIO.read(ticketQRis)
             val signedJwt: String = decodeQR(ticketBI)
+
             validationService.validateTicket(signedJwt, clientZid)
             ResponseEntity(HttpStatus.ACCEPTED)
         } catch (ex: Exception) {
