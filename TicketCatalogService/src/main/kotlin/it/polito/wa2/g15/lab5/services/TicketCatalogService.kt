@@ -18,6 +18,7 @@ interface TicketCatalogService {
     suspend fun modifyTicketType(ticketId: Long, newTicketItemDTO: NewTicketItemDTO) : Long
 
     /**
+     * - Check if the ticket is available for selling (deleted or updated)
      * - Check if the ticket has some restrictions on user age,
      * if yes it asks the TravellerService the user profile in
      * order to check if the operation is permitted.
