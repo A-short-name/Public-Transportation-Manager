@@ -15,6 +15,7 @@ interface TicketCatalogService {
     suspend fun initTicketCatalogCache()
     suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) : Long
     suspend fun removeTicketType(ticketId: Long) : Boolean
+    suspend fun modifyTicketType(ticketId: Long, newTicketItemDTO: NewTicketItemDTO) : Long
 
     /**
      * - Check if the ticket has some restrictions on user age,

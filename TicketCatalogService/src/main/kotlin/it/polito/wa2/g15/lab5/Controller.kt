@@ -120,7 +120,7 @@ class Controller {
      * Admin users can add to catalog new available tickets to purchase.
      */
     @PostMapping("admin/tickets/")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
     suspend fun addNewAvailableTicketToCatalog(
             @Valid @RequestBody newTicketItemDTO: NewTicketItemDTO,
             response: ServerHttpResponse
@@ -134,13 +134,12 @@ class Controller {
             null
         }
         return res
-        
     }
     /**
      * Admin users can delete from catalog tickets to purchase.
      */
     @PostMapping("admin/tickets/delete/{ticket-id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
     suspend fun removeTicketFromCatalog(
         @PathVariable("ticket-id") ticketId: Long,
         response: ServerHttpResponse
@@ -154,7 +153,30 @@ class Controller {
             false
         }
         return res
+    }
 
+    /**
+     * Admin users can modify a ticket already present into the catalog.
+     * Receive a newTicketItemDTO and substitute with the old one
+     * @param: the id of the old ticketItem to edit
+     * @return: the id of the newer ticketItem
+     */
+    @PostMapping("admin/tickets/modify/{ticket-id}")
+    @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
+    suspend fun modifyTicketInCatalog(
+        @PathVariable("ticket-id") ticketId: Long,
+        @Valid @RequestBody newTicketItemDTO: NewTicketItemDTO,
+        response: ServerHttpResponse
+    ): Long? {
+
+        val res: Long? = try {
+            response.statusCode = HttpStatus.ACCEPTED
+            ticketCatalogService.modifyTicketType(ticketId, newTicketItemDTO)
+        } catch (e: InvalidTicketRestrictionException) {
+            response.statusCode = HttpStatus.BAD_REQUEST
+            null
+        }
+        return res
     }
     
     /**
