@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.validation.Valid
 
 @RestController
@@ -213,6 +214,28 @@ class Controller {
             val result: Set<TicketDTO> = travelerService.getPurchasedTicketsByUserId(userID)
             
             ResponseEntity<Set<TicketDTO>>(result, HttpStatus.OK)
+        } catch (ex: Exception) {
+            logger.error { "\tError finding the user with the given id: ${ex.message}" }
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+    /**
+    * Currently it returns the list of ticket, like in the validatorService.
+     * Decide if stats (so length of these list, or count on the db)
+    * */
+    @GetMapping("/stats/")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    fun getPurchaseStats(
+        @RequestParam(name = "timeStart", required = false) timeStart: String?,
+        @RequestParam(name = "timeEnd", required = false) timeEnd: String?,
+        @RequestParam(name = "nickname", required = false) nickname: String?
+    ): ResponseEntity<StatisticDto> {
+        val timeStartLocalDateTime = timeStart?.let { LocalDateTime.parse(it) }
+        val timeEndLocalDateTime = timeEnd?.let { LocalDateTime.parse(it) }
+
+        return try {
+            val res = travelerService.getStats(timeStartLocalDateTime, timeEndLocalDateTime, nickname)
+            ResponseEntity<StatisticDto>(StatisticDto(purchases = res), HttpStatus.ACCEPTED)
         } catch (ex: Exception) {
             logger.error { "\tError finding the user with the given id: ${ex.message}" }
             ResponseEntity(HttpStatus.NOT_FOUND)

@@ -11,7 +11,9 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.sql.Timestamp
 import java.time.DayOfWeek
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.temporal.TemporalAdjusters
@@ -192,6 +194,43 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
         val ticketPurchased = user.get().ticketPurchased
 
         return ticketPurchased.map{ it.toDTO() }.toSet()
+    }
+
+    /**
+     * returns statistics about purchases
+     *
+     * @param timeStart start of the time interval
+     * @param timeEnd end of the time interval
+     * @param nickname nickname of the traveler
+     * otherwise that specific filter will be ignored
+     */
+    override fun getStats(timeStart: LocalDateTime?, timeEnd: LocalDateTime?, nickname: String?): List<TicketDTO> {
+        if (!nickname.isNullOrBlank()) {
+            val user = userDetailsRepository.findByUsername(nickname)
+            if (user.isEmpty) throw TravelerException("No user found.")
+
+            val userDetails = user.get()
+
+            return if (timeEnd != null && timeStart != null)
+                ticketPurchasedRepository.findTicketPurchasedByUserAndIatIsBetween(
+                    user = userDetails,
+                    timeStart = Timestamp.valueOf(timeStart),
+                    timeEnd = Timestamp.valueOf(timeEnd)
+                    // It uses local time zone for conversion
+                ).map { it.toDTO() }
+            else
+                ticketPurchasedRepository.findTicketPurchasedByUser(
+                    userDetails
+                ).map { it.toDTO() }
+        }
+        else
+            return if (timeEnd != null && timeStart != null)
+                ticketPurchasedRepository.findTicketPurchasedByIatIsBetween(
+                    timeStart = Timestamp.valueOf(timeStart),
+                    timeEnd = Timestamp.valueOf(timeEnd)
+                ).map{ it.toDTO() }
+            else
+                ticketPurchasedRepository.findAll().map{ it.toDTO() }
     }
 
     override fun getJwtTravelerPrivateKey(): String {
