@@ -239,13 +239,53 @@ class CatalogTests {
             .exchange()
             .expectStatus().isAccepted
             .expectBody(Long::class.java)
-        
+    
         Assertions.assertEquals(countBefore + 1, ticketItemRepo.count(), "Didn't add new modified ticket correctly")
-        
+    
         val oldTicket = addedTickets[0].apply { available = false }
         Assertions.assertEquals(
             oldTicket, ticketItemRepo.findById(addedTickets[0].id!!), "Didn't delete modified ticket correctly"
         )
+    }
+    
+    @Test
+    fun dontDeleteNonExistingTickets() {
+        val newTicket = NewTicketItemDTO(15.0, "ORDINAL", 0, 100, 1000L)
+        client.put()
+            .uri("admin/tickets/999")
+            .bodyValue(newTicket)
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + generateJwtToken("BigBoss", setOf("ADMIN", "CUSTOMER")))
+            .exchange()
+            .expectStatus().isBadRequest
+        
+    }
+    
+    @Test
+    fun dontModifyNonExistingTickets() {
+        val newTicket = NewTicketItemDTO(15.0, "ORDINAL", 0, 100, 1000L)
+        client.put()
+            .uri("admin/tickets/999")
+            .bodyValue(newTicket)
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + generateJwtToken("BigBoss", setOf("ADMIN", "CUSTOMER")))
+            .exchange()
+            .expectStatus().isBadRequest
+        
+    }
+    
+    @Test
+    fun dontModifyOldTickets() {
+        val ticketId = addedTickets[1].id!! // available=false
+        val newTicket = NewTicketItemDTO(15.0, "ORDINAL", 0, 100, 1000L)
+        client.put()
+            .uri("admin/tickets/$ticketId")
+            .bodyValue(newTicket)
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + generateJwtToken("BigBoss", setOf("ADMIN", "CUSTOMER")))
+            .exchange()
+            .expectStatus().isBadRequest
+        
     }
     
     fun generateJwtToken(

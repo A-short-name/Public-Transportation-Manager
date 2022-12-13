@@ -147,7 +147,7 @@ class Controller {
         try {
             response.statusCode = HttpStatus.ACCEPTED
             ticketCatalogService.removeTicketType(ticketId)
-        } catch (e: InvalidTicketRestrictionException) {
+        } catch (e: Exception) {
             response.statusCode = HttpStatus.BAD_REQUEST
         }
     }
@@ -169,7 +169,7 @@ class Controller {
         val res: Long? = try {
             response.statusCode = HttpStatus.ACCEPTED
             ticketCatalogService.modifyTicketType(ticketId, newTicketItemDTO)
-        } catch (e: InvalidTicketRestrictionException) {
+        } catch (e: Exception) {
             response.statusCode = HttpStatus.BAD_REQUEST
             null
         }

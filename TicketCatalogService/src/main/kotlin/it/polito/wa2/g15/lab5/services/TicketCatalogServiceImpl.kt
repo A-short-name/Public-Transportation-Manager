@@ -132,13 +132,13 @@ class TicketCatalogServiceImpl : TicketCatalogService {
             else
                 ticketItemRepository.findById(ticketId)
         } catch (e: Exception) {
-            throw Exception("Failed modifying ticketItem: ${e.message}")
+            throw InvalidTicketRestrictionException("Failed modifying ticketItem: ${e.message}")
         }
     
         if (ticketToModify == null)
-            throw Exception("Failed modifying ticketItem: no ticket with such id")
+            throw InvalidTicketRestrictionException("Failed modifying ticketItem: no ticket with such id")
         if (!ticketToModify.available)
-            throw Exception("Failed modifying ticketItem: can't modify old tickets")
+            throw InvalidTicketRestrictionException("Failed modifying ticketItem: can't modify old tickets")
         /* Create the new ticket item with the provided details */
         val newId = addNewTicketType(newTicketItemDTO)
         //The addNewTicket add also to the cache
@@ -169,7 +169,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
         /* Check if the ticket requested is no longer for sale (updated or deleted) */
         if (!ticketRequested.available)
-            throw  Exception("Ticket with id: $ticketId is no longer for sale (updated or deleted). Select a new one")
+            throw  InvalidTicketRestrictionException("Ticket with id: $ticketId is no longer for sale (updated or deleted). Select a new one")
 
         if (ticketHasRestriction(ticketRequested)) {
             val travelerAge =
