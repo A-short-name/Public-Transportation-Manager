@@ -23,7 +23,6 @@ import org.springframework.web.bind.support.WebExchangeBindException
 import java.util.stream.Collectors
 import javax.validation.Valid
 
-
 @RestController
 class Controller {
     @Autowired
@@ -135,33 +134,31 @@ class Controller {
         }
         return res
     }
+    
     /**
      * Admin users can delete from catalog tickets to purchase.
      */
-    @PostMapping("admin/tickets/delete/{ticket-id}")
+    @DeleteMapping("admin/tickets/{ticket-id}")
     @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
     suspend fun removeTicketFromCatalog(
         @PathVariable("ticket-id") ticketId: Long,
         response: ServerHttpResponse
-    ): Boolean {
-
-        val res = try {
+    ) {
+        try {
             response.statusCode = HttpStatus.ACCEPTED
             ticketCatalogService.removeTicketType(ticketId)
         } catch (e: InvalidTicketRestrictionException) {
             response.statusCode = HttpStatus.BAD_REQUEST
-            false
         }
-        return res
     }
-
+    
     /**
      * Admin users can modify a ticket already present into the catalog.
      * Receive a newTicketItemDTO and substitute with the old one
      * @param: the id of the old ticketItem to edit
      * @return: the id of the newer ticketItem
      */
-    @PostMapping("admin/tickets/modify/{ticket-id}")
+    @PutMapping("admin/tickets/{ticket-id}")
     @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
     suspend fun modifyTicketInCatalog(
         @PathVariable("ticket-id") ticketId: Long,

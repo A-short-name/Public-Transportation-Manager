@@ -2,7 +2,6 @@ package it.polito.wa2.g15.lab5.services
 
 import it.polito.wa2.g15.lab5.dtos.BuyTicketDTO
 import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
-import it.polito.wa2.g15.lab5.dtos.TicketItemDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
@@ -77,11 +76,12 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     override suspend fun addNewTicketType(newTicketItemDTO: NewTicketItemDTO) : Long {
         var ticketItem = TicketItem(
-                ticketType = newTicketItemDTO.type,
-                price = newTicketItemDTO.price,
-                minAge = newTicketItemDTO.minAge,
-                maxAge = newTicketItemDTO.maxAge,
-                duration = newTicketItemDTO.duration
+            ticketType = newTicketItemDTO.type,
+            price = newTicketItemDTO.price,
+            minAge = newTicketItemDTO.minAge,
+            maxAge = newTicketItemDTO.maxAge,
+            duration = newTicketItemDTO.duration,
+            // new TicketItems has available=true by default
         )
 
         try {
@@ -127,21 +127,23 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         /* Retrieve the old ticket item */
         val ticketToModify : TicketItem?
         try {
-            ticketToModify = if(isCacheEnabled())
-                ticketItemsCache.find { it.id == ticketId}
+            ticketToModify = if (isCacheEnabled())
+                ticketItemsCache.find { it.id == ticketId }
             else
                 ticketItemRepository.findById(ticketId)
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             throw Exception("Failed modifying ticketItem: ${e.message}")
         }
-
+    
         if (ticketToModify == null)
             throw Exception("Failed modifying ticketItem: no ticket with such id")
+        if (!ticketToModify.available)
+            throw Exception("Failed modifying ticketItem: can't modify old tickets")
         /* Create the new ticket item with the provided details */
         val newId = addNewTicketType(newTicketItemDTO)
         //The addNewTicket add also to the cache
         /* Mark and update the old item type as unavailable to be generated */
-        if(isCacheEnabled()) {
+        if (isCacheEnabled()) {
             logger.info { "Updating cache..." }
             ticketItemsCache.remove(ticketToModify)
         }
