@@ -1,6 +1,10 @@
 # Public-Transportation-Manager
 This is a Web Applications II group project carried out during academic year 2021/22. It consists of a microservices system.
 
+## Architecture
+
+Developers singed in with github can find the architecture of the project from [diagrams.net (or draw.io)](https://app.diagrams.net/)
+
 ## How to open this project
 
 In order to open this project you need:
