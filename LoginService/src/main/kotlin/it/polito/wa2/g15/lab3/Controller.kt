@@ -1,5 +1,11 @@
 package it.polito.wa2.g15.lab3
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import it.polito.wa2.g15.lab3.dtos.*
 import it.polito.wa2.g15.lab3.security.jwt.JwtUtils
 import it.polito.wa2.g15.lab3.services.UserService
@@ -32,12 +38,25 @@ class Controller {
 
     @Autowired
     lateinit var userService: UserService
-    
+
     @Autowired
     lateinit var passwordEncoder: PasswordEncoder
-    
+
     private val logger = KotlinLogging.logger {}
-    
+
+    @Operation(summary = "Register new user")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200", description = "User registered", content = [
+                    (Content(
+                        mediaType = "application/json", array = (
+                                ArraySchema(schema = Schema(implementation = UserRequestDTO::class)))
+                    ))]
+            ),
+            ApiResponse(responseCode = "400", description = "Bad request", content = [Content()]),
+            ApiResponse(responseCode = "404", description = "Did not find any Foos", content = [Content()])]
+    )
     @PostMapping("/user/register")
     fun registerUser(
         @Valid @RequestBody userRequestDTO: UserRequestDTO,
