@@ -1,5 +1,6 @@
 package it.polito.wa2.g15.lab5.entities
 
+import org.apache.kafka.common.protocol.types.Field.Bool
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -13,5 +14,6 @@ data class TicketItem (
     val price: Double,
     val minAge: Int? = null,
     val maxAge: Int? = null,
-    val duration: Long
+    val duration: Long,
+    var available: Boolean = true
     )

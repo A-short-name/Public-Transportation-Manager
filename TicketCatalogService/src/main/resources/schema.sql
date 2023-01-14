@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS ticket_items (
     price DOUBLE PRECISION,
     min_age INT,
     max_age INT,
-    duration BIGINT
+    duration BIGINT,
+    available BOOLEAN
 );
 CREATE TABLE IF NOT EXISTS ticket_orders (
     order_id serial PRIMARY KEY,

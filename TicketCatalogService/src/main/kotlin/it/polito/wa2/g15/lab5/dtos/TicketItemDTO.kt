@@ -11,13 +11,16 @@ data class TicketItemDTO(
     @field:NotNull
     @field:Positive
     val ticketId: Long,
-
+    
     @field:NotNull
     @field:Positive
     val price: Double,
-
+    
     @field:NotBlank(message = "Type can't be empty or null")
-    val type: String
+    val type: String,
+    
+    @field:NotNull
+    val available: Boolean
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -41,7 +44,7 @@ data class TicketItemDTO(
 }
 
 fun TicketItem.toDTO() : TicketItemDTO {
-    return TicketItemDTO(id!!, price, ticketType)
+    return TicketItemDTO(id!!, price, ticketType, available)
 }
 
 data class NewTicketItemDTO(
