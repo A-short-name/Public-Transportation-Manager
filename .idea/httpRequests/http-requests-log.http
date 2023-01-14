@@ -1,0 +1,454 @@
+GET http://localhost:8085/payment-service/admin/transactions/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+###
+
+GET http://localhost:8085/validator-service/get/stats
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+<> 2023-01-14T175851.403.json
+
+###
+
+GET http://localhost:8085/validator-service/get/stats
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+<> 2023-01-14T175848.403.json
+
+###
+
+GET http://localhost:8085/validator-service/get/stats
+
+<> 2023-01-14T175837.403.json
+
+###
+
+GET http://localhost:8085/payment-service/admin/transactions/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+###
+
+GET http://localhost:8085/payment-service/admin/transactions/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+<> 2023-01-14T175741.503.json
+
+###
+
+GET http://localhost:8085/ticket-catalog-service/tickets/
+
+###
+
+GET http://localhost:8085/ticket-catalog-service/tickets/
+
+<> 2023-01-14T175617.503.json
+
+###
+
+GET http://localhost:8085/ticket-catalog-service/tickets/
+
+<> 2023-01-14T175611.503.json
+
+###
+
+GET http://localhost:8085/ticket-catalog-service/tickets/
+
+<> 2023-01-14T175551.503.json
+
+###
+
+GET http://localhost:8085/traveler-service/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJSMkQyIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkNVU1RPTUVSIl19.Z_qium_7XDN3yIKzQMGj83YElSWfvR6h3TI0NiSj9sI
+
+###
+
+GET http://localhost:8085/traveler-service/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJSMkQyIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkNVU1RPTUVSIl19.Z_qium_7XDN3yIKzQMGj83YElSWfvR6h3TI0NiSj9sI
+
+<> 2023-01-14T175406.503.json
+
+###
+
+POST http://localhost:8085/login-service/user/register
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "somenamenew",
+  "password": "Secret!Password1",
+  "email": "wwme@email.com"
+}
+
+<> 2023-01-14T175140.202.json
+
+###
+
+POST http://localhost:8085/login-service/user/register
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "somename",
+  "password": "Secret!Password1",
+  "email": "me@email.com"
+}
+
+###
+
+POST http://localhost:8085/login-service/user/register
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "somename",
+  "password": "Secret!Password1",
+  "email": "me@email.com"
+}
+
+###
+
+POST http://localhost:8080/user/login
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "CustomerAdminx99Xx",
+  "password": "CustomerAdminPasswordVeryHard!1!1"
+}
+
+<> 2023-01-14T175009.401.json
+
+###
+
+POST http://localhost:8080/user/validate
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "provisional_id": "f7d00a62-3792-4389-bef4-990579e7cedb",
+  "activation_code": "068798"
+}
+
+###
+
+POST http://localhost:8085/login-service/user/register
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "somename",
+  "password": "Secret!Password1",
+  "email": "me@email.com"
+}
+
+<> 2023-01-14T174809.503.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE
+
+<> 2022-12-08T160113.202.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE
+
+<> 2022-12-08T155908.202.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE
+
+<> 2022-12-08T152409.202.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE
+
+<> 2022-12-08T152229.400.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE"
+
+<> 2022-12-08T152158.400.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE"
+
+<> 2022-12-08T151539.400.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE"
+
+<> 2022-12-08T151537.400.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE"
+
+<> 2022-12-08T150531.403.json
+
+###
+
+GET http://localhost:8084/get/stats?timeStart=2020-11-30T23:59&timeEnd=2020-12-31T23:59&nickname=R2D2
+Authorization: Bearer "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTA4MjIzLCJleHAiOjE2NzA1MTE4MjMsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.faNPTr7gcU2q6VxQao_AsPsRalbEqUBIy7O9ggtRhVE"
+
+<> 2022-12-08T150450.403.json
+
+###
+
+GET http://localhost:8084/get/stats
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTAyNTc1LCJleHAiOjE2NzA1MDYxNzUsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.CUZOyW1aA8gpDu2unYA1pD5cnbEJiKiZvFWnxiCdYAU
+
+<> 2022-12-08T150320.403.json
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTAyNTc1LCJleHAiOjE2NzA1MDYxNzUsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.CUZOyW1aA8gpDu2unYA1pD5cnbEJiKiZvFWnxiCdYAU
+
+{
+"startDate": null,
+"endDate": null,
+"nickname": null
+}
+
+<> 2022-12-08T133022.202.json
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTAyNTc1LCJleHAiOjE2NzA1MDYxNzUsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.CUZOyW1aA8gpDu2unYA1pD5cnbEJiKiZvFWnxiCdYAU
+
+{
+"startDate": null,
+"endDate": null,
+"nickname": null
+}
+
+<> 2022-12-08T133018.202.json
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTAyNTc1LCJleHAiOjE2NzA1MDYxNzUsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.CUZOyW1aA8gpDu2unYA1pD5cnbEJiKiZvFWnxiCdYAU
+{:
+"startDate": null,
+"endDate": null,
+"nickname": null
+}:
+
+<> 2022-12-08T133011.400.html
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJCb3NzIiwiaWF0IjoxNjcwNTAyNTc1LCJleHAiOjE2NzA1MDYxNzUsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.CUZOyW1aA8gpDu2unYA1pD5cnbEJiKiZvFWnxiCdYAU
+{:
+"startDate": null,
+"endDate": null,
+"nickname": null
+}:
+
+<> 2022-12-08T133003.400.html
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+
+{
+"startDate": null,
+"endDate": null,
+"nickname": null
+}
+
+<> 2022-12-08T132906.403.json
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+
+{
+"startDate": null,
+"endDate": null,
+"nickname": null
+}
+
+<> 2022-12-08T132801.202.json
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+
+{
+"startDate": null,
+"endDate": null,
+"nickname": null
+}
+
+<> 2022-12-08T132744.202.json
+
+###
+
+GET http://localhost:8084/get/stats
+Content-Type: application/json
+
+{
+"startDate": null,
+"endDate": null,
+"nickname": null,
+}
+
+<> 2022-12-08T132737.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+{
+"startDate": null,
+"endDate": null,
+"nickname": null,
+}
+
+<> 2022-12-08T132713.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+{
+}
+
+<> 2022-12-08T132322.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+<> 2022-12-08T132126.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+<> 2022-12-08T132123.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+<> 2022-12-08T132116.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+<> 2022-12-08T132103.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+<> 2022-12-08T132049.400.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+<> 2022-12-08T132028.403.json
+
+###
+
+GET http://localhost:8084/get/stats
+
+<> 2022-12-08T131947.403.json
+
+###
+
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "nickname": "superadmin",
+  "password": "superadmin"
+}
+
+<> 2022-11-01T182553.403.json
+
+###
+
+POST http://localhost:8080/user/login
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "superadmin",
+  "password": "superadmin"
+}
+
+<> 2022-11-01T182019.401.json
+
+###
+
+POST http://localhost:8080/user/login
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "superadmin",
+  "password": "superadmin"
+}
+
+<> 2022-11-01T181913.401.json
+
+###
+
+POST http://localhost:8080/admin/create
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "newadmin",
+  "password": "Secret!Password1",
+  "email": "newadmin@email.com",
+  "enrolling_capabilities": false
+}
+
+###
+
+POST http://localhost:8080/user/login
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+
+{
+  "nickname": "superadmin",
+  "password": "superadmin"
+}
+
+<> 2022-11-01T181833.401.json
+
+###
+

@@ -1,0 +1,27 @@
+POST http://localhost:8085/login-service/user/register
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
+
+{
+  "nickname": "somenamenew",
+  "password": "Secret!Password1",
+  "email": "wwme@email.com"
+}
+###
+GET http://localhost:8085/traveler-service/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJSMkQyIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkNVU1RPTUVSIl19.Z_qium_7XDN3yIKzQMGj83YElSWfvR6h3TI0NiSj9sI
+
+###
+GET http://localhost:8085/ticket-catalog-service/tickets/
+
+###
+GET http://localhost:8085/payment-service/admin/transactions/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+
+###
+GET http://localhost:8085/validator-service/get/stats
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
