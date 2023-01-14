@@ -11,12 +11,21 @@ plugins{
     kotlin("plugin.allopen") version "1.4.31"
 }
 
+extra["springCloudVersion"] = "2021.0.5"
+
 allprojects{
     group = "it.polito.wa2.g15"
     version = "0.0.1-SNAPSHOT"
 
     repositories {
         mavenCentral()
+    }
+
+    apply(plugin = "io.spring.dependency-management")
+    dependencyManagement {
+        imports {
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+        }
     }
 
     tasks.withType<KotlinCompile>{

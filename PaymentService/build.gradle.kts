@@ -21,6 +21,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     //Add to perform date handling building the message for kafka
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     //But then objectMapper.findAndRegisterModules() on serializer and deserializer

@@ -14,7 +14,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
     
     implementation("org.springframework.kafka:spring-kafka")

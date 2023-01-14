@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -28,6 +30,7 @@ dependencies {
     //documentation with swagger open api
     implementation("org.springdoc:springdoc-openapi-ui:1.6.14")
 
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0")
 
     runtimeOnly("org.postgresql:postgresql")
