@@ -34,13 +34,7 @@ class Controller {
     private val principal = ReactiveSecurityContextHolder.getContext()
         .map { obj: SecurityContext -> obj.authentication.principal }
         .cast(UserDetailsDTO::class.java)
-    
-    @GetMapping(path = ["/whoami"])
-    @PreAuthorize("hasAuthority('CUSTOMER')")
-    suspend fun getName(): String? {
-        return principal.map { p -> p.sub }.awaitSingle()
-    }
-    
+
     /**
      * Returns a JSON representation of all available tickets. Those tickets
      * are represented as a JSON object consisting of price, ticketId, type ( ordinal or type
@@ -66,7 +60,7 @@ class Controller {
      * The client to check the order result, must do polling to check the outcome.
      */
     @PostMapping("/shop/{ticket-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
-    @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     suspend fun buyTickets(
         @PathVariable("ticket-id") ticketId: Long,
         @Valid @RequestBody buyTicketBody: BuyTicketDTO,
@@ -89,7 +83,7 @@ class Controller {
      * Get the orders of the user
      */
     @GetMapping("orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
-    @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     suspend fun orders(response: ServerHttpResponse): Flow<TicketOrder> {
         val userName = principal.map { p -> p.sub }
         return ticketOrderService.getUserTicketOrders(userName.awaitSingle()).onEmpty {
@@ -102,7 +96,7 @@ class Controller {
      * to check the order status after a purchase.
      */
     @GetMapping("orders/{order-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
-    @PreAuthorize("hasAuthority('CUSTOMER') OR hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     suspend fun getSpecificOrder(
         @PathVariable("order-id") orderId: Long,
         response: ServerHttpResponse
@@ -119,7 +113,7 @@ class Controller {
      * Admin users can add to catalog new available tickets to purchase.
      */
     @PostMapping("admin/tickets/")
-    @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     suspend fun addNewAvailableTicketToCatalog(
             @Valid @RequestBody newTicketItemDTO: NewTicketItemDTO,
             response: ServerHttpResponse
@@ -139,7 +133,7 @@ class Controller {
      * Admin users can delete from catalog tickets to purchase.
      */
     @DeleteMapping("admin/tickets/{ticket-id}")
-    @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     suspend fun removeTicketFromCatalog(
         @PathVariable("ticket-id") ticketId: Long,
         response: ServerHttpResponse
@@ -159,7 +153,7 @@ class Controller {
      * @return: the id of the newer ticketItem
      */
     @PutMapping("admin/tickets/{ticket-id}")
-    @PreAuthorize("hasAuthority('SUPERADMIN') OR hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     suspend fun modifyTicketInCatalog(
         @PathVariable("ticket-id") ticketId: Long,
         @Valid @RequestBody newTicketItemDTO: NewTicketItemDTO,
@@ -180,7 +174,7 @@ class Controller {
      * This endpoint retrieves a list of all orders made by all users
      */
     @GetMapping("admin/orders/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     suspend fun getAllOrder(): Flow<TicketOrder> {
         return ticketOrderService.getAllTicketOrders()
     }
@@ -189,7 +183,7 @@ class Controller {
      * Get orders of a specific user
      */
     @GetMapping("admin/orders/{user-id}/", produces = [MediaType.APPLICATION_NDJSON_VALUE])
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     suspend fun getOrdersOfASpecificUser(@PathVariable("user-id") userId: String): Flow<TicketOrder> {
         return ticketOrderService.getUserTicketOrders(userId)
     }
