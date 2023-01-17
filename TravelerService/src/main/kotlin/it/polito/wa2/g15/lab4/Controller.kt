@@ -67,7 +67,7 @@ class Controller {
      * @param BindingResult result of validation
      */
     @PutMapping("/my/profile/")
-    @PreAuthorize("hasAuthority('CUSTOMER') or hasAuthority('ADMIN') ")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     fun updateCurrentUserProfile(
         @Valid @RequestBody userRequestDTO: UserProfileDTO,
         bindingResult: BindingResult
@@ -166,7 +166,7 @@ class Controller {
      * available for users having the Admin role.
      */
     @GetMapping("/admin/travelers/")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getAllTravelers(): ResponseEntity<List<String>> {
         return try {
             SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
@@ -186,7 +186,7 @@ class Controller {
      * @return UserProfileDTO
      */
     @GetMapping("/admin/traveler/{userID}/profile/")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getProfileFromUserID(@PathVariable("userID") userID: Long): ResponseEntity<UserProfileAdminViewDTO> {
         return try {
             SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
@@ -206,7 +206,7 @@ class Controller {
      * @return List of ticketDTO
      */
     @GetMapping("/admin/traveler/{userID}/tickets/")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getTicketsFromUserID(@PathVariable("userID") userID: Long): ResponseEntity<Set<TicketDTO>> {
         return try {
             SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
@@ -224,7 +224,7 @@ class Controller {
      * Decide if stats (so length of these list, or count on the db)
     * */
     @GetMapping("/stats/")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getPurchaseStats(
         @RequestParam(name = "timeStart", required = false) timeStart: String?,
         @RequestParam(name = "timeEnd", required = false) timeEnd: String?,
