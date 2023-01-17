@@ -1,5 +1,6 @@
 package it.polito.wa2.g15.lab3.entities
 
+import org.hibernate.annotations.GenericGenerator
 import javax.persistence.*
 
 @Entity
@@ -7,7 +8,16 @@ import javax.persistence.*
 class User {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(generator = "user-generator")
+    @GenericGenerator(
+        name = "user-generator",
+        strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+        parameters = [
+            org.hibernate.annotations.Parameter(name = "sequence_name", value = "user_sequence"),
+            org.hibernate.annotations.Parameter(name = "initial_value", value = "3"),
+            org.hibernate.annotations.Parameter(name = "increment_size", value = "1")
+        ]
+    )
     var id: Long = 0L
     
     @Column(unique = true)

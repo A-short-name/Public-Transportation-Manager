@@ -38,7 +38,7 @@ class ValidationService {
         try {
             key = embeddedSystemRestClientService.getValidationKey()
             logger.info("secret received: $key")
-        } catch (e: RestClientException) {
+        } catch (e: Exception) {
             logger.info("Validation is inactive because it can not retrieve the key used to validate tickets")
             logger.error("can not connect to other services: ${e.message}")
         } finally {

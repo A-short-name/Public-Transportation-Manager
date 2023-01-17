@@ -27,7 +27,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0")
     
     runtimeOnly("org.postgresql:postgresql")

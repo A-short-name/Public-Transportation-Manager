@@ -48,8 +48,10 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
     
     override fun configure(http: HttpSecurity) {
 
-        http.csrf().csrfTokenRepository(csrfTokenRepository())
-                .and()
+        http.csrf()
+                .disable()
+                //.csrfTokenRepository(csrfTokenRepository())
+                //.and()
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

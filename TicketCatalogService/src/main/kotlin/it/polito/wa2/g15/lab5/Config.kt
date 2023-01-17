@@ -19,7 +19,7 @@ class Config {
     @Bean
     fun generateClient(): WebClient {
         return WebClient.builder()
-                .baseUrl("http://localhost:8081")
+                //.baseUrl("http://localhost:8081")
                 //.defaultCookie("Cookie", "cookieValue")
                 .defaultHeaders { headers ->
                         headers.contentType = MediaType.APPLICATION_JSON

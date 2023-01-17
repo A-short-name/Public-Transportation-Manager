@@ -1,5 +1,6 @@
 package it.polito.wa2.g15.lab5.services
 
+import com.netflix.discovery.EurekaClient
 import it.polito.wa2.g15.lab5.dtos.BuyTicketDTO
 import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
@@ -22,9 +23,7 @@ import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitExchange
-import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.reactive.function.client.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -37,6 +36,9 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
     @Autowired
     lateinit var ticketOrderService: TicketOrderService
+
+    @Autowired
+    lateinit var discoveryClient : EurekaClient
 
     @Value("\${kafka.topics.produce}")
     lateinit var topic: String
@@ -212,14 +214,26 @@ class TicketCatalogServiceImpl : TicketCatalogService {
     }
 
     private suspend fun getTravelerAge(userName: String): Int {
-        val age = client.get()
-                .uri("/services/user/$userName/birthdate/")
+        val age : Long
+        try {
+            val instanceInfo = discoveryClient.getNextServerFromEureka("traveler", false)
+            val homePageUrl = instanceInfo.homePageUrl
+
+            age = client.get()
+                .uri(homePageUrl + "services/user/$userName/birthdate/")
                 .awaitExchange {
                     if (it.statusCode() != HttpStatus.OK)
                         throw InvalidTicketRestrictionException("User info not found")
                     LocalDate.now()
                     ChronoUnit.YEARS.between(it.bodyToMono<LocalDate>().awaitSingle(), LocalDate.now())
                 }
+
+        }catch(e: RuntimeException) {
+            throw InvalidTicketRestrictionException("Traveler service not found")
+        }catch(e: WebClientResponseException) {
+            throw InvalidTicketRestrictionException("Traveler service not responding properly")
+        }
+
         logger.info { "User ($userName) age is: $age" }
         return age.toInt()
     }
