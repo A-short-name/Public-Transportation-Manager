@@ -44,6 +44,7 @@ class Controller {
 
     private val logger = KotlinLogging.logger {}
 
+
     @Operation(summary = "Register new user")
     @ApiResponses(
         value = [

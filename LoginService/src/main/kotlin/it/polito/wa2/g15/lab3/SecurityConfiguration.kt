@@ -69,7 +69,8 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
         http.csrf()
-            .csrfTokenRepository(csrfTokenRepository())
+            .disable()
+        //.csrfTokenRepository(csrfTokenRepository())
 
         http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
 
