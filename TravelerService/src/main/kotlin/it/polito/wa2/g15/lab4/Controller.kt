@@ -45,7 +45,7 @@ class Controller {
      * @return UserProfileDTO as JSON or HttpStatus.BAD_REQUEST if user did not perform any PUT request
      */
     @GetMapping("/my/profile/")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     fun currentUserProfile(): ResponseEntity<UserProfileDTO> {
         return try {
             val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
@@ -106,7 +106,7 @@ class Controller {
      * @return A JSON list of all the tickets purchased by the current user
      */
     @GetMapping("/my/tickets/")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     fun purchasedTicketsByCurrentUser(): ResponseEntity<Set<TicketDTO>> {
         val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
         val username = principal.sub
@@ -129,7 +129,7 @@ class Controller {
      * @return a png image of a QR code encoding of the JWT of the ticket with a certain sub (ticket-id)
      */
     @GetMapping("/my/tickets/{ticket-sub}")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     fun purchasedTicketByCurrentUserQR(@PathVariable("ticket-sub") ticketSub: Int): ResponseEntity<ByteArrayResource> {
         val principal = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
         val username = principal.sub

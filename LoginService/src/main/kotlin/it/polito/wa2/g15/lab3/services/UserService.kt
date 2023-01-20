@@ -2,6 +2,7 @@ package it.polito.wa2.g15.lab3.services
 
 import it.polito.wa2.g15.lab3.dtos.ActivationResponseDTO
 import it.polito.wa2.g15.lab3.dtos.UserResponseDTO
+import org.springframework.security.access.prepost.PreAuthorize
 import java.util.*
 
 //Information taken from the slide
@@ -22,5 +23,6 @@ interface UserService {
     /**
      * Function that creates an admin
      */
+    @PreAuthorize("hasAuthority('SUPERADMIN')")
     fun createAdmin(nickname: String, password: String, email: String, enrollingCapabilities: Boolean)
 }

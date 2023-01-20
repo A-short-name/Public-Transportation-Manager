@@ -58,7 +58,7 @@ WebSecurityConfig : WebSecurityConfigurerAdapter() {
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         http.authorizeRequests()
-            .antMatchers("/get/stats").hasAnyAuthority("SUPERADMIN","ADMIN")
+            .antMatchers("/get/stats").hasAnyAuthority("ADMIN", "SUPERADMIN")
             .anyRequest().permitAll()
 
         http.addFilterAt(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)

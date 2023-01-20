@@ -14,7 +14,6 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientException
 import java.time.*
 import javax.crypto.SecretKey
 
@@ -65,7 +64,7 @@ class ValidationService {
      * @param nickname nickname of the traveler
      * otherwise that specific filter will be ignored
      */
-    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getStats(timeStart: LocalDateTime?, timeEnd: LocalDateTime?, nickname: String?): List<TicketValidation> {
         if (!nickname.isNullOrBlank())
             return if (timeEnd != null && timeStart != null)

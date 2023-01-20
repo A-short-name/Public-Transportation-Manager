@@ -28,7 +28,7 @@ class Controller {
     lateinit var validationService: ValidationService
 
     @GetMapping("get/stats")
-    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority( 'ADMIN','SUPERADMIN')")
     fun getValidatorStats(
         @RequestParam(name = "timeStart", required = false) timeStart: String?,
         @RequestParam(name = "timeEnd", required = false) timeEnd: String?,
