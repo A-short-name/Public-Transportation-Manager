@@ -11,7 +11,7 @@ interface TicketOrderService {
     /**
      * get all orders of all users
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     suspend fun getAllTicketOrders() : Flow<TicketOrder>
 
     /**

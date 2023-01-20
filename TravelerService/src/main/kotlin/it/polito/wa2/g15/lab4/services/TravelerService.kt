@@ -1,7 +1,9 @@
 package it.polito.wa2.g15.lab4.services
 
-import it.polito.wa2.g15.lab4.dtos.*
-import it.polito.wa2.g15.lab4.entities.TicketPurchased
+import it.polito.wa2.g15.lab4.dtos.TicketDTO
+import it.polito.wa2.g15.lab4.dtos.TicketFromCatalogDTO
+import it.polito.wa2.g15.lab4.dtos.UserProfileAdminViewDTO
+import it.polito.wa2.g15.lab4.dtos.UserProfileDTO
 import org.springframework.security.access.prepost.PreAuthorize
 import java.time.LocalDateTime
 
@@ -11,13 +13,17 @@ interface TravelerService {
     fun getJwtPurchasedTicketByUsernameAndId(username: String, sub: Int): String
     fun updateUserProfile(userProfileDTO: UserProfileDTO, username: String)
     fun generateTickets(ticketFromCatalog: TicketFromCatalogDTO, username: String)
-    @PreAuthorize("hasAuthority('ADMIN')")
+    
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getListOfUsername():List<String>
-    @PreAuthorize("hasAuthority('ADMIN')")
+    
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getUserById(userID: Long) : UserProfileAdminViewDTO
-    @PreAuthorize("hasAuthority('ADMIN')")
+    
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getPurchasedTicketsByUserId(userID: Long) : Set<TicketDTO>
-    @PreAuthorize("hasAuthority('ADMIN')")
+    
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN')")
     fun getStats(timeStart: LocalDateTime?, timeEnd: LocalDateTime?, nickname: String?): List<TicketDTO>
     @PreAuthorize("hasAuthority('EMBEDDED')")
     fun getJwtTravelerPrivateKey(): String
