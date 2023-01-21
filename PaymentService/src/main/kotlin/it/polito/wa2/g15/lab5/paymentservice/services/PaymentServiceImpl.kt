@@ -10,11 +10,13 @@ import it.polito.wa2.g15.lab5.paymentservice.repositories.TransactionRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.Acknowledgment
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.MessageBuilder
@@ -44,12 +46,12 @@ class PaymentServiceImpl : PaymentService {
         return transactionRepository.findAll().map { it.toDTO() }
     }
     @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "onlyOneGroup")
-    fun performPayment(message: OrderInformationMessage) {
+    fun performPayment(message: OrderInformationMessage, acknowledgment: Acknowledgment) {
         logger.info("Message received {}", message)
-        CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { performPaymentSuspendable(message) } }
+        CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { performPaymentSuspendable(message, acknowledgment) } }
     }
 
-    suspend fun performPaymentSuspendable(message: OrderInformationMessage) {
+    suspend fun performPaymentSuspendable(message: OrderInformationMessage, acknowledgment: Acknowledgment) {
         /*  Pagamento accordato
         * Capire se bisogna accettare randomicamente oppure accordare sempre
         * */
@@ -62,16 +64,26 @@ class PaymentServiceImpl : PaymentService {
             return
         }*/
 
+        //Check if in transactionRepository exist a transaction with orderId = message.orderId
+        val transactionCheck = transactionRepository.findTransactionByOrderId(message.orderId).awaitFirstOrNull()
+        if(transactionCheck != null){
+            sendMessageForPayment(successfulPayment, true, transactionCheck.id!!, transactionCheck.orderId)
+            acknowledgment.acknowledge()
+            return
+        }
+
         val transaction: Transaction
         try {
             val (creditCardNumber, cardHolder)= message.billingInfo
             transaction = transactionRepository.save(Transaction(username = message.username, creditCardNumber = creditCardNumber, cardHolder = cardHolder, totalCost = message.totalCost, orderId = message.orderId))
         } catch (e: Exception) {
             sendMessageForPayment(errorDuringPayment, false, -1, message.orderId)
+            acknowledgment.acknowledge()
             throw Exception("Failed saving transaction info: ${e.message}")
         }
 
         sendMessageForPayment(successfulPayment, true, transaction.id!!, transaction.orderId)
+        acknowledgment.acknowledge()
     }
 
     fun sendMessageForPayment(info: String, successful: Boolean, transactionId: Long, orderId: Long){

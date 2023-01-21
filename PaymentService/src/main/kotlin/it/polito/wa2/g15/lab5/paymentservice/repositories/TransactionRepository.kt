@@ -4,8 +4,11 @@ import it.polito.wa2.g15.lab5.paymentservice.entities.Transaction
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Mono
 
 @Repository
 interface TransactionRepository : CoroutineCrudRepository<Transaction,Long> {
     fun getTransactionsByUsername(username: String) : Flow<Transaction>
+    //find transaction by orderId
+    fun findTransactionByOrderId(orderId: Long) : Mono<Transaction>
 }
