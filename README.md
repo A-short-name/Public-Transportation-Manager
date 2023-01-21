@@ -18,11 +18,11 @@ from [diagrams.net (or draw.io)](https://app.diagrams.net/)
 
 ### User actions
 
-![User actions](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://github.com/A-short-name/Public-Transportation-Manager/blob/main/User_actions.iuml)
+![User actions](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/A-short-name/Public-Transportation-Manager/main/User_actions.iuml?token=GHSAT0AAAAAAB2MGKP6MMACQHHGJRUOWQS6Y6MIZ3A)
 
 ### Admin actions
 
-![Admin actions](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://github.com/A-short-name/Public-Transportation-Manager/blob/main/Admin_actions.iuml)
+![Admin actions](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/A-short-name/Public-Transportation-Manager/main/Admin_actions.iuml?token=GHSAT0AAAAAAB2MGKP7LB7BL6LDARGU54HQY6MIZJQ)
 
 ## How to open this project
 
