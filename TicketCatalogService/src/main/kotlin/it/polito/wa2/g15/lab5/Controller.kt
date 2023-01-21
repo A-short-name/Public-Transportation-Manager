@@ -74,7 +74,7 @@ class Controller {
             response.statusCode = HttpStatus.ACCEPTED
             ticketCatalogService.buyTicket(buyTicketBody, ticketId, userName)
         } catch (e: WebClientResponseException){
-            // if the TravellerService is not available, is not available the check on the age restrictions
+            // if the TravelerService is not available, is not available the check on the age restrictions
             response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
             null
         }

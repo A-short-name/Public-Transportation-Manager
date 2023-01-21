@@ -43,7 +43,7 @@ interface TicketCatalogService {
      * The client to check the order result, must do polling to check the outcome.
      *
      */
-    @Transactional
+    @Transactional //Not useful because of async repo
     @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     suspend fun buyTicket(buyTicketDTO: BuyTicketDTO, ticketId: Long, userName: String) : Long
 }

@@ -18,7 +18,9 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.awaitExchange
@@ -75,11 +77,13 @@ class TicketOrderServiceImpl : TicketOrderService {
 
 
     @KafkaListener(topics = ["\${kafka.topics.consume}"], groupId = "onlyOneGroup")
-    fun updateStatus(message: OrderProcessedMessage) {
+    fun updateStatus(message: OrderProcessedMessage, acknowledgment: Acknowledgment) {
         logger.info("Message received {}", message)
-        CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { updateStatusSuspendable(message) } }
+        CoroutineScope(CoroutineName("Obliged coroutines")).also { it.launch { updateStatusSuspendable(message, acknowledgment) } }
     }
-    suspend fun updateStatusSuspendable(message: OrderProcessedMessage) {
+
+    @Transactional //Not useful because of async repo
+    suspend fun updateStatusSuspendable(message: OrderProcessedMessage, acknowledgment: Acknowledgment) {
         val pendingTicketOrder: TicketOrder?
         try {
             pendingTicketOrder = ticketOrderRepository.findById(message.orderId)
@@ -88,14 +92,24 @@ class TicketOrderServiceImpl : TicketOrderService {
             }
         if(pendingTicketOrder == null)
             throw InvalidTicketOrderException("No ticket order with such id")
+        val previousStatus = pendingTicketOrder.orderState
+
         if(message.accepted) pendingTicketOrder.orderState = "COMPLETED" else pendingTicketOrder.orderState = "CANCELLED"
 
         try {
             ticketOrderRepository.save(pendingTicketOrder)
-            if(pendingTicketOrder.orderState=="COMPLETED")
-                postTicketInfo(pendingTicketOrder)
-        } catch (e: Exception){
+            } catch (e: Exception){
             throw InvalidTicketOrderException("Error updating ticketOrder status: ${e.message}")
+        }
+        try{
+            if(pendingTicketOrder.orderState=="COMPLETED" && previousStatus=="PENDING") {
+                postTicketInfo(pendingTicketOrder)
+                //No exception thrown, so the ticket generation is completed
+                acknowledgment.acknowledge()
+            }
+        } catch (e: Exception){
+            //I will consume again the same message. Consider a retry strategy to not loop forever
+            throw InvalidTicketOrderException("Error related to traveler service and tickets generation: ${e.message}")
         }
     }
 

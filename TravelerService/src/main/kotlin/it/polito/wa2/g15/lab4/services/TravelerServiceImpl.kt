@@ -88,7 +88,7 @@ class TravelerServiceImpl(val ticketPurchasedRepository : TicketPurchasedReposit
         
     }
 
-
+    //This is transactional
     override fun generateTickets(ticketFromCatalog: TicketFromCatalogDTO, username: String)  {
         val result = mutableSetOf<TicketDTO>()
 

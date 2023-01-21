@@ -9,6 +9,7 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.listener.ContainerProperties
 
 
 @EnableKafka
@@ -26,6 +27,8 @@ class KafkaConsumerConfig(
         props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = MessageFromPaymentDeserializer::class.java
         props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+        //disable auto commit
+        props[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
         return DefaultKafkaConsumerFactory(props)
     }
 
@@ -35,6 +38,8 @@ class KafkaConsumerConfig(
         factory.consumerFactory = consumerFactory()
         //factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
         factory.containerProperties.isSyncCommits = true
+        //Enable ackMode manual
+        factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
         return factory
     }
 }
