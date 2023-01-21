@@ -1,0 +1,21 @@
+```plantuml
+@startuml
+actor Admin
+actor SuperAdmin
+
+participant LoginService
+
+autonumber
+SuperAdmin -> LoginService : /admin/create
+Admin -> LoginService : /user/login
+Admin -> ValidatorService : /get/stats
+Admin -> PaymentService : /admin/transations
+Admin -> TravelerService : /admin/traveler/{userID}/profile/
+Admin -> TravelerService : /admin/traveler/{userID}/tickets/
+Admin -> TravelerService : /stats/
+Admin -> TicketCatalogService : /admin/orders/{user-id}/
+Admin -> TicketCatalogService : /admin/orders/
+Admin -> TicketCatalogService : /admin/tickets/
+
+@enduml
+```

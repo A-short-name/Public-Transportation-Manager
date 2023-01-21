@@ -1,0 +1,26 @@
+```plantuml
+@startuml
+
+actor User
+participant LoginService
+participant TicketCatalogService
+participant PaymentService
+participant TravelerService
+participant ValidatorService
+
+autonumber
+User -> LoginService : /user/register
+User -> LoginService : /user/validate
+User -> LoginService : /user/login
+User -> TicketCatalogService : /tickets
+User -> TicketCatalogService : /shop/{ticket-id}/
+TicketCatalogService --> TravelerService : /services/user/{username}/birthdate/
+TicketCatalogService -[#add1b2]> PaymentService : Place payment order on Kafka
+PaymentService -[#add1b2]> TicketCatalogService : Read outcome of payment from Kafka
+TicketCatalogService -> TravelerService : /services/user/{username}/tickets/add/
+User -> TicketCatalogService: /orders
+User -> TravelerService: /my/tickets/{ticket-sub}
+User -> ValidatorService: /{clientZid}/validate
+
+@enduml
+```
