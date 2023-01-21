@@ -1,9 +1,12 @@
 # Public-Transportation-Manager
-This is a Web Applications II group project carried out during academic year 2021/22. It consists of a microservices system.
+
+This is a Web Applications II group project carried out during academic year 2021/22. It consists of a microservices
+system.
 
 ## Architecture
 
-Developers singed in with github can find the architecture of the project from [diagrams.net (or draw.io)](https://app.diagrams.net/)
+Developers singed in with github can find the architecture of the project
+from [diagrams.net (or draw.io)](https://app.diagrams.net/)
 
 ![image](https://user-images.githubusercontent.com/62254235/213884657-103d949b-8a00-44a4-b5e2-97d90885f09b.png)
 
@@ -15,69 +18,28 @@ Developers singed in with github can find the architecture of the project from [
 
 ### User actions
 
-```plantuml
-@startuml
-
-actor User
-participant LoginService
-participant TicketCatalogService
-participant PaymentService
-participant TravelerService
-participant ValidatorService
-
-autonumber
-User -> LoginService : /user/register
-User -> LoginService : /user/validate
-User -> LoginService : /user/login
-User -> TicketCatalogService : /tickets
-User -> TicketCatalogService : /shop/{ticket-id}/
-TicketCatalogService --> TravelerService : /services/user/{username}/birthdate/
-TicketCatalogService -[#add1b2]> PaymentService : Place payment order on Kafka
-PaymentService -[#add1b2]> TicketCatalogService : Read outcome of payment from Kafka
-TicketCatalogService -> TravelerService : /services/user/{username}/tickets/add/
-User -> TicketCatalogService: /orders
-User -> TravelerService: /my/tickets/{ticket-sub}
-User -> ValidatorService: /{clientZid}/validate
-
-@enduml
-```
+![User actions](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://github.com/A-short-name/Public-Transportation-Manager/blob/main/User_actions.iuml)
 
 ### Admin actions
 
-```plantuml
-@startuml
-actor Admin
-actor SuperAdmin
-
-participant LoginService
-
-autonumber
-SuperAdmin -> LoginService : /admin/create
-Admin -> LoginService : /user/login
-Admin -> ValidatorService : /get/stats
-Admin -> PaymentService : /admin/transations
-Admin -> TravelerService : /admin/traveler/{userID}/profile/
-Admin -> TravelerService : /admin/traveler/{userID}/tickets/
-Admin -> TravelerService : /stats/
-Admin -> TicketCatalogService : /admin/orders/{user-id}/
-Admin -> TicketCatalogService : /admin/orders/
-Admin -> TicketCatalogService : /admin/tickets/
-
-@enduml
-```
+![Admin actions](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://github.com/A-short-name/Public-Transportation-Manager/blob/main/Admin_actions.iuml)
 
 ## How to open this project
 
 In order to open this project you need:
-- Docker 
+
+- Docker
 - JDK (version 16) - Prefer Amazon Corretto 16
 
 ## Steps
 
 To run the project in a local environment it is needed to:
-- Execute the docker-compose.yml file in the main directory (using `docker-compose up -d`). In this way all the needed containers (kafka, postgres) will be up and running.
-- Postgres databases will be created using the env variable `POSTGRES_MULTIPLE_DATABASES` that is used by the script `pg-init-scripts` for the initialization and creation of the databases
-  
+
+- Execute the docker-compose.yml file in the main directory (using `docker-compose up -d`). In this way all the needed
+  containers (kafka, postgres) will be up and running.
+- Postgres databases will be created using the env variable `POSTGRES_MULTIPLE_DATABASES` that is used by the
+  script `pg-init-scripts` for the initialization and creation of the databases
+
 ## Checks
 
 ### Tests
