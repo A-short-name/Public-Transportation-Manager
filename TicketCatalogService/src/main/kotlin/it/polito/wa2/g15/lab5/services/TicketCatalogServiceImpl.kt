@@ -230,9 +230,11 @@ class TicketCatalogServiceImpl : TicketCatalogService {
 
         }catch(e: RuntimeException) {
             throw InvalidTicketRestrictionException("Traveler service not found")
-        }catch(e: WebClientResponseException) {
+        }/*
+            This is caught in the controller
+            catch(e: WebClientResponseException) {
             throw InvalidTicketRestrictionException("Traveler service not responding properly")
-        }
+        }*/
 
         logger.info { "User ($userName) age is: $age" }
         return age.toInt()

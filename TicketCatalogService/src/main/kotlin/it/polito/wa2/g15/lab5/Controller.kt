@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContext
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.util.stream.Collectors
 import javax.validation.Valid
 
@@ -72,7 +73,12 @@ class Controller {
         val res: Long? = try {
             response.statusCode = HttpStatus.ACCEPTED
             ticketCatalogService.buyTicket(buyTicketBody, ticketId, userName)
-        } catch (e: Exception) {
+        } catch (e: WebClientResponseException){
+            // if the TravellerService is not available, is not available the check on the age restrictions
+            response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+            null
+        }
+        catch (e: Exception) {
             response.statusCode = HttpStatus.BAD_REQUEST
             null
         }
