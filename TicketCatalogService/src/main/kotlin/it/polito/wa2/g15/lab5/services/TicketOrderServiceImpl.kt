@@ -1,5 +1,6 @@
 package it.polito.wa2.g15.lab5.services
 
+import com.netflix.discovery.EurekaClient
 import it.polito.wa2.g15.lab5.dtos.TicketForTravelerDTO
 import it.polito.wa2.g15.lab5.entities.TicketOrder
 import it.polito.wa2.g15.lab5.exceptions.InvalidTicketOrderException
@@ -12,14 +13,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.awaitExchange
+import org.springframework.web.reactive.function.client.bodyToMono
+import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 @Service
 class TicketOrderServiceImpl : TicketOrderService {
@@ -40,6 +46,9 @@ class TicketOrderServiceImpl : TicketOrderService {
 
     @Autowired
     lateinit var client: WebClient
+
+    @Autowired
+    lateinit var discoveryClient : EurekaClient
 
     override fun getUserTicketOrders(username: String): Flow<TicketOrder> {
 
@@ -94,13 +103,23 @@ class TicketOrderServiceImpl : TicketOrderService {
         val ticket = ticketItemRepository.findById(ticketOrder.ticketId)!!
         val ticketForTraveler= TicketForTravelerDTO(ticket.duration, ticket.ticketType, ticketOrder.validFrom, ticketOrder.zid, ticketOrder.quantity)
 
-        client.post()
-            .uri("/services/user/${ticketOrder.username}/tickets/add/")
-            .bodyValue(ticketForTraveler)
-            .awaitExchange {
-                if (it.statusCode() != HttpStatus.ACCEPTED)
-                    throw InvalidTicketRestrictionException("Post for ticket failed")
-            }
+        try {
+            val instanceInfo = discoveryClient.getNextServerFromEureka("traveler", false)
+            val homePageUrl = instanceInfo.homePageUrl
+
+            client.post()
+                .uri(homePageUrl + "services/user/${ticketOrder.username}/tickets/add/")
+                .bodyValue(ticketForTraveler)
+                .awaitExchange {
+                    if (it.statusCode() != HttpStatus.OK)
+                        throw InvalidTicketRestrictionException("Post for ticket failed")
+                }
+        }catch(e: RuntimeException) {
+            throw InvalidTicketRestrictionException("Traveler service not found")
+        }catch(e: WebClientResponseException) {
+            throw InvalidTicketRestrictionException("Traveler service not responding properly")
+        }
+
         logger.info { "Ticket post successful" }
     }
 }
