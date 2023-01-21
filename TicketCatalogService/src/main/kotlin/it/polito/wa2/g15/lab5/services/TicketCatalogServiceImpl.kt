@@ -23,6 +23,7 @@ import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -206,6 +207,7 @@ class TicketCatalogServiceImpl : TicketCatalogService {
         }
         logger.info("order $order set pending")
 
+        //This could throw an exception
         publishOrderOnKafka(buyTicketDTO, order)
 
 

@@ -5,6 +5,7 @@ import it.polito.wa2.g15.lab5.dtos.NewTicketItemDTO
 import it.polito.wa2.g15.lab5.entities.TicketItem
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * This class is implemented using coroutine and suspendable functions, in this way this service will be asynchronous
@@ -42,6 +43,7 @@ interface TicketCatalogService {
      * The client to check the order result, must do polling to check the outcome.
      *
      */
+    @Transactional
     @PreAuthorize("hasAnyAuthority('ADMIN','SUPERADMIN','CUSTOMER')")
     suspend fun buyTicket(buyTicketDTO: BuyTicketDTO, ticketId: Long, userName: String) : Long
 }
