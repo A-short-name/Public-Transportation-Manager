@@ -8,11 +8,11 @@ system.
 Developers singed in with github can find the architecture of the project
 from [diagrams.net (or draw.io)](https://app.diagrams.net/)
 
-![image](https://user-images.githubusercontent.com/62254235/213884657-103d949b-8a00-44a4-b5e2-97d90885f09b.png)
+![image](./doc/WA2_Public_travelservice-System_architecture.png)
 
 ## Key management
 
-![image](https://user-images.githubusercontent.com/62254235/213884680-c6d19430-53c4-45b5-9d60-7d8297bdd2c7.png)
+![image](./doc/WA2_Public_travelservice-Key_management.png)
 
 ## Flowchart of main user stories
 
