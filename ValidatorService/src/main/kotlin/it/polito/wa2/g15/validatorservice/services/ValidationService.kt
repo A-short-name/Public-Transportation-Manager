@@ -36,7 +36,7 @@ class ValidationService {
         var key = ""
         try {
             key = embeddedSystemRestClientService.getValidationKey()
-            logger.info("secret received: $key")
+            logger.debug("secret received: $key")
         } catch (e: Exception) {
             logger.info("Validation is inactive because it can not retrieve the key used to validate tickets")
             logger.error("can not connect to other services: ${e.message}")
