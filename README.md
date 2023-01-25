@@ -3,6 +3,10 @@
 This is a Web Applications II group project carried out during academic year 2021/22. It consists of a microservices
 system.
 
+## Presentation
+
+https://prezi.com/view/SyfRTVuknWk29oNQD7GF/
+
 ## Architecture
 
 Developers singed in with github can find the architecture of the project
