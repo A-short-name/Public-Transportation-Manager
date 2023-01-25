@@ -33,7 +33,7 @@ Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
 }
 
 ### 2.1 Add user profile
-PUT http://localhost:8081/my/profile/
+PUT http://localhost:8085/traveler-service/my/profile/
 X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
 Content-Type: application/json
 Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
@@ -68,7 +68,7 @@ Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
 GET http://localhost:8085/ticket-catalog-service/tickets/
 
 ### 3.3 Admin adds a new ticket
-POST http://localhost:8082/admin/tickets/
+POST http://localhost:8085/ticket-catalog-service/admin/tickets/
 X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
 Content-Type: application/json
 Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
@@ -82,6 +82,31 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxN
 
 ### 3.4 Get all the tickets again
 GET http://localhost:8085/ticket-catalog-service/tickets/
+
+### 4.1 Customer buys a ticket
+POST http://localhost:8085/ticket-catalog-service/shop/1/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwiaWF0IjoxNjc0NjQzNDQ3LCJleHAiOjE2NzQ2NDcwNDcsInJvbGVzIjpbIkNVU1RPTUVSIl19.P1ucLiD1cXBHVHhNJ5oCUAHM6Uuev6fkGNv-G5S4CG4
+
+{
+  "numOfTickets": 10,
+  "paymentInfo": {
+    "creditCardNumber": "7992-7398-7131-2233",
+    "exp": "2030-01-01",
+    "cvv": "123",
+    "cardHolder": "Marco Smorti"
+  },
+  "validFrom": "2023-01-25T18:00:00Z[UTC]",
+  "zid": "123"
+}
+
+### 4.2 Customer checks the order
+GET http://localhost:8085/ticket-catalog-service/orders/
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwiaWF0IjoxNjc0NjQzNDQ3LCJleHAiOjE2NzQ2NDcwNDcsInJvbGVzIjpbIkNVU1RPTUVSIl19.P1ucLiD1cXBHVHhNJ5oCUAHM6Uuev6fkGNv-G5S4CG4
+
+### 5.1 Customer validates the ticket
 
 ###
 GET http://localhost:8085/payment-service/admin/transactions/

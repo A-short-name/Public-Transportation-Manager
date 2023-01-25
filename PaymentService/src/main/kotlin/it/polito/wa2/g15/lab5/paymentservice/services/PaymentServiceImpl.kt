@@ -74,7 +74,7 @@ class PaymentServiceImpl : PaymentService {
 
         val transaction: Transaction
         try {
-            val (creditCardNumber, cardHolder)= message.billingInfo
+            val (creditCardNumber, exp, cvv, cardHolder)= message.billingInfo
             transaction = transactionRepository.save(Transaction(username = message.username, creditCardNumber = creditCardNumber, cardHolder = cardHolder, totalCost = message.totalCost, orderId = message.orderId))
         } catch (e: Exception) {
             sendMessageForPayment(errorDuringPayment, false, -1, message.orderId)

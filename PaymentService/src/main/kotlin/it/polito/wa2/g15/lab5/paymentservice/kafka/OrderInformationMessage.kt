@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.hibernate.validator.constraints.CreditCardNumber
 import java.time.LocalDate
 import javax.validation.constraints.NotBlank
+import javax.validation.constraints.NotNull
 
 data class OrderInformationMessage(
         @JsonProperty("billing_info")
@@ -19,6 +20,12 @@ data class PaymentInfo(
         @field:NotBlank
         @field:CreditCardNumber(ignoreNonDigitCharacters = true)
         val creditCardNumber: String,
+
+        @field:NotNull
+        val exp: LocalDate,
+
+        @field:NotBlank
+        val cvv: String,
 
         @field:NotBlank
         val cardHolder: String
