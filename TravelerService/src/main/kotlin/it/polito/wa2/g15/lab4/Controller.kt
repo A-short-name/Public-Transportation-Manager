@@ -142,7 +142,7 @@ class Controller {
         }
         logger.debug { "found jwt of ticket with id $ticketSub: $jwt" }
         val result = try {
-            val qr = encodeQR(jwt, 64, 64)
+            val qr = encodeQR(jwt, 512, 512)
             ByteArrayResource(qr, IMAGE_PNG_VALUE)
         } catch (ex: Exception) {
             logger.error { "\tError generating the QR code for the purchased ticket: ${ex.message}" }
