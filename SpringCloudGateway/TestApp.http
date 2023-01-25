@@ -32,14 +32,55 @@ Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
   "password": "Secret!Password1"
 }
 
-###
+### 2.1 Add user profile
+PUT http://localhost:8081/my/profile/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwiaWF0IjoxNjc0NjQyMjg3LCJleHAiOjE2NzQ2NDU4ODcsInJvbGVzIjpbIkNVU1RPTUVSIl19.FPzsIgxs2krguh9o0N0FW4-3clXNtL3O9Wx7TsY6Oo8
+
+{
+  "name": "Marco Smorti",
+  "address": "Via San Secondo 23, 10128 Torino",
+  "dateOfBirth": "1997-04-24",
+  "telephoneNumber": "3891746404"
+}
+
+### 2.2 Get user profile
 GET http://localhost:8085/traveler-service/my/profile/
 X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
 Content-Type: application/json
 Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJSMkQyIiwiaWF0IjoxNjUyNDU2MjQ5LCJleHAiOjE5MjQ5MDU2MDAsInJvbGVzIjpbIkNVU1RPTUVSIl19.Z_qium_7XDN3yIKzQMGj83YElSWfvR6h3TI0NiSj9sI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwiaWF0IjoxNjc0NjQyMjg3LCJleHAiOjE2NzQ2NDU4ODcsInJvbGVzIjpbIkNVU1RPTUVSIl19.FPzsIgxs2krguh9o0N0FW4-3clXNtL3O9Wx7TsY6Oo8
 
-###
+### 3.1 Admin performs login
+POST http://localhost:8085/login-service/user/login
+X-XSRF-TOKEN: b2e8e364-773c-494e-97bc-e49c1c08e079
+Content-Type: application/json
+Cookie: XSRF-TOKEN=b2e8e364-773c-494e-97bc-e49c1c08e079
+
+{
+  "nickname": "superadmin",
+  "password": "superadmin"
+}
+
+### 3.2 Get all the tickets
+GET http://localhost:8085/ticket-catalog-service/tickets/
+
+### 3.3 Admin adds a new ticket
+POST http://localhost:8082/admin/tickets/
+X-XSRF-TOKEN: 224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Content-Type: application/json
+Cookie: XSRF-TOKEN=224159f4-d4ed-41ff-b726-c6d7a2ad71d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjc0NjQzMTMwLCJleHAiOjE2NzQ2NDY3MzAsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.WudFXepvZlEMLN1_DdC9uWU5yctd5VQ0FvF4jAM3wtk
+
+{
+  "type": "ORDINAL",
+  "price": 15,
+  "duration": 86400
+}
+
+### 3.4 Get all the tickets again
 GET http://localhost:8085/ticket-catalog-service/tickets/
 
 ###
