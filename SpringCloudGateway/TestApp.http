@@ -106,12 +106,21 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwia
 GET http://localhost:8085/ticket-catalog-service/orders/
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwiaWF0IjoxNjc0NjQzNDQ3LCJleHAiOjE2NzQ2NDcwNDcsInJvbGVzIjpbIkNVU1RPTUVSIl19.P1ucLiD1cXBHVHhNJ5oCUAHM6Uuev6fkGNv-G5S4CG4
 
-### 5.1 Customer validates the ticket
-
-###
+### 4.3 Admin gets all transactions
 GET http://localhost:8085/payment-service/admin/transactions/
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjc0NjQ1MDk2LCJleHAiOjE2NzQ2NDg2OTYsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0._N3LXL5TpGKF5LjLD86x1z1z1oPaN5uaexm_ND0WKao
 
-###
+### 5.1 Customer gets all tickets
+GET http://localhost:8085/traveler-service/my/tickets
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwiaWF0IjoxNjc0NjQzNDQ3LCJleHAiOjE2NzQ2NDcwNDcsInJvbGVzIjpbIkNVU1RPTUVSIl19.P1ucLiD1cXBHVHhNJ5oCUAHM6Uuev6fkGNv-G5S4CG4
+
+### 5.2 Customer selects one ticket (QR is received)
+GET http://localhost:8085/traveler-service/my/tickets/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZlZGVtb2N1c3RvbWVyIiwiaWF0IjoxNjc0NjQzNDQ3LCJleHAiOjE2NzQ2NDcwNDcsInJvbGVzIjpbIkNVU1RPTUVSIl19.P1ucLiD1cXBHVHhNJ5oCUAHM6Uuev6fkGNv-G5S4CG4
+
+### 5.2 Customer validates the ticket (???? How to pass QR of the previous request here?)
+POST http://localhost:8085/validator-service/1/validate
+
+### 6.1 Admin gets statistics about validator
 GET http://localhost:8085/validator-service/get/stats
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4eHh4IiwiaWF0IjoxNjUyNDM0MzI0LCJleHAiOjE2NTYwMzQzMjQsInJvbGVzIjpbIkFETUlOIiwiQ1VTVE9NRVIiXX0.CLP11zBlpcUgprdq5CJxNDMXAcjUZ7voLnJFqxtNl_Q
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwiaWF0IjoxNjc0NjQ1OTMyLCJleHAiOjE2NzQ2NDk1MzIsInJvbGVzIjpbIlNVUEVSQURNSU4iXX0.rKBlmtcLCL7TW5OHhXX70GCTOXNj4pCBDllet3nODJ4
